@@ -605,10 +605,16 @@ def gen_aarch64_intt_zetas_layer78():
 
 
 def gen_aarch64_intt_zetas_layer123456():
-    for i in range(16):
-        yield from gen_aarch64_root_of_unity_for_block(4, i, inv=True)
-        yield from gen_aarch64_root_of_unity_for_block(5, i * 2, inv=True)
-        yield from gen_aarch64_root_of_unity_for_block(5, i * 2 + 1, inv=True)
+    for i in range(8):
+        yield from gen_aarch64_root_of_unity_for_block(3, i, inv=True)
+
+        yield from gen_aarch64_root_of_unity_for_block(4, i * 2, inv=True)
+        yield from gen_aarch64_root_of_unity_for_block(4, i * 2 + 1, inv=True)
+        yield from gen_aarch64_root_of_unity_for_block(5, i * 4, inv=True)
+        yield from gen_aarch64_root_of_unity_for_block(5, i * 4 + 1, inv=True)
+        yield from gen_aarch64_root_of_unity_for_block(5, i * 4 + 2, inv=True)
+        yield from gen_aarch64_root_of_unity_for_block(5, i * 4 + 3, inv=True)
+        yield from (0, 0)  # Padding
 
     # The last layer has the scaling by 1/256 integrated in the twiddle
     yield from gen_aarch64_root_of_unity_for_block(0, 0, inv=True, scale=True)
@@ -619,14 +625,6 @@ def gen_aarch64_intt_zetas_layer123456():
     yield from gen_aarch64_root_of_unity_for_block(2, 1, inv=True)
     yield from gen_aarch64_root_of_unity_for_block(2, 2, inv=True)
     yield from gen_aarch64_root_of_unity_for_block(2, 3, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 0, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 1, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 2, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 3, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 4, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 5, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 6, inv=True)
-    yield from gen_aarch64_root_of_unity_for_block(3, 7, inv=True)
     yield from (0, 0)  # Padding
 
 
