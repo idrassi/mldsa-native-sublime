@@ -20,7 +20,6 @@ SLOTHY_FLAGS=-c sw_pipelining.enabled=true \
              -c sw_pipelining.allow_post \
              -c variable_size \
              -c constraints.stalls_first_attempt=64 \
-             -c timeout=120 \
              $(SLOTHY_EXTRA_FLAGS)
 
 # For kernels which stash callee-saved v8-v15 but don't stash callee-saved GPRs x19-x30. 
@@ -37,6 +36,10 @@ all: ntt.S
 # those registers.
 ntt.S: ../../../../dev/aarch64_clean/src/ntt.S
 	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l layer123_start -l layer45678_start $(SLOTHY_FLAGS) $(RESERVE_X_ONLY_FLAG)
+
+intt.S: ../../../../dev/aarch64_clean/src/intt.S
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l layer123_start -l layer45678_start $(SLOTHY_FLAGS) $(RESERVE_X_ONLY_FLAG)
+
 
 clean:
 	-$(RM) -rf *.S
