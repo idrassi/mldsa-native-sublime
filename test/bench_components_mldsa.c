@@ -10,6 +10,7 @@
 #include <string.h>
 #include "../mldsa/ntt.h"
 #include "../mldsa/poly.h"
+#include "../mldsa/polyvec.h"
 #include "../mldsa/randombytes.h"
 #include "hal.h"
 
@@ -26,6 +27,8 @@ static int cmp_uint64_t(const void *a, const void *b)
   for (i = 0; i < NTESTS; i++)                          \
   {                                                     \
     randombytes((uint8_t *)data0, sizeof(data0));       \
+    randombytes((uint8_t *)data1, sizeof(data1));       \
+    randombytes((uint8_t *)data2, sizeof(data2));       \
     for (j = 0; j < NWARMUP; j++)                       \
     {                                                   \
       code;                                             \
@@ -44,15 +47,20 @@ static int cmp_uint64_t(const void *a, const void *b)
 
 static int bench(void)
 {
-  int32_t data0[256];
+  MLD_ALIGN int32_t data0[256];
+  MLD_ALIGN int32_t data1[MLDSA_K * 256];
+  MLD_ALIGN int32_t data2[MLDSA_K * 256];
   uint64_t cyc[NTESTS];
   unsigned i, j;
   uint64_t t0, t1;
 
-  /* ntt */
   BENCH("poly_ntt", poly_ntt((poly *)data0))
+
   BENCH("poly_invntt_tomont", poly_invntt_tomont((poly *)data0))
 
+  BENCH("polyvecl_pointwise_acc_montgomery",
+        polyvecl_pointwise_acc_montgomery(
+            (poly *)data0, (const polyvecl *)data1, (const polyvecl *)data2))
   return 0;
 }
 
