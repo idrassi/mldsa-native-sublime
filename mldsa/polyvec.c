@@ -231,7 +231,7 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
 }
-
+#if !defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY)
 void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
                                        const polyvecl *v)
 {
@@ -263,7 +263,22 @@ void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
     w->coeffs[i] = montgomery_reduce(t);
   }
 }
-
+#else /* !MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
+void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
+                                       const polyvecl *v)
+{
+#if MLDSA_L == 4
+  mld_polyvecl_pointwise_acc_montgomery_l4_native(w->coeffs, (const int32_t *)u,
+                                                  (const int32_t *)v);
+#elif MLDSA_L == 5
+  mld_polyvecl_pointwise_acc_montgomery_l5_native(w->coeffs, (const int32_t *)u,
+                                                  (const int32_t *)v);
+#elif MLDSA_L == 7
+  mld_polyvecl_pointwise_acc_montgomery_l7_native(w->coeffs, (const int32_t *)u,
+                                                  (const int32_t *)v);
+#endif
+}
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
 
 int polyvecl_chknorm(const polyvecl *v, int32_t bound)
 {
