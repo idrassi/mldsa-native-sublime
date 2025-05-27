@@ -204,8 +204,8 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
 
     /* Decompose w and call the random oracle */
     polyveck_caddq(&w1);
-    polyveck_decompose(&w1, &w0, &w1);
-    polyveck_pack_w1(sig, &w1);
+    polyveck_decompose(&w1, &w0, &w1);  // RCC need to remove aliasing
+    polyveck_pack_w1(sig, &w1);         // RCC changes
 
     mld_H(sig, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
           MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
@@ -217,11 +217,11 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     polyvecl_invntt_tomont(&z);
     polyvecl_add(&z, &y);
     polyvecl_reduce(&z);
-    if (polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
-    {
-      /* reject */
-      continue;
-    }
+    //    if (polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
     /* Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */
@@ -229,24 +229,24 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     polyveck_invntt_tomont(&h);
     polyveck_sub(&w0, &h);
     polyveck_reduce(&w0);
-    if (polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA))
-    {
-      /* reject */
-      continue;
-    }
+    //    if (polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA))
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
     /* Compute hints for w1 */
     polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
     polyveck_invntt_tomont(&h);
     polyveck_reduce(&h);
-    if (polyveck_chknorm(&h, MLDSA_GAMMA2))
-    {
-      /* reject */
-      continue;
-    }
+    //    if (polyveck_chknorm(&h, MLDSA_GAMMA2))
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
     polyveck_add(&w0, &h);
-    n = polyveck_make_hint(&h, &w0, &w1);
+    n = polyveck_make_hint(&h, &w0, &w1);  // RCC needs change
     if (n > MLDSA_OMEGA)
     {
       /* reject */
@@ -258,6 +258,12 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     *siglen = CRYPTO_BYTES;
     return 0;
   }
+
+  // Rejections  SMT2
+  //  4          64.6MB
+  //  3          59.7MB
+  //  2          55.6MB
+  //  1          52.2MB
 }
 
 int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
@@ -391,7 +397,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
 
   /* Reconstruct w1 */
   polyveck_caddq(&w1);
-  polyveck_use_hint(&w1, &w1, &h);
+  polyveck_use_hint(&w1, &w1, &h);  // RCC aliasing!
   polyveck_pack_w1(buf, &w1);
 
   /* Call random oracle and verify challenge */

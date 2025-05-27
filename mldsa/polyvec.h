@@ -196,7 +196,11 @@ __contract__(
   requires(memory_no_alias(v, sizeof(polyvecl)))
   requires(0 <= B && B <= (MLDSA_Q - 1) / 8)
   requires(forall(k0, 0, MLDSA_L,
+<<<<<<< HEAD
     array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
+=======
+    array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -REDUCE_RANGE_MAX, REDUCE_RANGE_MAX)))
+>>>>>>> 104a163 (work in progress)
   ensures(return_value == 0 || return_value == 1)
   ensures((return_value == 0) == forall(k1, 0, MLDSA_L, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, B)))
 );
@@ -338,6 +342,9 @@ __contract__(
   assigns(memory_slice(v, sizeof(polyveck)))
   ensures(forall(k1, 0, MLDSA_K, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_INTT_BOUND)))
 );
+// RCC - should be stronger as follows
+// ensures(forall(k1, 0, MLDSA_K, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N,
+// MLDSA_Q)))
 
 #define polyveck_pointwise_poly_montgomery \
   MLD_NAMESPACE(polyveck_pointwise_poly_montgomery)
@@ -345,8 +352,8 @@ __contract__(
  * Name:        polyveck_pointwise_poly_montgomery
  *
  * Description: Pointwise multiplication of a polynomial vector of length
- *              MLDSA_K by a single polynomial in NTT domain and multiplication
- *              of the resulting polynomial vector by 2^{-32}.
+ *              MLDSA_K by a single polynomial in NTT domain and
+ *multiplication of the resulting polynomial vector by 2^{-32}.
  *
  * Arguments:   - polyveck *r: pointer to output vector
  *              - poly *a: pointer to input polynomial
