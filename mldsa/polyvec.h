@@ -196,11 +196,7 @@ __contract__(
   requires(memory_no_alias(v, sizeof(polyvecl)))
   requires(0 <= B && B <= (MLDSA_Q - 1) / 8)
   requires(forall(k0, 0, MLDSA_L,
-<<<<<<< HEAD
     array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
-=======
-    array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -REDUCE_RANGE_MAX, REDUCE_RANGE_MAX)))
->>>>>>> 104a163 (work in progress)
   ensures(return_value == 0 || return_value == 1)
   ensures((return_value == 0) == forall(k1, 0, MLDSA_L, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, B)))
 );
