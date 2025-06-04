@@ -195,7 +195,7 @@ void polyvecl_add(polyvecl *u, const polyvecl *v)
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
     invariant(i <= MLDSA_L)
-    invariant(forall(k0, i, MLDSA_L, 
+    invariant(forall(k0, i, MLDSA_L,
               forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1]))))
   {
     poly tmp = u->vec[i];
@@ -259,30 +259,35 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
 void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
                                        const polyvecl *v)
 {
-  unsigned int i, j;
+  unsigned int i;
   /* The second input is bounded by 9q. Hence, we can safely accumulate
    * in 64-bits without intermediate reductions as
-   * MLDSA_L * MLD_NTT_BOUND * INT32_MAX < INT64_MAX
-   * worst case is ML-DSA-87: 7 * 9 * q * 2**31 < 2**63
-   * (likewise for negative values)
+   * -MLDSA_L * INT32_MIN * (MLD_NTT_BOUND-1) <= INT64_MAX and
+   *  MLDSA_L * INT32_MIN * (MLD_NTT_BOUND-1) >= INT64_MIN
+   * worst case is for ML-DSA-87 when MLDSA_L = 7, so
+   *    -7 * -2**31 * (9 * q - 1) <= 2**63-1 and
+   *     7 * -2**31 * (9 * q - 1) >= -2**63
    */
 
   for (i = 0; i < MLDSA_N; i++)
   __loop__(
-    assigns(i, j, object_whole(w))
+    assigns(i, object_whole(w))
     invariant(i <= MLDSA_N)
   )
   {
+    unsigned int j;
     int64_t t = 0;
     for (j = 0; j < MLDSA_L; j++)
     __loop__(
       assigns(j, t)
       invariant(j <= MLDSA_L)
-      invariant(t <= -(int64_t)j*INT32_MIN*MLD_NTT_BOUND)
-      invariant(t >= (int64_t)j*INT32_MIN*MLD_NTT_BOUND)
+      invariant(t <= -(int64_t)j*INT32_MIN*(MLD_NTT_BOUND-1))
+      invariant(t >=  (int64_t)j*INT32_MIN*(MLD_NTT_BOUND-1))
     )
     {
-      t += (int64_t)u->vec[j].coeffs[i] * v->vec[j].coeffs[i];
+      int64_t left = (int64_t)u->vec[j].coeffs[i];
+      int64_t right = (int64_t)v->vec[j].coeffs[i];
+      t += left * right;
     }
     w->coeffs[i] = montgomery_reduce(t);
   }
@@ -360,7 +365,7 @@ void polyveck_add(polyveck *u, const polyveck *v)
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     invariant(i <= MLDSA_K)
-    invariant(forall(k0, i, MLDSA_K, 
+    invariant(forall(k0, i, MLDSA_K,
              forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1]))))
   {
     poly tmp = u->vec[i];
@@ -379,7 +384,7 @@ void polyveck_sub(polyveck *u, const polyveck *v)
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     invariant(i <= MLDSA_K)
-    invariant(forall(k0, i, MLDSA_K, 
+    invariant(forall(k0, i, MLDSA_K,
              forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1]))))
   {
     poly tmp = u->vec[i];
