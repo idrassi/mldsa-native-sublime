@@ -64,7 +64,6 @@ MLD_ASM_FN_SYMBOL(mld_rej_uniform)
     vmovmskps       %ymm4, %ecx
 
     # Load permutation indices from table
-    movslq          %ecx, %rcx
     lea             MLD_ASM_NAMESPACE(mld_rej_uniform_table)(%rip), %r8
     vmovq           (%r8,%rcx,8), %xmm5
     vpmovsxbd       %xmm5, %ymm5
