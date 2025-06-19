@@ -169,8 +169,10 @@ MLD_ASM_FN_SYMBOL(rej_uniform_asm)
     jae     .Lloop3
     
 .Lmemory_copy:
-    // Return count directly, like the AArch64 version
+    // Compute min(count, len)
     mov     %r8, %rax                   // rax = count
+    cmp     %r9, %rax                   // Compare count with len
+    cmova   %r9, %rax                   // If count > len, use len
     
     // Copy coefficients from stack to output buffer
     mov     %rsp, %rsi                  // rsi = temporary buffer base
