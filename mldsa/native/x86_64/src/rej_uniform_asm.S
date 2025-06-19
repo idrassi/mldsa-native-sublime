@@ -15,7 +15,7 @@
 .text
 .global MLD_ASM_NAMESPACE(rej_uniform_asm)
 .align 32
-MLD_ASM_FN_SYMBOL(rej_uniform_asm):
+MLD_ASM_FN_SYMBOL(rej_uniform_asm)
     // Function prologue
     push    %rbp
     mov     %rsp, %rbp
