@@ -88,7 +88,9 @@ static int bench(void)
   BENCH("polyvecl_pointwise_acc_montgomery",
         polyvecl_pointwise_acc_montgomery((poly *)data0, (polyvecl *)data1,
                                           (polyvecl *)data2))
-
+  BENCH("polyveck_pointwise_poly_montgomery",
+        polyveck_pointwise_poly_montgomery(
+            (polyveck *)data0, (const poly *)data1, (const polyveck *)data2))
   return 0;
 }
 
@@ -100,4 +102,3 @@ int main(void)
 
   return 0;
 }
-
