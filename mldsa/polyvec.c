@@ -439,6 +439,7 @@ void polyveck_invntt_tomont(polyveck *v)
   }
 }
 
+#if !defined(MLD_USE_NATIVE_POLYVECK_POINTWISE_POLY_MONTGOMERY)
 void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
                                         const polyveck *v)
 {
@@ -449,6 +450,14 @@ void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
 }
+#else  /* !MLD_USE_NATIVE_POLYVECK_POINTWISE_POLY_MONTGOMERY */
+void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
+                                        const polyveck *v)
+{
+  mld_polyveck_pointwise_poly_montgomery_native((int32_t *)r, a->coeffs,
+                                                (const int32_t *)v);
+}
+#endif /* MLD_USE_NATIVE_POLYVECK_POINTWISE_POLY_MONTGOMERY */
 
 
 int polyveck_chknorm(const polyveck *v, int32_t bound)
