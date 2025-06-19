@@ -190,8 +190,7 @@ MLD_ASM_FN_SYMBOL(rej_uniform_asm)
     dec     %rcx                        // Decrement counter
     jnz     .Lcopy_loop                 // Loop until done
     
-    // Return count
-    mov     %rax, %rdi                  // Return value = min(count, len)
+    // Return count is already in %rax, which is the correct register for return values
     
     // Function epilogue
     pop     %r15
