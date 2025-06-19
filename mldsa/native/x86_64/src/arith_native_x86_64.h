@@ -44,4 +44,8 @@ unsigned mld_rej_uniform_eta2_avx2(
 unsigned mld_rej_uniform_eta4_avx2(
     int32_t *r, const uint8_t buf[MLD_AVX2_REJ_UNIFORM_ETA4_BUFLEN]);
 
+#define mld_rej_uniform_asm MLD_NAMESPACE(rej_uniform_asm)
+uint64_t mld_rej_uniform_asm(int32_t *r, const uint8_t *buf, unsigned buflen,
+                             const uint8_t (*table)[8]);
+
 #endif /* !MLD_NATIVE_X86_64_SRC_ARITH_NATIVE_X86_64_H */

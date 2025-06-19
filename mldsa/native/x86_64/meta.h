@@ -41,13 +41,13 @@ static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
                                              const uint8_t *buf,
                                              unsigned buflen)
 {
-  /* AVX2 implementation assumes specific buffer lengths */
-  if (len != MLDSA_N || buflen != MLD_AVX2_REJ_UNIFORM_BUFLEN)
+  /* Use the assembly implementation which supports any buffer length */
+  if (len != MLDSA_N)
   {
     return -1;
   }
 
-  return (int)mld_rej_uniform_avx2(r, buf);
+  return (int)mld_rej_uniform_asm(r, buf, buflen, mld_rej_uniform_table);
 }
 
 static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
