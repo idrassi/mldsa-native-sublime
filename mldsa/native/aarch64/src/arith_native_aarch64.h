@@ -26,10 +26,16 @@ extern const int32_t mld_aarch64_ntt_zetas_layer78[];
 extern const int32_t mld_aarch64_intt_zetas_layer78[];
 extern const int32_t mld_aarch64_intt_zetas_layer123456[];
 
+extern const uint8_t mld_rej_uniform_table[];
+
 #define mld_ntt_asm MLD_NAMESPACE(ntt_asm)
 void mld_ntt_asm(int32_t *, const int32_t *, const int32_t *);
 
 #define mld_intt_asm MLD_NAMESPACE(intt_asm)
 void mld_intt_asm(int32_t *, const int32_t *, const int32_t *);
+
+#define mld_rej_uniform_asm MLD_NAMESPACE(rej_uniform_asm)
+uint64_t mld_rej_uniform_asm(int32_t *r, const uint8_t *buf, unsigned buflen,
+                             const uint8_t *table);
 
 #endif /* !MLD_NATIVE_AARCH64_SRC_ARITH_NATIVE_AARCH64_H */
