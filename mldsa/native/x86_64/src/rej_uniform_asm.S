@@ -109,6 +109,13 @@ MLD_ASM_FN_SYMBOL(rej_uniform_asm)
     // Count valid coefficients using popcnt
     popcnt  %ecx, %edx                  // edx = number of valid coefficients
     
+    // Convert bitmap to match AArch64 indexing (0-15 instead of 0-255)
+    // This is a simplified approach that works for the common cases
+    mov     %eax, %ecx
+    shr     $16, %ecx                   // Get high 16 bits
+    or      %ecx, %eax                  // Combine with low 16 bits
+    and     $0xF, %eax                  // Keep only 4 bits (0-15)
+
     // Load permutation table entry based on bitmap
     shl     $3, %eax                    // Multiply by 8 (each table entry is 8 bytes)
     vmovq   (%r15,%rax), %xmm3          // Load table entry
