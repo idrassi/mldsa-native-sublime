@@ -14,7 +14,6 @@ DEFINES +=
 INCLUDES +=
 
 REMOVE_FUNCTION_BODY +=
-UNWINDSET += $(MLD_NAMESPACE)polyvecl_pointwise_poly_montgomery.0:7 # Largest value of MLDSA_L
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
@@ -26,7 +25,7 @@ USE_DYNAMIC_FRAMES=1
 
 # Disable any setting of EXTERNAL_SAT_SOLVER, and choose SMT backend instead
 EXTERNAL_SAT_SOLVER=
-CBMCFLAGS=--smt2
+CBMCFLAGS=--smt2 --slice-formula
 
 FUNCTION_NAME = polyvecl_pointwise_poly_montgomery
 

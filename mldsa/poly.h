@@ -97,9 +97,12 @@ void poly_sub(poly *r, const poly *b)
 __contract__(
   requires(memory_no_alias(b, sizeof(poly)))
   requires(memory_no_alias(r, sizeof(poly)))
-  requires(forall(k0, 0, MLDSA_N, (int64_t) r->coeffs[k0] - b->coeffs[k0] <= INT32_MAX))
-  requires(forall(k1, 0, MLDSA_N, (int64_t) r->coeffs[k1] - b->coeffs[k1] >= INT32_MIN))
+  requires(array_abs_bound(r->coeffs, 0, MLDSA_N, MLDSA_Q))
+  requires(array_abs_bound(b->coeffs, 0, MLDSA_N, MLDSA_Q))
+  requires(forall(n0, 0, MLDSA_N, (int64_t) r->coeffs[n0] - b->coeffs[n0] <= REDUCE32_DOMAIN_MAX))
+  requires(forall(n1, 0, MLDSA_N, (int64_t) r->coeffs[n1] - b->coeffs[n1] >= INT32_MIN))
   assigns(memory_slice(r, sizeof(poly)))
+  ensures(array_bound(r->coeffs, 0, MLDSA_N, INT32_MIN, (REDUCE32_DOMAIN_MAX + 1)))
   ensures(forall(k, 0, MLDSA_N, r->coeffs[k] == old(*r).coeffs[k] - b->coeffs[k]))
 );
 
@@ -115,8 +118,9 @@ __contract__(
 void poly_shiftl(poly *a)
 __contract__(
   requires(memory_no_alias(a, sizeof(poly)))
-  requires(array_abs_bound(a->coeffs, 0, MLDSA_N, 1 << (31 - MLDSA_D)))
+  requires(array_bound(a->coeffs, 0, MLDSA_N, 0, 1 << 10))
   assigns(memory_slice(a, sizeof(poly)))
+  ensures(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
 );
 
 #define poly_ntt MLD_NAMESPACE(poly_ntt)
@@ -173,7 +177,10 @@ __contract__(
   requires(memory_no_alias(a, sizeof(poly)))
   requires(memory_no_alias(b, sizeof(poly)))
   requires(memory_no_alias(c, sizeof(poly)))
+  requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
+  requires(array_abs_bound(b->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
   assigns(memory_slice(c, sizeof(poly)))
+  ensures(array_abs_bound(c->coeffs, 0, MLDSA_N, MLDSA_Q))
 );
 
 #define poly_power2round MLD_NAMESPACE(poly_power2round)

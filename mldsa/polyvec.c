@@ -223,6 +223,11 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    assigns(i, memory_slice(r, sizeof(polyvecl)))
+    invariant(i <= MLDSA_L)
+    invariant(forall(k2, 0, i, array_abs_bound(r->vec[k2].coeffs, 0, MLDSA_N, MLDSA_Q)))
+  )
   {
     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
@@ -363,8 +368,10 @@ void polyveck_sub(polyveck *u, const polyveck *v)
   __loop__(
     assigns(i, memory_slice(u, sizeof(polyveck)))
     invariant(i <= MLDSA_K)
-    invariant(forall(k0, i, MLDSA_K,
-             forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1]))))
+    invariant(forall(k0, 0, i,
+                     array_bound(u->vec[k0].coeffs, 0, MLDSA_N, INT32_MIN, (REDUCE32_DOMAIN_MAX + 1))))
+    invariant(forall(k1, i, MLDSA_K,
+             forall(n1, 0, MLDSA_N, u->vec[k1].coeffs[n1] == loop_entry(*u).vec[k1].coeffs[n1]))))
   {
     poly_sub(&u->vec[i], &v->vec[i]);
   }
@@ -416,6 +423,11 @@ void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
   unsigned int i;
 
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, memory_slice(r, sizeof(polyveck)))
+    invariant(i <= MLDSA_K)
+    invariant(forall(k2, 0, i, array_abs_bound(r->vec[k2].coeffs, 0, MLDSA_N, MLDSA_Q)))
+  )
   {
     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
@@ -499,7 +511,11 @@ void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h)
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     assigns(i, memory_slice(w, sizeof(polyveck)))
-    invariant(i <= MLDSA_K))
+    invariant(i <= MLDSA_K)
+    invariant(forall(k2, 0, i,
+                     array_bound(w->vec[k2].coeffs, 0, MLDSA_N, 0,
+                                 (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2))))
+  )
   {
     poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
   }

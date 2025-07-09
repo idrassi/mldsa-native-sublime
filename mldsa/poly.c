@@ -76,10 +76,11 @@ void poly_sub(poly *r, const poly *b)
 
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
-      invariant(i <= MLDSA_N)
-      invariant(forall(k0, i, MLDSA_N, r->coeffs[k0] == loop_entry(*r).coeffs[k0]))
-      invariant(forall(k1, 0, i, r->coeffs[k1] == loop_entry(*r).coeffs[k1] - b->coeffs[k1]))
-    )
+    invariant(i <= MLDSA_N)
+    invariant(array_bound(r->coeffs, 0, i, INT32_MIN, (REDUCE32_DOMAIN_MAX + 1)))
+    invariant(forall(k0, i, MLDSA_N, r->coeffs[k0] == loop_entry(*r).coeffs[k0]))
+    invariant(forall(k1, 0, i, r->coeffs[k1] == loop_entry(*r).coeffs[k1] - b->coeffs[k1]))
+  )
   {
     r->coeffs[i] = r->coeffs[i] - b->coeffs[i];
   }
@@ -88,11 +89,12 @@ void poly_sub(poly *r, const poly *b)
 void poly_shiftl(poly *a)
 {
   unsigned int i;
-  mld_assert_abs_bound(a->coeffs, MLDSA_N, 1 << (31 - MLDSA_D));
+  mld_assert_bound(a->coeffs, MLDSA_N, 0, 1 << 10);
 
   for (i = 0; i < MLDSA_N; i++)
   __loop__(
     invariant(i <= MLDSA_N)
+    invariant(array_bound(a->coeffs, 0, i, 0, MLDSA_Q))
     invariant(forall(k0, i, MLDSA_N, a->coeffs[k0] == loop_entry(*a).coeffs[k0])))
   {
     /* Reference: uses a left shift by MLDSA_D which is undefined behaviour in
@@ -140,7 +142,9 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b)
 
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
-    invariant(i <= MLDSA_N))
+    invariant(i <= MLDSA_N)
+    invariant(array_abs_bound(c->coeffs, 0, i, MLDSA_Q))
+  )
   {
     c->coeffs[i] = montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
   }
