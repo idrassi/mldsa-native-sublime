@@ -161,13 +161,16 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t rnd[MLDSA_RNDBYTES],
                                    const uint8_t *sk, int externalmu)
 {
-  unsigned int n;
   uint8_t seedbuf[2 * MLDSA_SEEDBYTES + MLDSA_TRBYTES + 2 * MLDSA_CRHBYTES];
+  uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
+  polyvecl mat[MLDSA_K], s1;
+  polyveck t0, s2;
+
+
+  const uint16_t nonce_ub = (UINT16_MAX - MLDSA_L) / MLDSA_L;
   uint16_t nonce = 0;
-  polyvecl mat[MLDSA_K], s1, y, z;
-  polyveck t0, s2, w1, w0, h;
-  poly cp;
+
 
   rho = seedbuf;
   tr = rho + MLDSA_SEEDBYTES;
@@ -204,9 +207,20 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   /* place loop invariants for CBMC.                          */
   while (1)
   __loop__(
-    invariant(1) /* TODO */
+    invariant(nonce <= nonce_ub)
   )
   {
+    unsigned int n;
+    polyvecl y, z;
+    polyveck w2, w1, w0, h;
+    poly cp;
+
+    if (nonce == nonce_ub)
+    {
+      *siglen = 0;
+      return -1;
+    }
+
     /* Sample intermediate vector y */
     polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
@@ -219,12 +233,12 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
 
     /* Decompose w and call the random oracle */
     polyveck_caddq(&w1);
-    polyveck_decompose(&w1, &w0, &w1);
-    polyveck_pack_w1(sig, &w1);
+    polyveck_decompose(&w2, &w0, &w1);
+    polyveck_pack_w1(sig, &w2);
 
-    mld_H(sig, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
+    mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
           MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
-    poly_challenge(&cp, sig);
+    poly_challenge(&cp, challenge_bytes);
     poly_ntt(&cp);
 
     /* Compute z, reject if it reveals secret */
@@ -232,44 +246,46 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     polyvecl_invntt_tomont(&z);
     polyvecl_add(&z, &y);
     polyvecl_reduce(&z);
-    if (polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
-    {
-      /* reject */
-      continue;
-    }
+
+    // RCC here - this next call is problematic
+    // if (polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
+    //{
+    //  /* reject */
+    //  continue;
+    //}
 
     /* Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */
-    polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
-    polyveck_invntt_tomont(&h);
-    polyveck_sub(&w0, &h);
-    polyveck_reduce(&w0);
-    if (polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA))
-    {
-      /* reject */
-      continue;
-    }
+    //    polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
+    //    polyveck_invntt_tomont(&h);
+    //    polyveck_sub(&w0, &h);
+    //    polyveck_reduce(&w0);
+    //    if (polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA))
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
     /* Compute hints for w1 */
-    polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
-    polyveck_invntt_tomont(&h);
-    polyveck_reduce(&h);
-    if (polyveck_chknorm(&h, MLDSA_GAMMA2))
-    {
-      /* reject */
-      continue;
-    }
+    //    polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
+    //   polyveck_invntt_tomont(&h);
+    //    polyveck_reduce(&h);
+    //    if (polyveck_chknorm(&h, MLDSA_GAMMA2))
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
-    polyveck_add(&w0, &h);
-    n = polyveck_make_hint(&h, &w0, &w1);
-    if (n > MLDSA_OMEGA)
-    {
-      /* reject */
-      continue;
-    }
+    //    polyveck_add(&w0, &h);
+    //    n = polyveck_make_hint(&h, &w0, &w2);
+    //    if (n > MLDSA_OMEGA)
+    //    {
+    //      /* reject */
+    //      continue;
+    //    }
 
     /* Write signature */
-    pack_sig(sig, sig, &z, &h, n);
+    //    pack_sig(sig, challenge_bytes, &z, &h, n);
     *siglen = CRYPTO_BYTES;
     return 0;
   }
