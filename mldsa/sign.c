@@ -286,6 +286,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t *sk, int externalmu)
 {
   uint8_t seedbuf[2 * MLDSA_SEEDBYTES + MLDSA_TRBYTES + 2 * MLDSA_CRHBYTES];
+  uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
   polyvecl mat[MLDSA_K], s1;
   polyveck t0, s2;
