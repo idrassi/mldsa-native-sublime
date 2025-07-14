@@ -433,7 +433,7 @@ void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
 }
 
 /*************************************************
- * Name:        rej_eta
+ * Name:        mld_rej_eta
  *
  * Description: Sample uniformly random coefficients in [-MLDSA_ETA, MLDSA_ETA]
  *by performing rejection sampling on array of random bytes.
@@ -449,7 +449,7 @@ void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
  *enough random bytes were given.
  **************************************************/
 
-/* Reference: `rej_eta()` in the reference implementation [@REF].
+/* Reference: `mld_rej_eta()` in the reference implementation [@REF].
  *            - Our signature differs from the reference implementation
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
@@ -472,9 +472,9 @@ void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
 #else /* MLDSA_ETA == 4 */
 #error "Invalid value of MLDSA_ETA"
 #endif /* MLDSA_ETA != 2 && MLDSA_ETA != 4 */
-static unsigned int rej_eta(int32_t *a, unsigned int target,
-                            unsigned int offset, const uint8_t *buf,
-                            unsigned int buflen)
+static unsigned int mld_rej_eta(int32_t *a, unsigned int target,
+                                unsigned int offset, const uint8_t *buf,
+                                unsigned int buflen)
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES))
@@ -593,10 +593,10 @@ void poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2, mld_poly *r3,
   mld_xof256_x4_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
   buflen = POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES;
 
-  ctr[0] = rej_eta(r0->coeffs, MLDSA_N, 0, buf[0], buflen);
-  ctr[1] = rej_eta(r1->coeffs, MLDSA_N, 0, buf[1], buflen);
-  ctr[2] = rej_eta(r2->coeffs, MLDSA_N, 0, buf[2], buflen);
-  ctr[3] = rej_eta(r3->coeffs, MLDSA_N, 0, buf[3], buflen);
+  ctr[0] = mld_rej_eta(r0->coeffs, MLDSA_N, 0, buf[0], buflen);
+  ctr[1] = mld_rej_eta(r1->coeffs, MLDSA_N, 0, buf[1], buflen);
+  ctr[2] = mld_rej_eta(r2->coeffs, MLDSA_N, 0, buf[2], buflen);
+  ctr[3] = mld_rej_eta(r3->coeffs, MLDSA_N, 0, buf[3], buflen);
 
   /*
    * So long as not all entries have been generated, squeeze
@@ -619,10 +619,10 @@ void poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2, mld_poly *r3,
     invariant(array_abs_bound(r3->coeffs, 0, ctr[3], MLDSA_ETA + 1)))
   {
     mld_xof256_x4_squeezeblocks(buf, 1, &state);
-    ctr[0] = rej_eta(r0->coeffs, MLDSA_N, ctr[0], buf[0], buflen);
-    ctr[1] = rej_eta(r1->coeffs, MLDSA_N, ctr[1], buf[1], buflen);
-    ctr[2] = rej_eta(r2->coeffs, MLDSA_N, ctr[2], buf[2], buflen);
-    ctr[3] = rej_eta(r3->coeffs, MLDSA_N, ctr[3], buf[3], buflen);
+    ctr[0] = mld_rej_eta(r0->coeffs, MLDSA_N, ctr[0], buf[0], buflen);
+    ctr[1] = mld_rej_eta(r1->coeffs, MLDSA_N, ctr[1], buf[1], buflen);
+    ctr[2] = mld_rej_eta(r2->coeffs, MLDSA_N, ctr[2], buf[2], buflen);
+    ctr[3] = mld_rej_eta(r3->coeffs, MLDSA_N, ctr[3], buf[3], buflen);
   }
 
   mld_xof256_x4_release(&state);

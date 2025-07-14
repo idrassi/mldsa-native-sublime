@@ -3,9 +3,9 @@
 
 #include "poly.h"
 
-static unsigned int rej_eta(int32_t *a, unsigned int target,
-                            unsigned int offset, const uint8_t *buf,
-                            unsigned int buflen);
+static unsigned int mld_rej_eta(int32_t *a, unsigned int target,
+                                unsigned int offset, const uint8_t *buf,
+                                unsigned int buflen);
 
 void harness(void)
 {
@@ -15,5 +15,5 @@ void harness(void)
   const uint8_t *buf;
   unsigned int buflen;
 
-  rej_eta(a, target, offset, buf, buflen);
+  mld_rej_eta(a, target, offset, buf, buflen);
 }
