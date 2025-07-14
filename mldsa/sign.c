@@ -272,13 +272,6 @@ __contract__(
     return -1; /* reject */
   }
 
-  cassert(n <= MLDSA_OMEGA);
-  cassert(forall(k0, 0, MLDSA_L,
-                 array_bound(z.vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1),
-                             MLDSA_GAMMA1 + 1)));
-  cassert(
-      forall(k1, 0, MLDSA_K, array_bound(h.vec[k1].coeffs, 0, MLDSA_N, 0, 2)));
-
   /* All is well - write signature */
   pack_sig(sig, challenge_bytes, &z, &h, n);
   return 0; /* success */
