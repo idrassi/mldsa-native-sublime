@@ -5,7 +5,7 @@
 
 void harness(void)
 {
-  polyvecl *a;
+  mld_polyvecl *a;
   uint8_t *b;
   polyvecl_pack_eta(b, a);
 }

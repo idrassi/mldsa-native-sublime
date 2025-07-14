@@ -5,7 +5,7 @@
 
 void harness(void)
 {
-  polyvecl *mat;
+  mld_polyvecl *mat;
   uint8_t *rho;
 
   polyvec_matrix_expand(mat, rho);

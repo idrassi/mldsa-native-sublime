@@ -5,7 +5,7 @@
 
 void harness(void)
 {
-  polyvecl *v;
+  mld_polyvecl *v;
   const uint8_t *seed;
   uint16_t nonce;
 

@@ -5,6 +5,6 @@
 
 void harness(void)
 {
-  polyvecl *a;
+  mld_polyvecl *a;
   polyvecl_ntt(a);
 }

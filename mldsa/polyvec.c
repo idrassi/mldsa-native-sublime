@@ -22,7 +22,7 @@ static MLD_INLINE void mld_poly_permute_bitrev_to_custom(int32_t data[MLDSA_N])
 #endif /* !MLD_USE_NATIVE_NTT_CUSTOM_ORDER */
 
 
-void polyvec_matrix_expand(polyvecl mat[MLDSA_K],
+void polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
                            const uint8_t rho[MLDSA_SEEDBYTES])
 {
   unsigned int i, j;
@@ -45,7 +45,7 @@ void polyvec_matrix_expand(polyvecl mat[MLDSA_K],
   /* Sample 4 matrix entries a time. */
   for (i = 0; i < (MLDSA_K * MLDSA_L / 4) * 4; i += 4)
   __loop__(
-    assigns(i, j, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(polyvecl)))
+    assigns(i, j, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
     invariant(i <= (MLDSA_K * MLDSA_L / 4) * 4 && i % 4 == 0)
     /* vectors 0 .. i / MLDSA_L are completely sampled */
     invariant(forall(k1, 0, i / MLDSA_L, forall(l1, 0, MLDSA_L,
@@ -77,7 +77,7 @@ void polyvec_matrix_expand(polyvecl mat[MLDSA_K],
   /* For MLDSA_K=6, MLDSA_L=5, process the last two entries individually */
   while (i < MLDSA_K * MLDSA_L)
   __loop__(
-    assigns(i, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(polyvecl)))
+    assigns(i, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_K * MLDSA_L)
     /* vectors 0 .. i / MLDSA_L are completely sampled */
     invariant(forall(k1, 0, i / MLDSA_L, forall(l1, 0, MLDSA_L,
@@ -112,8 +112,8 @@ void polyvec_matrix_expand(polyvecl mat[MLDSA_K],
 }
 
 void polyvec_matrix_pointwise_montgomery(polyveck *t,
-                                         const polyvecl mat[MLDSA_K],
-                                         const polyvecl *v)
+                                         const mld_polyvecl mat[MLDSA_K],
+                                         const mld_polyvecl *v)
 {
   unsigned int i;
 
@@ -132,8 +132,8 @@ void polyvec_matrix_pointwise_montgomery(polyveck *t,
 /**************************************************************/
 /************ Vectors of polynomials of length MLDSA_L **************/
 /**************************************************************/
-void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[MLDSA_CRHBYTES],
-                             uint16_t nonce)
+void polyvecl_uniform_gamma1(mld_polyvecl *v,
+                             const uint8_t seed[MLDSA_CRHBYTES], uint16_t nonce)
 {
   nonce = MLDSA_L * nonce;
 #if MLDSA_L == 4
@@ -152,13 +152,13 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[MLDSA_CRHBYTES],
 #endif /* MLDSA_L == 7 */
 }
 
-void polyvecl_reduce(polyvecl *v)
+void polyvecl_reduce(mld_polyvecl *v)
 {
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
-    assigns(i, memory_slice(v, sizeof(polyvecl)))
+    assigns(i, memory_slice(v, sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_L)
     invariant(forall(k0, i, MLDSA_L, forall(k1, 0, MLDSA_N, v->vec[k0].coeffs[k1] == loop_entry(*v).vec[k0].coeffs[k1])))
     invariant(forall(k2, 0, i,
@@ -170,13 +170,13 @@ void polyvecl_reduce(polyvecl *v)
 
 /* Reference: We use destructive version (output=first input) to avoid
  *            reasoning about aliasing in the CBMC specification */
-void polyvecl_add(polyvecl *u, const polyvecl *v)
+void polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
 {
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
-    assigns(i, memory_slice(u, sizeof(polyvecl)))
+    assigns(i, memory_slice(u, sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_L)
     invariant(forall(k0, i, MLDSA_L,
               forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1])))
@@ -188,13 +188,13 @@ void polyvecl_add(polyvecl *u, const polyvecl *v)
   }
 }
 
-void polyvecl_ntt(polyvecl *v)
+void polyvecl_ntt(mld_polyvecl *v)
 {
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
-    assigns(i, memory_slice(v, sizeof(polyvecl)))
+    assigns(i, memory_slice(v, sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_L)
     invariant(forall(k0, i, MLDSA_L, forall(k1, 0, MLDSA_N, v->vec[k0].coeffs[k1] == loop_entry(*v).vec[k0].coeffs[k1])))
     invariant(forall(k1, 0, i, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND))))
@@ -203,13 +203,13 @@ void polyvecl_ntt(polyvecl *v)
   }
 }
 
-void polyvecl_invntt_tomont(polyvecl *v)
+void polyvecl_invntt_tomont(mld_polyvecl *v)
 {
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
-    assigns(i, memory_slice(v, sizeof(polyvecl)))
+    assigns(i, memory_slice(v, sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_L)
     invariant(forall(k0, i, MLDSA_L, forall(k1, 0, MLDSA_N, v->vec[k0].coeffs[k1] == loop_entry(*v).vec[k0].coeffs[k1])))
     invariant(forall(k1, 0, i, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_INTT_BOUND))))
@@ -218,14 +218,14 @@ void polyvecl_invntt_tomont(polyvecl *v)
   }
 }
 
-void polyvecl_pointwise_poly_montgomery(polyvecl *r, const mld_poly *a,
-                                        const polyvecl *v)
+void polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
+                                        const mld_polyvecl *v)
 {
   unsigned int i;
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
-    assigns(i, memory_slice(r, sizeof(polyvecl)))
+    assigns(i, memory_slice(r, sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_L)
     invariant(forall(k2, 0, i, array_abs_bound(r->vec[k2].coeffs, 0, MLDSA_N, MLDSA_Q)))
   )
@@ -234,8 +234,8 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const mld_poly *a,
   }
 }
 
-void polyvecl_pointwise_acc_montgomery(mld_poly *w, const polyvecl *u,
-                                       const polyvecl *v)
+void polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
+                                       const mld_polyvecl *v)
 {
   unsigned int i, j;
   /* The first input is bounded by [0, Q-1] inclusive
@@ -287,7 +287,7 @@ void polyvecl_pointwise_acc_montgomery(mld_poly *w, const polyvecl *u,
 }
 
 
-int polyvecl_chknorm(const polyvecl *v, int32_t bound)
+int polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
 {
   unsigned int i;
 
@@ -561,7 +561,7 @@ void polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
 }
 
 void polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
-                       const polyvecl *p)
+                       const mld_polyvecl *p)
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
@@ -575,7 +575,7 @@ void polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
 }
 
 void polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
-                     const polyvecl *p)
+                     const mld_polyvecl *p)
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
@@ -603,7 +603,7 @@ void polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
   }
 }
 
-void polyvecl_unpack_eta(polyvecl *p,
+void polyvecl_unpack_eta(mld_polyvecl *p,
                          const uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES])
 {
   unsigned int i;
@@ -613,7 +613,7 @@ void polyvecl_unpack_eta(polyvecl *p,
   }
 }
 
-void polyvecl_unpack_z(polyvecl *z,
+void polyvecl_unpack_z(mld_polyvecl *z,
                        const uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES])
 {
   unsigned int i;

@@ -41,21 +41,21 @@ __contract__(
  *              - const uint8_t tr[]: byte array containing tr
  *              - const uint8_t key[]: byte array containing key
  *              - const polyveck *t0: pointer to vector t0
- *              - const polyvecl *s1: pointer to vector s1
+ *              - const mld_polyvecl *s1: pointer to vector s1
  *              - const polyveck *s2: pointer to vector s2
  **************************************************/
 void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
              const uint8_t rho[MLDSA_SEEDBYTES],
              const uint8_t tr[MLDSA_TRBYTES],
              const uint8_t key[MLDSA_SEEDBYTES], const polyveck *t0,
-             const polyvecl *s1, const polyveck *s2)
+             const mld_polyvecl *s1, const polyveck *s2)
 __contract__(
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
   requires(memory_no_alias(tr, MLDSA_TRBYTES))
   requires(memory_no_alias(key, MLDSA_SEEDBYTES))
   requires(memory_no_alias(t0, sizeof(polyveck)))
-  requires(memory_no_alias(s1, sizeof(polyvecl)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
   requires(memory_no_alias(s2, sizeof(polyveck)))
   requires(forall(k0, 0, MLDSA_K,
     array_bound(t0->vec[k0].coeffs, 0, MLDSA_N, -(1<<(MLDSA_D-1)) + 1, (1<<(MLDSA_D-1)) + 1)))
@@ -76,7 +76,7 @@ __contract__(
  * Arguments:   - uint8_t sig[]: output byte array
  *              - const uint8_t *c:  pointer to challenge hash length
  *                                   MLDSA_SEEDBYTES
- *              - const polyvecl *z: pointer to vector z
+ *              - const mld_polyvecl *z: pointer to vector z
  *              - const polyveck *h: pointer to hint vector h
  *              - const unsigned int number_of_hints: total
  *                                   hints in *h
@@ -86,12 +86,12 @@ __contract__(
  * proof of type safety.
  **************************************************/
 void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
-              const polyvecl *z, const polyveck *h,
+              const mld_polyvecl *z, const polyveck *h,
               const unsigned int number_of_hints)
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
-  requires(memory_no_alias(z, sizeof(polyvecl)))
+  requires(memory_no_alias(z, sizeof(mld_polyvecl)))
   requires(memory_no_alias(h, sizeof(polyveck)))
   requires(forall(k0, 0, MLDSA_L,
     array_bound(z->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
@@ -134,19 +134,19 @@ __contract__(
  *              - const uint8_t tr[]: output byte array for tr
  *              - const uint8_t key[]: output byte array for key
  *              - const polyveck *t0: pointer to output vector t0
- *              - const polyvecl *s1: pointer to output vector s1
+ *              - const mld_polyvecl *s1: pointer to output vector s1
  *              - const polyveck *s2: pointer to output vector s2
  *              - uint8_t sk[]: byte array containing bit-packed sk
  **************************************************/
 void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-               uint8_t key[MLDSA_SEEDBYTES], polyveck *t0, polyvecl *s1,
+               uint8_t key[MLDSA_SEEDBYTES], polyveck *t0, mld_polyvecl *s1,
                polyveck *s2, const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 __contract__(
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
   requires(memory_no_alias(tr, MLDSA_TRBYTES))
   requires(memory_no_alias(key, MLDSA_SEEDBYTES))
   requires(memory_no_alias(t0, sizeof(polyveck)))
-  requires(memory_no_alias(s1, sizeof(polyvecl)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
   requires(memory_no_alias(s2, sizeof(polyveck)))
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   assigns(object_whole(rho))
@@ -170,19 +170,19 @@ __contract__(
  * Description: Unpack signature sig = (c, z, h).
  *
  * Arguments:   - uint8_t *c: pointer to output challenge hash
- *              - polyvecl *z: pointer to output vector z
+ *              - mld_polyvecl *z: pointer to output vector z
  *              - polyveck *h: pointer to output hint vector h
  *              - const uint8_t sig[]: byte array containing
  *                bit-packed signature
  *
  * Returns 1 in case of malformed signature; otherwise 0.
  **************************************************/
-int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], polyvecl *z, polyveck *h,
+int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, polyveck *h,
                const uint8_t sig[CRYPTO_BYTES])
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
-  requires(memory_no_alias(z, sizeof(polyvecl)))
+  requires(memory_no_alias(z, sizeof(mld_polyvecl)))
   requires(memory_no_alias(h, sizeof(polyveck)))
   assigns(object_whole(c))
   assigns(object_whole(z))
