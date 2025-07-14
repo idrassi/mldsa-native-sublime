@@ -6,7 +6,7 @@
 
 void harness(void)
 {
-  poly *c;
+  mld_poly *c;
   uint8_t *seed;
   poly_challenge(c, seed);
 }

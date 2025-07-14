@@ -5,7 +5,7 @@
 
 void harness(void)
 {
-  poly *a;
+  mld_poly *a;
   uint8_t *b;
   polyz_pack(b, a);
 }

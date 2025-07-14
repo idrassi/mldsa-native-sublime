@@ -13,7 +13,7 @@
 /* Vectors of polynomials of length MLDSA_L */
 typedef struct
 {
-  poly vec[MLDSA_L];
+  mld_poly vec[MLDSA_L];
 } polyvecl;
 
 #define polyvecl_uniform_gamma1 MLD_NAMESPACE(polyvecl_uniform_gamma1)
@@ -48,7 +48,7 @@ __contract__(
  *              vector of length MLDSA_L to
  *              representative in [-6283008,6283008].
  *
- * Arguments:   - poly *v: pointer to input/output vector
+ * Arguments:   - mld_poly *v: pointer to input/output vector
  **************************************************/
 void polyvecl_reduce(polyvecl *v)
 __contract__(
@@ -130,14 +130,14 @@ __contract__(
  *              of the resulting polynomial vector by 2^{-32}.
  *
  * Arguments:   - polyvecl *r: pointer to output vector
- *              - poly *a: pointer to input polynomial
+ *              - mld_poly *a: pointer to input polynomial
  *              - polyvecl *v: pointer to input vector
  **************************************************/
-void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
+void polyvecl_pointwise_poly_montgomery(polyvecl *r, const mld_poly *a,
                                         const polyvecl *v)
 __contract__(
   requires(memory_no_alias(r, sizeof(polyvecl)))
-  requires(memory_no_alias(a, sizeof(poly)))
+  requires(memory_no_alias(a, sizeof(mld_poly)))
   requires(memory_no_alias(v, sizeof(polyvecl)))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
   requires(forall(k0, 0, MLDSA_L, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
@@ -164,21 +164,21 @@ __contract__(
  *              inclusive.
  *
  *
- * Arguments:   - poly *w: output polynomial
+ * Arguments:   - mld_poly *w: output polynomial
  *              - const polyvecl *u: pointer to first input vector
  *              - const polyvecl *v: pointer to second input vector
  **************************************************/
-void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
+void polyvecl_pointwise_acc_montgomery(mld_poly *w, const polyvecl *u,
                                        const polyvecl *v)
 __contract__(
-  requires(memory_no_alias(w, sizeof(poly)))
+  requires(memory_no_alias(w, sizeof(mld_poly)))
   requires(memory_no_alias(u, sizeof(polyvecl)))
   requires(memory_no_alias(v, sizeof(polyvecl)))
   requires(forall(l0, 0, MLDSA_L,
                   array_bound(u->vec[l0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
   requires(forall(l1, 0, MLDSA_L,
     array_abs_bound(v->vec[l1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
-  assigns(memory_slice(w, sizeof(poly)))
+  assigns(memory_slice(w, sizeof(mld_poly)))
   ensures(array_abs_bound(w->coeffs, 0, MLDSA_N, MLDSA_Q))
 );
 
@@ -209,7 +209,7 @@ __contract__(
 /* Vectors of polynomials of length MLDSA_K */
 typedef struct
 {
-  poly vec[MLDSA_K];
+  mld_poly vec[MLDSA_K];
 } polyveck;
 
 #define polyveck_reduce MLD_NAMESPACE(polyveck_reduce)
@@ -357,14 +357,14 @@ __contract__(
  *              of the resulting polynomial vector by 2^{-32}.
  *
  * Arguments:   - polyveck *r: pointer to output vector
- *              - poly *a: pointer to input polynomial
+ *              - mld_poly *a: pointer to input polynomial
  *              - polyveck *v: pointer to input vector
  **************************************************/
-void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
+void polyveck_pointwise_poly_montgomery(polyveck *r, const mld_poly *a,
                                         const polyveck *v)
 __contract__(
   requires(memory_no_alias(r, sizeof(polyveck)))
-  requires(memory_no_alias(a, sizeof(poly)))
+  requires(memory_no_alias(a, sizeof(mld_poly)))
   requires(memory_no_alias(v, sizeof(polyveck)))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
   requires(forall(k0, 0, MLDSA_K, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))

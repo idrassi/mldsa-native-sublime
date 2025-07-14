@@ -6,6 +6,6 @@
 void harness(void)
 {
   polyvecl *a, *b;
-  poly *c;
+  mld_poly *c;
   polyvecl_pointwise_poly_montgomery(a, c, b);
 }

@@ -6,7 +6,7 @@
 
 void harness(void)
 {
-  poly *a;
+  mld_poly *a;
   int r;
   int32_t B;
   r = poly_chknorm(a, B);

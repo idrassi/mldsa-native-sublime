@@ -6,6 +6,6 @@
 
 void harness(void)
 {
-  poly *a, *a0, *a1;
+  mld_poly *a, *a0, *a1;
   poly_power2round(a0, a1, a);
 }

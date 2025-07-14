@@ -5,6 +5,6 @@
 
 void harness(void)
 {
-  poly *a, *b, *c;
+  mld_poly *a, *b, *c;
   poly_pointwise_montgomery(c, a, b);
 }

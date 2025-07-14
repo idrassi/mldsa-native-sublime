@@ -6,6 +6,6 @@
 
 void harness(void)
 {
-  poly *a0, *a1, *a;
+  mld_poly *a0, *a1, *a;
   poly_decompose(a1, a0, a);
 }

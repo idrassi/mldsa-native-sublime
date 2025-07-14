@@ -6,7 +6,7 @@
 
 void harness(void)
 {
-  poly *a;
+  mld_poly *a;
   const uint8_t *seed;
 
   poly_uniform(a, seed);
