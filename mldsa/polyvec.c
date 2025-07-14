@@ -504,6 +504,7 @@ unsigned int polyveck_make_hint(polyveck *h, const polyveck *v0,
     assigns(i, s, object_whole(h))
     invariant(i <= MLDSA_K)
     invariant(s <= i * MLDSA_N)
+    invariant(forall(k1, 0, i, array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
   )
   {
     s += poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);

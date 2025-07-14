@@ -98,7 +98,7 @@ __contract__(
   requires(forall(k1, 0, MLDSA_K,
     array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
   requires(number_of_hints <= MLDSA_OMEGA)
-  assigns(object_whole(sig))
+  assigns(memory_slice(sig, CRYPTO_BYTES))
 );
 
 #define unpack_pk MLD_NAMESPACE(unpack_pk)

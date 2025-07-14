@@ -473,6 +473,7 @@ __contract__(
   requires(memory_no_alias(v1, sizeof(polyveck)))
   assigns(object_whole(h))
   ensures(return_value <= MLDSA_N * MLDSA_K)
+  ensures(forall(k1, 0, MLDSA_K, array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
 );
 
 #define polyveck_use_hint MLD_NAMESPACE(polyveck_use_hint)

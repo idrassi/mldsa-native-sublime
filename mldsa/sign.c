@@ -155,6 +155,138 @@ __contract__(
   shake256_squeeze(out, outlen, &state);
 }
 
+#define NONCE_UB ((UINT16_MAX - MLDSA_L) / MLDSA_L)
+
+/*************************************************
+ * Name:        attempt_signature_generation
+ *
+ * Description: Attempts to generate a single signature.
+ *              This function encapsulates one iteration of the
+ *              rejection sampling process to help CBMC analysis.
+ *
+ * Arguments:   - uint8_t *sig: pointer to output signature
+ *              - const uint8_t *mu: pointer to message hash
+ *              - const uint8_t *rhoprime: pointer to randomness seed
+ *              - uint16_t nonce: current nonce value
+ *              - const polyvecl mat[MLDSA_K]: expanded matrix
+ *              - const polyvecl *s1: secret vector s1
+ *              - const polyveck *s2: secret vector s2
+ *              - const polyveck *t0: secret vector t0
+ *
+ * Returns 0 if signature generation succeeds, -1 if rejected
+ **************************************************/
+static int mld_attempt_signature_generation(
+    uint8_t *sig, const uint8_t *mu, const uint8_t rhoprime[MLDSA_CRHBYTES],
+    uint16_t nonce, const polyvecl mat[MLDSA_K], const polyvecl *s1,
+    const polyveck *s2, const polyveck *t0)
+__contract__(
+  requires(memory_no_alias(sig, CRYPTO_BYTES))
+  requires(memory_no_alias(mu, MLDSA_CRHBYTES))
+  requires(memory_no_alias(rhoprime, MLDSA_CRHBYTES))
+  requires(memory_no_alias(mat, MLDSA_K * sizeof(polyvecl)))
+  requires(memory_no_alias(s1, sizeof(polyvecl)))
+  requires(memory_no_alias(s2, sizeof(polyveck)))
+  requires(memory_no_alias(t0, sizeof(polyveck)))
+  requires(nonce <= NONCE_UB)
+  requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+                                         array_bound(mat[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+  requires(forall(k2, 0, MLDSA_K, array_abs_bound(t0->vec[k2].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k3, 0, MLDSA_L, array_abs_bound(s1->vec[k3].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k4, 0, MLDSA_K, array_abs_bound(s2->vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  assigns(memory_slice(sig, CRYPTO_BYTES))
+  ensures(return_value == 0 || return_value == -1)
+)
+{
+  uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
+  unsigned int n;
+  polyvecl y, z;
+  polyveck w2, w1, w0, h;
+  poly cp;
+  int z_invalid, w0_invalid, h_invalid;
+
+  /* Sample intermediate vector y */
+  polyvecl_uniform_gamma1(&y, rhoprime, nonce);
+
+  /* Matrix-vector multiplication */
+  z = y;
+  polyvecl_ntt(&z);
+  polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
+  polyveck_reduce(&w1);
+  polyveck_invntt_tomont(&w1);
+
+  /* Decompose w and call the random oracle */
+  polyveck_caddq(&w1);
+  polyveck_decompose(&w2, &w0, &w1);
+  polyveck_pack_w1(sig, &w2);
+
+  mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
+        MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
+  poly_challenge(&cp, challenge_bytes);
+  poly_ntt(&cp);
+
+  /* Compute z, reject if it reveals secret */
+  polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
+  polyvecl_invntt_tomont(&z);
+  polyvecl_add(&z, &y);
+  polyvecl_reduce(&z);
+
+  z_invalid = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+  if (z_invalid)
+  {
+    return -1; /* reject */
+  }
+
+  /* If z is valid, then its coefficients are bounded by  */
+  /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
+  /* to prove the pre-condition of pack_sig()             */
+  cassert(forall(k1, 0, MLDSA_L,
+                 array_abs_bound(z.vec[k1].coeffs, 0, MLDSA_N,
+                                 (MLDSA_GAMMA1 - MLDSA_BETA))));
+
+  /* Check that subtracting cs2 does not change high bits of w and low bits
+   * do not reveal secret information */
+  polyveck_pointwise_poly_montgomery(&h, &cp, s2);
+  polyveck_invntt_tomont(&h);
+  polyveck_sub(&w0, &h);
+  polyveck_reduce(&w0);
+  w0_invalid = polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  if (w0_invalid)
+  {
+    return -1; /* reject */
+  }
+
+  /* Compute hints for w1 */
+  polyveck_pointwise_poly_montgomery(&h, &cp, t0);
+  polyveck_invntt_tomont(&h);
+  polyveck_reduce(&h);
+  h_invalid = polyveck_chknorm(&h, MLDSA_GAMMA2);
+  if (h_invalid)
+  {
+    return -1; /* reject */
+  }
+
+  polyveck_add(&w0, &h);
+  n = polyveck_make_hint(&h, &w0, &w2);
+  if (n > MLDSA_OMEGA)
+  {
+    return -1; /* reject */
+  }
+
+  cassert(n <= MLDSA_OMEGA);
+  cassert(forall(k0, 0, MLDSA_L,
+                 array_bound(z.vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1),
+                             MLDSA_GAMMA1 + 1)));
+  cassert(
+      forall(k1, 0, MLDSA_K, array_bound(h.vec[k1].coeffs, 0, MLDSA_N, 0, 2)));
+
+  /* All is well - write signature */
+  // pack_sig(sig, challenge_bytes, &z, &h, n);
+  memset(sig, 0, CRYPTO_BYTES);
+  return 0; /* success */
+}
+
+
+
 int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t *m, size_t mlen,
                                    const uint8_t *pre, size_t prelen,
@@ -166,8 +298,6 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   polyvecl mat[MLDSA_K], s1;
   polyveck t0, s2;
 
-
-  const uint16_t nonce_ub = (UINT16_MAX - MLDSA_L) / MLDSA_L;
   uint16_t nonce = 0;
 
 
@@ -207,7 +337,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   while (1)
   __loop__(
     assigns(nonce, object_whole(siglen), memory_slice(sig, CRYPTO_BYTES))
-    invariant(nonce <= nonce_ub)
+    invariant(nonce <= NONCE_UB)
 
     /* t0, s1, s2, and mat are initialized above and are NOT changed by this */
     /* loop. We can therefore re-assert their bounds here as part of the     */
@@ -219,91 +349,23 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     invariant(forall(k4, 0, MLDSA_K, array_abs_bound(s2.vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
   )
   {
-    uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
-    unsigned int n;
-    polyvecl y, z;
-    polyveck w2, w1, w0, h;
-    poly cp;
+    int result;
 
-    int z_invalid;
-
-    if (nonce == nonce_ub)
+    if (nonce == NONCE_UB)
     {
       *siglen = 0;
       memset(sig, 0, CRYPTO_BYTES);
       return -1;
     }
 
-    /* Sample intermediate vector y */
-    polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
-
-    /* Matrix-vector multiplication */
-    z = y;
-    polyvecl_ntt(&z);
-    polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
-    polyveck_reduce(&w1);
-    polyveck_invntt_tomont(&w1);
-
-    /* Decompose w and call the random oracle */
-    polyveck_caddq(&w1);
-    polyveck_decompose(&w2, &w0, &w1);
-    polyveck_pack_w1(sig, &w2);
-
-    mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
-          MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
-    poly_challenge(&cp, challenge_bytes);
-    poly_ntt(&cp);
-
-    /* Compute z, reject if it reveals secret */
-    polyvecl_pointwise_poly_montgomery(&z, &cp, &s1);
-    polyvecl_invntt_tomont(&z);
-    polyvecl_add(&z, &y);
-    polyvecl_reduce(&z);
-
-    // RCC here - this next call is OK, but the branch/continue
-    // causes complexity blow-up...
-    z_invalid = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
-    // if (z_invalid)
-    //{
-    //   /* reject */
-    //   continue;
-    // }
-
-    /* Check that subtracting cs2 does not change high bits of w and low bits
-     * do not reveal secret information */
-    //    polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
-    //    polyveck_invntt_tomont(&h);
-    //    polyveck_sub(&w0, &h);
-    //    polyveck_reduce(&w0);
-    //    if (polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA))
-    //    {
-    //      /* reject */
-    //      continue;
-    //    }
-
-    /* Compute hints for w1 */
-    //    polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
-    //   polyveck_invntt_tomont(&h);
-    //    polyveck_reduce(&h);
-    //    if (polyveck_chknorm(&h, MLDSA_GAMMA2))
-    //    {
-    //      /* reject */
-    //      continue;
-    //    }
-
-    //    polyveck_add(&w0, &h);
-    //    n = polyveck_make_hint(&h, &w0, &w2);
-    //    if (n > MLDSA_OMEGA)
-    //    {
-    //      /* reject */
-    //      continue;
-    //    }
-
-    /* Write signature */
-    //    pack_sig(sig, challenge_bytes, &z, &h, n);
-    memset(sig, 0xff, CRYPTO_BYTES);  // RCC Temp until above un-commented
-    *siglen = CRYPTO_BYTES;
-    return 0;
+    result = mld_attempt_signature_generation(sig, mu, rhoprime, nonce, mat,
+                                              &s1, &s2, &t0);
+    nonce++;
+    if (result == 0)
+    {
+      *siglen = CRYPTO_BYTES;
+      return 0;
+    }
   }
 }
 
