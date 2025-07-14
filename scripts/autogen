@@ -467,7 +467,7 @@ def gen_c_zeta_file(dry_run=False):
         yield " * Table of zeta values used in the reference NTT and inverse NTT."
         yield " * See autogen for details."
         yield " */"
-        yield "static const int32_t zetas[MLDSA_N] = {"
+        yield "static const int32_t mld_zetas[MLDSA_N] = {"
         yield from map(lambda t: str(t) + ",", gen_c_zetas())
         yield "};"
         yield ""

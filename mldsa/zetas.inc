@@ -14,7 +14,7 @@
  * Table of zeta values used in the reference NTT and inverse NTT.
  * See autogen for details.
  */
-static const int32_t zetas[MLDSA_N] = {
+static const int32_t mld_zetas[MLDSA_N] = {
     0,        25847,    -2608894, -518909,  237124,   -777960,  -876248,
     466468,   1826347,  2353451,  -359251,  -2091905, 3119733,  -2884855,
     3111497,  2680103,  2725464,  1024112,  -1079900, 3585928,  -549488,
