@@ -153,7 +153,7 @@ void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
 }
 
 /*************************************************
- * Name:        unpack_hints
+ * Name:        mld_unpack_hints
  *
  * Description: Unpack raw hint bytes into a polyveck
  *              struct
@@ -164,8 +164,8 @@ void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
  *
  * Returns 1 in case of malformed hints; otherwise 0.
  **************************************************/
-static int unpack_hints(mld_polyveck *h,
-                        const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES])
+static int mld_unpack_hints(
+    mld_polyveck *h, const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(packed_hints, MLDSA_POLYVECH_PACKEDBYTES))
   requires(memory_no_alias(h, sizeof(mld_polyveck)))
@@ -252,5 +252,5 @@ int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, mld_polyveck *h,
   polyvecl_unpack_z(z, sig);
   sig += MLDSA_L * MLDSA_POLYZ_PACKEDBYTES;
 
-  return unpack_hints(h, sig);
+  return mld_unpack_hints(h, sig);
 }
