@@ -3,9 +3,9 @@
 
 #include "poly.h"
 
-static unsigned int rej_uniform(int32_t *a, unsigned int target,
-                                unsigned int offset, const uint8_t *buf,
-                                unsigned int buflen);
+static unsigned int mld_rej_uniform(int32_t *a, unsigned int target,
+                                    unsigned int offset, const uint8_t *buf,
+                                    unsigned int buflen);
 
 void harness(void)
 {
@@ -15,5 +15,5 @@ void harness(void)
   const uint8_t *buf;
   unsigned int buflen;
 
-  rej_uniform(a, target, offset, buf, buflen);
+  mld_rej_uniform(a, target, offset, buf, buflen);
 }

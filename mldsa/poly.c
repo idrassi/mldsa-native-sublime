@@ -265,7 +265,7 @@ int poly_chknorm(const mld_poly *a, int32_t B)
 }
 
 /*************************************************
- * Name:        rej_uniform
+ * Name:        mld_rej_uniform
  *
  * Description: Sample uniformly random coefficients in [0, MLDSA_Q-1] by
  *              performing rejection sampling on array of random bytes.
@@ -282,16 +282,16 @@ int poly_chknorm(const mld_poly *a, int32_t B)
  * random bytes were given.
  **************************************************/
 
-/* Reference: `rej_uniform()` in the reference implementation [@REF].
+/* Reference: `mld_rej_uniform()` in the reference implementation [@REF].
  *            - Our signature differs from the reference implementation
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
  *              caller, which appears tricky to reason about. */
 #define POLY_UNIFORM_NBLOCKS \
   ((768 + STREAM128_BLOCKBYTES - 1) / STREAM128_BLOCKBYTES)
-static unsigned int rej_uniform(int32_t *a, unsigned int target,
-                                unsigned int offset, const uint8_t *buf,
-                                unsigned int buflen)
+static unsigned int mld_rej_uniform(int32_t *a, unsigned int target,
+                                    unsigned int offset, const uint8_t *buf,
+                                    unsigned int buflen)
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES) && buflen % 3 == 0)
@@ -362,7 +362,7 @@ void poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
   mld_xof128_absorb(&state, seed, MLDSA_SEEDBYTES + 2);
   mld_xof128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
 
-  ctr = rej_uniform(a->coeffs, MLDSA_N, 0, buf, buflen);
+  ctr = mld_rej_uniform(a->coeffs, MLDSA_N, 0, buf, buflen);
   buflen = STREAM128_BLOCKBYTES;
   while (ctr < MLDSA_N)
   __loop__(
@@ -372,7 +372,7 @@ void poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
     invariant(array_bound(a->coeffs, 0, ctr, 0, MLDSA_Q)))
   {
     mld_xof128_squeezeblocks(buf, 1, &state);
-    ctr = rej_uniform(a->coeffs, MLDSA_N, ctr, buf, buflen);
+    ctr = mld_rej_uniform(a->coeffs, MLDSA_N, ctr, buf, buflen);
   }
   mld_xof128_release(&state);
 }
@@ -400,10 +400,10 @@ void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
 
   mld_xof128_x4_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
   buflen = POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES;
-  ctr[0] = rej_uniform(vec0->coeffs, MLDSA_N, 0, buf[0], buflen);
-  ctr[1] = rej_uniform(vec1->coeffs, MLDSA_N, 0, buf[1], buflen);
-  ctr[2] = rej_uniform(vec2->coeffs, MLDSA_N, 0, buf[2], buflen);
-  ctr[3] = rej_uniform(vec3->coeffs, MLDSA_N, 0, buf[3], buflen);
+  ctr[0] = mld_rej_uniform(vec0->coeffs, MLDSA_N, 0, buf[0], buflen);
+  ctr[1] = mld_rej_uniform(vec1->coeffs, MLDSA_N, 0, buf[1], buflen);
+  ctr[2] = mld_rej_uniform(vec2->coeffs, MLDSA_N, 0, buf[2], buflen);
+  ctr[3] = mld_rej_uniform(vec3->coeffs, MLDSA_N, 0, buf[3], buflen);
 
   /*
    * So long as not all matrix entries have been generated, squeeze
@@ -424,10 +424,10 @@ void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
     invariant(array_bound(vec3->coeffs, 0, ctr[3], 0, MLDSA_Q)))
   {
     mld_xof128_x4_squeezeblocks(buf, 1, &state);
-    ctr[0] = rej_uniform(vec0->coeffs, MLDSA_N, ctr[0], buf[0], buflen);
-    ctr[1] = rej_uniform(vec1->coeffs, MLDSA_N, ctr[1], buf[1], buflen);
-    ctr[2] = rej_uniform(vec2->coeffs, MLDSA_N, ctr[2], buf[2], buflen);
-    ctr[3] = rej_uniform(vec3->coeffs, MLDSA_N, ctr[3], buf[3], buflen);
+    ctr[0] = mld_rej_uniform(vec0->coeffs, MLDSA_N, ctr[0], buf[0], buflen);
+    ctr[1] = mld_rej_uniform(vec1->coeffs, MLDSA_N, ctr[1], buf[1], buflen);
+    ctr[2] = mld_rej_uniform(vec2->coeffs, MLDSA_N, ctr[2], buf[2], buflen);
+    ctr[3] = mld_rej_uniform(vec3->coeffs, MLDSA_N, ctr[3], buf[3], buflen);
   }
   mld_xof128_x4_release(&state);
 }
