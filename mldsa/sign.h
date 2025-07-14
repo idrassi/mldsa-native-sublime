@@ -94,8 +94,8 @@ __contract__(
   requires(externalmu == 0 || (externalmu == 1 && mlen == MLDSA_CRHBYTES))
   assigns(memory_slice(sig, CRYPTO_BYTES))
   assigns(object_whole(siglen))
-  ensures(return_value == 0) // RCC
-  ensures(*siglen == CRYPTO_BYTES) // RCC
+  ensures((return_value == 0 && *siglen == CRYPTO_BYTES) ||
+          (return_value == -1 && *siglen == 0))
 );
 
 #define crypto_sign_signature MLD_NAMESPACE(signature)

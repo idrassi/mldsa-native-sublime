@@ -206,7 +206,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   /* place loop invariants for CBMC.                          */
   while (1)
   __loop__(
-    assigns(nonce, object_whole(siglen), object_whole(sig))
+    assigns(nonce, object_whole(siglen), memory_slice(sig, CRYPTO_BYTES))
     invariant(nonce <= nonce_ub)
 
     /* t0, s1, s2, and mat are initialized above and are NOT changed by this */
@@ -225,11 +225,12 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     polyveck w2, w1, w0, h;
     poly cp;
 
-    int zok;
+    int z_invalid;
 
     if (nonce == nonce_ub)
     {
       *siglen = 0;
+      memset(sig, 0, CRYPTO_BYTES);
       return -1;
     }
 
@@ -261,8 +262,8 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
 
     // RCC here - this next call is OK, but the branch/continue
     // causes complexity blow-up...
-    zok = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
-    // if (zok)
+    z_invalid = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+    // if (z_invalid)
     //{
     //   /* reject */
     //   continue;
@@ -300,6 +301,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
 
     /* Write signature */
     //    pack_sig(sig, challenge_bytes, &z, &h, n);
+    memset(sig, 0xff, CRYPTO_BYTES);  // RCC Temp until above un-commented
     *siglen = CRYPTO_BYTES;
     return 0;
   }
