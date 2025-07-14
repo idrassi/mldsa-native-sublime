@@ -14,11 +14,11 @@
 #include "sign.h"
 #include "symmetric.h"
 
-static void mld_sample_s1_s2(mld_polyvecl *s1, polyveck *s2,
+static void mld_sample_s1_s2(mld_polyvecl *s1, mld_polyveck *s2,
                              const uint8_t seed[MLDSA_CRHBYTES])
 __contract__(
   requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
-  requires(memory_no_alias(s2, sizeof(polyveck)))
+  requires(memory_no_alias(s2, sizeof(mld_polyveck)))
   requires(memory_no_alias(seed, MLDSA_CRHBYTES))
   assigns(object_whole(s1), object_whole(s2))
   ensures(forall(l0, 0, MLDSA_L, array_abs_bound(s1->vec[l0].coeffs, 0, MLDSA_N, MLDSA_ETA + 1)))
@@ -61,7 +61,7 @@ int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
   const uint8_t *rho, *rhoprime, *key;
   mld_polyvecl mat[MLDSA_K];
   mld_polyvecl s1, s1hat;
-  polyveck s2, t2, t1, t0;
+  mld_polyveck s2, t2, t1, t0;
 
   /* Get randomness for rho, rhoprime and key */
   memcpy(inbuf, seed, MLDSA_SEEDBYTES);
@@ -444,7 +444,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   uint8_t c2[MLDSA_CTILDEBYTES];
   mld_poly cp;
   mld_polyvecl mat[MLDSA_K], z;
-  polyveck t1, w1, tmp, h;
+  mld_polyveck t1, w1, tmp, h;
 
   if (siglen != CRYPTO_BYTES)
   {

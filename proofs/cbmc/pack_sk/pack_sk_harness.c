@@ -7,7 +7,7 @@
 void harness(void)
 {
   uint8_t *a, *b, *c, *d;
-  polyveck *t0, *s2;
+  mld_polyveck *t0, *s2;
   mld_polyvecl *s1;
   pack_sk(a, b, c, d, t0, s1, s2);
 }

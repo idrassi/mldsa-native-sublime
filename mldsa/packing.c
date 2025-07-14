@@ -10,7 +10,7 @@
 #include "polyvec.h"
 
 void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
-             const uint8_t rho[MLDSA_SEEDBYTES], const polyveck *t1)
+             const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 {
   unsigned int i;
 
@@ -23,7 +23,7 @@ void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   }
 }
 
-void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], polyveck *t1,
+void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
                const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 {
   unsigned int i;
@@ -40,8 +40,8 @@ void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], polyveck *t1,
 void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
              const uint8_t rho[MLDSA_SEEDBYTES],
              const uint8_t tr[MLDSA_TRBYTES],
-             const uint8_t key[MLDSA_SEEDBYTES], const polyveck *t0,
-             const mld_polyvecl *s1, const polyveck *s2)
+             const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
+             const mld_polyvecl *s1, const mld_polyveck *s2)
 {
   memcpy(sk, rho, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
@@ -62,8 +62,8 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
 }
 
 void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-               uint8_t key[MLDSA_SEEDBYTES], polyveck *t0, mld_polyvecl *s1,
-               polyveck *s2, const uint8_t sk[CRYPTO_SECRETKEYBYTES])
+               uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0, mld_polyvecl *s1,
+               mld_polyveck *s2, const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 {
   memcpy(rho, sk, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
@@ -84,7 +84,7 @@ void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
 }
 
 void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
-              const mld_polyvecl *z, const polyveck *h,
+              const mld_polyvecl *z, const mld_polyveck *h,
               const unsigned int number_of_hints)
 {
   unsigned int i, j, k;
@@ -158,17 +158,17 @@ void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
  * Description: Unpack raw hint bytes into a polyveck
  *              struct
  *
- * Arguments:   - polyveck *h: pointer to output hint vector h
+ * Arguments:   - mld_polyveck *h: pointer to output hint vector h
  *              - const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES]:
  *                raw hint bytes
  *
  * Returns 1 in case of malformed hints; otherwise 0.
  **************************************************/
-static int unpack_hints(polyveck *h,
+static int unpack_hints(mld_polyveck *h,
                         const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(packed_hints, MLDSA_POLYVECH_PACKEDBYTES))
-  requires(memory_no_alias(h, sizeof(polyveck)))
+  requires(memory_no_alias(h, sizeof(mld_polyveck)))
   assigns(object_whole(h))
   /* All returned coefficients are either 0 or 1 */
   ensures(forall(k1, 0, MLDSA_K,
@@ -182,7 +182,7 @@ __contract__(
   /* Set all coefficients of all polynomials to 0.    */
   /* Only those that are actually non-zero hints will */
   /* be overwritten below.                            */
-  memset(h, 0, sizeof(polyveck));
+  memset(h, 0, sizeof(mld_polyveck));
 
   old_hint_count = 0;
   for (i = 0; i < MLDSA_K; ++i)
@@ -243,7 +243,7 @@ __contract__(
   return 0;
 }
 
-int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, polyveck *h,
+int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, mld_polyveck *h,
                const uint8_t sig[CRYPTO_BYTES])
 {
   memcpy(c, sig, MLDSA_CTILDEBYTES);
