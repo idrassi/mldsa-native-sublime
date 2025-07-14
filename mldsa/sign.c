@@ -280,8 +280,7 @@ __contract__(
       forall(k1, 0, MLDSA_K, array_bound(h.vec[k1].coeffs, 0, MLDSA_N, 0, 2)));
 
   /* All is well - write signature */
-  // pack_sig(sig, challenge_bytes, &z, &h, n);
-  memset(sig, 0, CRYPTO_BYTES);
+  pack_sig(sig, challenge_bytes, &z, &h, n);
   return 0; /* success */
 }
 

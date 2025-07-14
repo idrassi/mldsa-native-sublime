@@ -25,26 +25,7 @@ USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)unpack_sk \
                        $(MLD_NAMESPACE)polyvec_matrix_expand \
                        $(MLD_NAMESPACE)polyvecl_ntt \
                        $(MLD_NAMESPACE)polyveck_ntt \
-                       $(MLD_NAMESPACE)polyvecl_uniform_gamma1 \
-                       $(MLD_NAMESPACE)polyvec_matrix_pointwise_montgomery \
-                       $(MLD_NAMESPACE)polyveck_reduce \
-                       $(MLD_NAMESPACE)polyveck_invntt_tomont \
-                       $(MLD_NAMESPACE)polyveck_caddq \
-                       $(MLD_NAMESPACE)polyveck_decompose \
-                       $(MLD_NAMESPACE)polyveck_pack_w1 \
-                       $(MLD_NAMESPACE)poly_challenge \
-                       $(MLD_NAMESPACE)poly_ntt \
-                       $(MLD_NAMESPACE)polyvecl_pointwise_poly_montgomery \
-                       $(MLD_NAMESPACE)polyvecl_invntt_tomont \
-                       $(MLD_NAMESPACE)polyvecl_add \
-                       $(MLD_NAMESPACE)polyvecl_reduce \
-                       $(MLD_NAMESPACE)polyvecl_chknorm \
-#                       $(MLD_NAMESPACE)polyveck_add \
-#                       $(MLD_NAMESPACE)polyveck_reduce \
-#                       $(MLD_NAMESPACE)polyveck_pointwise_poly_montgomery \
-#                       $(MLD_NAMESPACE)polyveck_sub \
-#                       $(MLD_NAMESPACE)polyveck_make_hint \
-#                       $(MLD_NAMESPACE)pack_sig
+                       mld_attempt_signature_generation
 
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
@@ -64,7 +45,7 @@ FUNCTION_NAME = crypto_sign_signature_internal
 # EXPENSIVE = true
 
 # This function is large enough to need...
-CBMC_OBJECT_BITS = 11
+CBMC_OBJECT_BITS = 8
 
 # If you require access to a file-local ("static") function or object to conduct
 # your proof, set the following (and do not include the original source file
