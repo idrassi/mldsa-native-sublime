@@ -162,7 +162,6 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t *sk, int externalmu)
 {
   uint8_t seedbuf[2 * MLDSA_SEEDBYTES + MLDSA_TRBYTES + 2 * MLDSA_CRHBYTES];
-  uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
   polyvecl mat[MLDSA_K], s1;
   polyveck t0, s2;
@@ -207,13 +206,26 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   /* place loop invariants for CBMC.                          */
   while (1)
   __loop__(
+    assigns(nonce, object_whole(siglen), object_whole(sig))
     invariant(nonce <= nonce_ub)
+
+    /* t0, s1, s2, and mat are initialized above and are NOT changed by this */
+    /* loop. We can therefore re-assert their bounds here as part of the     */
+    /* loop invariant. This makes proof noticeably faster with CBMC          */
+    invariant(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+              array_bound(mat[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+    invariant(forall(k2, 0, MLDSA_K, array_abs_bound(t0.vec[k2].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+    invariant(forall(k3, 0, MLDSA_L, array_abs_bound(s1.vec[k3].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+    invariant(forall(k4, 0, MLDSA_K, array_abs_bound(s2.vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
   )
   {
+    uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
     unsigned int n;
     polyvecl y, z;
     polyveck w2, w1, w0, h;
     poly cp;
+
+    int zok;
 
     if (nonce == nonce_ub)
     {
@@ -247,12 +259,14 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     polyvecl_add(&z, &y);
     polyvecl_reduce(&z);
 
-    // RCC here - this next call is problematic
-    // if (polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
+    // RCC here - this next call is OK, but the branch/continue
+    // causes complexity blow-up...
+    zok = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+    // if (zok)
     //{
-    //  /* reject */
-    //  continue;
-    //}
+    //   /* reject */
+    //   continue;
+    // }
 
     /* Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */

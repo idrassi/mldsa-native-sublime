@@ -38,7 +38,7 @@ USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)unpack_sk \
                        $(MLD_NAMESPACE)polyvecl_invntt_tomont \
                        $(MLD_NAMESPACE)polyvecl_add \
                        $(MLD_NAMESPACE)polyvecl_reduce \
-#                       $(MLD_NAMESPACE)polyvecl_chknorm \
+                       $(MLD_NAMESPACE)polyvecl_chknorm \
 #                       $(MLD_NAMESPACE)polyveck_add \
 #                       $(MLD_NAMESPACE)polyveck_reduce \
 #                       $(MLD_NAMESPACE)polyveck_pointwise_poly_montgomery \
