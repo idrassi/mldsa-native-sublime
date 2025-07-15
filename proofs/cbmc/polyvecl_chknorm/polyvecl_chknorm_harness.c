@@ -8,5 +8,5 @@ void harness(void)
   mld_polyvecl *v;
   int32_t bound;
 
-  polyvecl_chknorm(v, bound);
+  mld_polyvecl_chknorm(v, bound);
 }

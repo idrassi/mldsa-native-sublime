@@ -16,9 +16,9 @@ typedef struct
   mld_poly vec[MLDSA_L];
 } mld_polyvecl;
 
-#define polyvecl_uniform_gamma1 MLD_NAMESPACE(polyvecl_uniform_gamma1)
+#define mld_polyvecl_uniform_gamma1 MLD_NAMESPACE(polyvecl_uniform_gamma1)
 /*************************************************
- * Name:        polyvecl_uniform_gamma1
+ * Name:        mld_polyvecl_uniform_gamma1
  *
  * Description: Sample vector of polynomials with uniformly random coefficients
  *              in [-(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1] by unpacking output
@@ -29,8 +29,9 @@ typedef struct
  *                MLDSA_CRHBYTES
  *              - uint16_t nonce: 16-bit nonce
  *************************************************/
-void polyvecl_uniform_gamma1(mld_polyvecl *v,
-                             const uint8_t seed[MLDSA_CRHBYTES], uint16_t nonce)
+void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
+                                 const uint8_t seed[MLDSA_CRHBYTES],
+                                 uint16_t nonce)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(memory_no_alias(seed, MLDSA_CRHBYTES))
@@ -40,9 +41,9 @@ __contract__(
     array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
 );
 
-#define polyvecl_reduce MLD_NAMESPACE(polyvecl_reduce)
+#define mld_polyvecl_reduce MLD_NAMESPACE(polyvecl_reduce)
 /*************************************************
- * Name:        polyvecl_reduce
+ * Name:        mld_polyvecl_reduce
  *
  * Description: Inplace reduction of all coefficients of all polynomial in a
  *              vector of length MLDSA_L to
@@ -50,7 +51,7 @@ __contract__(
  *
  * Arguments:   - mld_poly *v: pointer to input/output vector
  **************************************************/
-void polyvecl_reduce(mld_polyvecl *v)
+void mld_polyvecl_reduce(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(forall(k0, 0, MLDSA_L,
@@ -60,9 +61,9 @@ __contract__(
     array_bound(v->vec[k1].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
 );
 
-#define polyvecl_add MLD_NAMESPACE(polyvecl_add)
+#define mld_polyvecl_add MLD_NAMESPACE(polyvecl_add)
 /*************************************************
- * Name:        polyvecl_add
+ * Name:        mld_polyvecl_add
  *
  * Description: Add vectors of polynomials of length MLDSA_L.
  *              No modular reduction is performed.
@@ -72,7 +73,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector of
  *              polynomials
  **************************************************/
-void polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
+void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyvecl)))
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
@@ -84,16 +85,16 @@ __contract__(
                  array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
 );
 
-#define polyvecl_ntt MLD_NAMESPACE(polyvecl_ntt)
+#define mld_polyvecl_ntt MLD_NAMESPACE(polyvecl_ntt)
 /*************************************************
- * Name:        polyvecl_ntt
+ * Name:        mld_polyvecl_ntt
  *
  * Description: Forward NTT of all polynomials in vector of length MLDSA_L.
  *              Coefficients can grow by 8*MLDSA_Q in absolute value.
  *
  * Arguments:   - mld_polyvecl *v: pointer to input/output vector
  **************************************************/
-void polyvecl_ntt(mld_polyvecl *v)
+void mld_polyvecl_ntt(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(forall(k0, 0, MLDSA_L, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLDSA_Q)))
@@ -101,9 +102,9 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_L, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
 );
 
-#define polyvecl_invntt_tomont MLD_NAMESPACE(polyvecl_invntt_tomont)
+#define mld_polyvecl_invntt_tomont MLD_NAMESPACE(polyvecl_invntt_tomont)
 /*************************************************
- * Name:        polyvecl_invntt_tomont
+ * Name:        mld_polyvecl_invntt_tomont
  *
  * Description: Inplace inverse NTT and multiplication by 2^{32}.
  *              Input coefficients need to be less than MLDSA_Q in absolute
@@ -112,7 +113,7 @@ __contract__(
  *
  * Arguments:   - mld_polyvecl *v: pointer to input/output vector
  **************************************************/
-void polyvecl_invntt_tomont(mld_polyvecl *v)
+void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(forall(k0, 0, MLDSA_L, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLDSA_Q)))
@@ -120,10 +121,10 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_L, array_abs_bound(v->vec[k1].coeffs, 0 , MLDSA_N, MLD_INTT_BOUND)))
 );
 
-#define polyvecl_pointwise_poly_montgomery \
+#define mld_polyvecl_pointwise_poly_montgomery \
   MLD_NAMESPACE(polyvecl_pointwise_poly_montgomery)
 /*************************************************
- * Name:        polyvecl_pointwise_poly_montgomery
+ * Name:        mld_polyvecl_pointwise_poly_montgomery
  *
  * Description: Pointwise multiplication of a polynomial vector of length
  *              MLDSA_L by a single polynomial in NTT domain and multiplication
@@ -133,8 +134,8 @@ __contract__(
  *              - mld_poly *a: pointer to input polynomial
  *              - mld_polyvecl *v: pointer to input vector
  **************************************************/
-void polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
-                                        const mld_polyvecl *v)
+void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
+                                            const mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(r, sizeof(mld_polyvecl)))
   requires(memory_no_alias(a, sizeof(mld_poly)))
@@ -145,10 +146,10 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_L, array_abs_bound(r->vec[k1].coeffs, 0, MLDSA_N, MLDSA_Q)))
 );
 
-#define polyvecl_pointwise_acc_montgomery \
+#define mld_polyvecl_pointwise_acc_montgomery \
   MLD_NAMESPACE(polyvecl_pointwise_acc_montgomery)
 /*************************************************
- * Name:        polyvecl_pointwise_acc_montgomery
+ * Name:        mld_polyvecl_pointwise_acc_montgomery
  *
  * Description: Pointwise multiply vectors of polynomials of length MLDSA_L,
  *              multiply resulting vector by 2^{-32} and add (accumulate)
@@ -168,8 +169,8 @@ __contract__(
  *              - const mld_polyvecl *u: pointer to first input vector
  *              - const mld_polyvecl *v: pointer to second input vector
  **************************************************/
-void polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
-                                       const mld_polyvecl *v)
+void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
+                                           const mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(w, sizeof(mld_poly)))
   requires(memory_no_alias(u, sizeof(mld_polyvecl)))
@@ -183,9 +184,9 @@ __contract__(
 );
 
 
-#define polyvecl_chknorm MLD_NAMESPACE(polyvecl_chknorm)
+#define mld_polyvecl_chknorm MLD_NAMESPACE(polyvecl_chknorm)
 /*************************************************
- * Name:        polyvecl_chknorm
+ * Name:        mld_polyvecl_chknorm
  *
  * Description: Check infinity norm of polynomials in vector of length MLDSA_L.
  *              Assumes input mld_polyvecl to be reduced by polyvecl_reduce().
@@ -196,7 +197,7 @@ __contract__(
  * Returns 0 if norm of all polynomials is strictly smaller than B <=
  * (MLDSA_Q-1)/8 and 1 otherwise.
  **************************************************/
-int polyvecl_chknorm(const mld_polyvecl *v, int32_t B)
+int mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t B)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(0 <= B && B <= (MLDSA_Q - 1) / 8)
@@ -212,7 +213,7 @@ typedef struct
   mld_poly vec[MLDSA_K];
 } mld_polyveck;
 
-#define polyveck_reduce MLD_NAMESPACE(polyveck_reduce)
+#define mld_polyveck_reduce MLD_NAMESPACE(polyveck_reduce)
 /*************************************************
  * Name:        polyveck_reduce
  *
@@ -221,7 +222,7 @@ typedef struct
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_reduce(mld_polyveck *v)
+void mld_polyveck_reduce(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K,
@@ -231,16 +232,16 @@ __contract__(
     array_bound(v->vec[k1].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
 );
 
-#define polyveck_caddq MLD_NAMESPACE(polyveck_caddq)
+#define mld_polyveck_caddq MLD_NAMESPACE(polyveck_caddq)
 /*************************************************
- * Name:        polyveck_caddq
+ * Name:        mld_polyveck_caddq
  *
  * Description: For all coefficients of polynomials in vector of length MLDSA_K
  *              add MLDSA_Q if coefficient is negative.
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_caddq(mld_polyveck *v)
+void mld_polyveck_caddq(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K,
@@ -250,9 +251,9 @@ __contract__(
     array_bound(v->vec[k1].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
 );
 
-#define polyveck_add MLD_NAMESPACE(polyveck_add)
+#define mld_polyveck_add MLD_NAMESPACE(polyveck_add)
 /*************************************************
- * Name:        polyveck_add
+ * Name:        mld_polyveck_add
  *
  * Description: Add vectors of polynomials of length MLDSA_K.
  *              No modular reduction is performed.
@@ -262,7 +263,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector of
  *              polynomials
  **************************************************/
-void polyveck_add(mld_polyveck *u, const mld_polyveck *v)
+void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyveck)))
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -272,9 +273,9 @@ __contract__(
   ensures(forall(k4, 0, MLDSA_K, forall(k5, 0, MLDSA_N, u->vec[k4].coeffs[k5] == old(*u).vec[k4].coeffs[k5] + v->vec[k4].coeffs[k5])))
 );
 
-#define polyveck_sub MLD_NAMESPACE(polyveck_sub)
+#define mld_polyveck_sub MLD_NAMESPACE(polyveck_sub)
 /*************************************************
- * Name:        polyveck_sub
+ * Name:        mld_polyveck_sub
  *
  * Description: Subtract vectors of polynomials of length MLDSA_K.
  *              No modular reduction is performed.
@@ -283,7 +284,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector to be
  *                                   subtracted from first input vector
  **************************************************/
-void polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
+void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyveck)))
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -294,9 +295,9 @@ __contract__(
                  array_bound(u->vec[k0].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
 );
 
-#define polyveck_shiftl MLD_NAMESPACE(polyveck_shiftl)
+#define mld_polyveck_shiftl MLD_NAMESPACE(polyveck_shiftl)
 /*************************************************
- * Name:        polyveck_shiftl
+ * Name:        mld_polyveck_shiftl
  *
  * Description: Multiply vector of polynomials of Length MLDSA_K by 2^MLDSA_D
  *without modular reduction. Assumes input coefficients to be less than
@@ -304,7 +305,7 @@ __contract__(
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_shiftl(mld_polyveck *v)
+void mld_polyveck_shiftl(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K, array_bound(v->vec[k0].coeffs, 0, MLDSA_N, 0, 1 << 10)))
@@ -312,16 +313,16 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_K, array_bound(v->vec[k1].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
 );
 
-#define polyveck_ntt MLD_NAMESPACE(polyveck_ntt)
+#define mld_polyveck_ntt MLD_NAMESPACE(polyveck_ntt)
 /*************************************************
- * Name:        polyveck_ntt
+ * Name:        mld_polyveck_ntt
  *
  * Description: Forward NTT of all polynomials in vector of length MLDSA_K.
  *              Coefficients can grow by 8*MLDSA_Q in absolute value.
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_ntt(mld_polyveck *v)
+void mld_polyveck_ntt(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLDSA_Q)))
@@ -329,9 +330,9 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_K, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
 );
 
-#define polyveck_invntt_tomont MLD_NAMESPACE(polyveck_invntt_tomont)
+#define mld_polyveck_invntt_tomont MLD_NAMESPACE(polyveck_invntt_tomont)
 /*************************************************
- * Name:        polyveck_invntt_tomont
+ * Name:        mld_polyveck_invntt_tomont
  *
  * Description: Inverse NTT and multiplication by 2^{32} of polynomials
  *              in vector of length MLDSA_K.
@@ -339,7 +340,7 @@ __contract__(
  *              Output coefficients are bounded by MLD_INTT_BOUND.
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_invntt_tomont(mld_polyveck *v)
+void mld_polyveck_invntt_tomont(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLDSA_Q)))
@@ -347,10 +348,10 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_K, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, MLD_INTT_BOUND)))
 );
 
-#define polyveck_pointwise_poly_montgomery \
+#define mld_polyveck_pointwise_poly_montgomery \
   MLD_NAMESPACE(polyveck_pointwise_poly_montgomery)
 /*************************************************
- * Name:        polyveck_pointwise_poly_montgomery
+ * Name:        mld_polyveck_pointwise_poly_montgomery
  *
  * Description: Pointwise multiplication of a polynomial vector of length
  *              MLDSA_K by a single polynomial in NTT domain and multiplication
@@ -360,8 +361,8 @@ __contract__(
  *              - mld_poly *a: pointer to input polynomial
  *              - mld_polyveck *v: pointer to input vector
  **************************************************/
-void polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
-                                        const mld_polyveck *v)
+void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
+                                            const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(r, sizeof(mld_polyveck)))
   requires(memory_no_alias(a, sizeof(mld_poly)))
@@ -372,9 +373,9 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_K, array_abs_bound(r->vec[k1].coeffs, 0, MLDSA_N, MLDSA_Q)))
 );
 
-#define polyveck_chknorm MLD_NAMESPACE(polyveck_chknorm)
+#define mld_polyveck_chknorm MLD_NAMESPACE(polyveck_chknorm)
 /*************************************************
- * Name:        polyveck_chknorm
+ * Name:        mld_polyveck_chknorm
  *
  * Description: Check infinity norm of polynomials in vector of length MLDSA_K.
  *              Assumes input mld_polyveck to be reduced by polyveck_reduce().
@@ -385,7 +386,7 @@ __contract__(
  * Returns 0 if norm of all polynomials are strictly smaller than B <=
  *(MLDSA_Q-1)/8 and 1 otherwise.
  **************************************************/
-int polyveck_chknorm(const mld_polyveck *v, int32_t B)
+int mld_polyveck_chknorm(const mld_polyveck *v, int32_t B)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
   requires(0 <= B && B <= (MLDSA_Q - 1) / 8)
@@ -396,9 +397,9 @@ __contract__(
   ensures((return_value == 0) == forall(k1, 0, MLDSA_K, array_abs_bound(v->vec[k1].coeffs, 0, MLDSA_N, B)))
 );
 
-#define polyveck_power2round MLD_NAMESPACE(polyveck_power2round)
+#define mld_polyveck_power2round MLD_NAMESPACE(polyveck_power2round)
 /*************************************************
- * Name:        polyveck_power2round
+ * Name:        mld_polyveck_power2round
  *
  * Description: For all coefficients a of polynomials in vector of length
  *MLDSA_K, compute a0, a1 such that a mod^+ MLDSA_Q = a1*2^MLDSA_D + a0 with
@@ -411,8 +412,8 @@ __contract__(
  *                              coefficients a0
  *              - const mld_polyveck *v: pointer to input vector
  **************************************************/
-void polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
-                          const mld_polyveck *v)
+void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
+                              const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v1, sizeof(mld_polyveck)))
   requires(memory_no_alias(v0, sizeof(mld_polyveck)))
@@ -424,9 +425,9 @@ __contract__(
   ensures(forall(k2, 0, MLDSA_K, array_bound(v1->vec[k2].coeffs, 0, MLDSA_N, 0, ((MLDSA_Q - 1) / MLD_2_POW_D) + 1)))
 );
 
-#define polyveck_decompose MLD_NAMESPACE(polyveck_decompose)
+#define mld_polyveck_decompose MLD_NAMESPACE(polyveck_decompose)
 /*************************************************
- * Name:        polyveck_decompose
+ * Name:        mld_polyveck_decompose
  *
  * Description: For all coefficients a of polynomials in vector of length
  *MLDSA_K, compute high and low bits a0, a1 such a mod^+ MLDSA_Q = a1*ALPHA
@@ -440,8 +441,8 @@ __contract__(
  *                              coefficients a0
  *              - const mld_polyveck *v: pointer to input vector
  **************************************************/
-void polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
-                        const mld_polyveck *v)
+void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
+                            const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v1,  sizeof(mld_polyveck)))
   requires(memory_no_alias(v0, sizeof(mld_polyveck)))
@@ -456,9 +457,9 @@ __contract__(
                  array_abs_bound(v0->vec[k2].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
 );
 
-#define polyveck_make_hint MLD_NAMESPACE(polyveck_make_hint)
+#define mld_polyveck_make_hint MLD_NAMESPACE(polyveck_make_hint)
 /*************************************************
- * Name:        polyveck_make_hint
+ * Name:        mld_polyveck_make_hint
  *
  * Description: Compute hint vector.
  *
@@ -468,8 +469,8 @@ __contract__(
  *
  * Returns number of 1 bits.
  **************************************************/
-unsigned int polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
-                                const mld_polyveck *v1)
+unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
+                                    const mld_polyveck *v1)
 __contract__(
   requires(memory_no_alias(h,  sizeof(mld_polyveck)))
   requires(memory_no_alias(v0, sizeof(mld_polyveck)))
@@ -479,9 +480,9 @@ __contract__(
   ensures(forall(k1, 0, MLDSA_K, array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
 );
 
-#define polyveck_use_hint MLD_NAMESPACE(polyveck_use_hint)
+#define mld_polyveck_use_hint MLD_NAMESPACE(polyveck_use_hint)
 /*************************************************
- * Name:        polyveck_use_hint
+ * Name:        mld_polyveck_use_hint
  *
  * Description: Use hint vector to correct the high bits of input vector.
  *
@@ -490,8 +491,8 @@ __contract__(
  *              - const mld_polyveck *u: pointer to input vector
  *              - const mld_polyveck *h: pointer to input hint vector
  **************************************************/
-void polyveck_use_hint(mld_polyveck *w, const mld_polyveck *v,
-                       const mld_polyveck *h)
+void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *v,
+                           const mld_polyveck *h)
 __contract__(
   requires(memory_no_alias(w,  sizeof(mld_polyveck)))
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -505,9 +506,9 @@ __contract__(
     array_bound(w->vec[k2].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2))))
 );
 
-#define polyveck_pack_w1 MLD_NAMESPACE(polyveck_pack_w1)
+#define mld_polyveck_pack_w1 MLD_NAMESPACE(polyveck_pack_w1)
 /*************************************************
- * Name:        polyveck_pack_w1
+ * Name:        mld_polyveck_pack_w1
  *
  * Description: Bit-pack polynomial vector w1 with coefficients in [0,15] or
  *              [0,43].
@@ -517,8 +518,8 @@ __contract__(
  *                            MLDSA_K* MLDSA_POLYW1_PACKEDBYTES bytes
  *              - const mld_polyveck *a: pointer to input polynomial vector
  **************************************************/
-void polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
-                      const mld_polyveck *w1)
+void mld_polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
+                          const mld_polyveck *w1)
 #if MLDSA_MODE == 2
 __contract__(
   requires(memory_no_alias(r, MLDSA_K * MLDSA_POLYW1_PACKEDBYTES))
@@ -536,9 +537,9 @@ __contract__(
 #endif /* MLDSA_MODE != 2 */
 
 
-#define polyveck_pack_eta MLD_NAMESPACE(polyveck_pack_eta)
-void polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
-                       const mld_polyveck *p)
+#define mld_polyveck_pack_eta MLD_NAMESPACE(polyveck_pack_eta)
+void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
+                           const mld_polyveck *p)
 __contract__(
   requires(memory_no_alias(r,  MLDSA_K * MLDSA_POLYETA_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyveck)))
@@ -547,9 +548,9 @@ __contract__(
   assigns(object_whole(r))
 );
 
-#define polyvecl_pack_eta MLD_NAMESPACE(polyvecl_pack_eta)
-void polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
-                       const mld_polyvecl *p)
+#define mld_polyvecl_pack_eta MLD_NAMESPACE(polyvecl_pack_eta)
+void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
+                           const mld_polyvecl *p)
 __contract__(
   requires(memory_no_alias(r,  MLDSA_L * MLDSA_POLYETA_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyvecl)))
@@ -558,9 +559,9 @@ __contract__(
   assigns(object_whole(r))
 );
 
-#define polyvecl_pack_z MLD_NAMESPACE(polyvecl_pack_z)
-void polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
-                     const mld_polyvecl *p)
+#define mld_polyvecl_pack_z MLD_NAMESPACE(polyvecl_pack_z)
+void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
+                         const mld_polyvecl *p)
 __contract__(
   requires(memory_no_alias(r,  MLDSA_L * MLDSA_POLYZ_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyvecl)))
@@ -569,9 +570,9 @@ __contract__(
   assigns(object_whole(r))
 );
 
-#define polyveck_pack_t0 MLD_NAMESPACE(polyveck_pack_t0)
-void polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
-                      const mld_polyveck *p)
+#define mld_polyveck_pack_t0 MLD_NAMESPACE(polyveck_pack_t0)
+void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
+                          const mld_polyveck *p)
 __contract__(
   requires(memory_no_alias(r,  MLDSA_K * MLDSA_POLYT0_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyveck)))
@@ -580,9 +581,9 @@ __contract__(
   assigns(object_whole(r))
 );
 
-#define polyvecl_unpack_eta MLD_NAMESPACE(polyvecl_unpack_eta)
-void polyvecl_unpack_eta(mld_polyvecl *p,
-                         const uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES])
+#define mld_polyvecl_unpack_eta MLD_NAMESPACE(polyvecl_unpack_eta)
+void mld_polyvecl_unpack_eta(
+    mld_polyvecl *p, const uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(r,  MLDSA_L * MLDSA_POLYETA_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyvecl)))
@@ -591,9 +592,9 @@ __contract__(
     array_bound(p->vec[k1].coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1)))
 );
 
-#define polyvecl_unpack_z MLD_NAMESPACE(polyvecl_unpack_z)
-void polyvecl_unpack_z(mld_polyvecl *z,
-                       const uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES])
+#define mld_polyvecl_unpack_z MLD_NAMESPACE(polyvecl_unpack_z)
+void mld_polyvecl_unpack_z(mld_polyvecl *z,
+                           const uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(r,  MLDSA_L * MLDSA_POLYZ_PACKEDBYTES))
   requires(memory_no_alias(z, sizeof(mld_polyvecl)))
@@ -602,9 +603,9 @@ __contract__(
     array_bound(z->vec[k1].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
 );
 
-#define polyveck_unpack_eta MLD_NAMESPACE(polyveck_unpack_eta)
-void polyveck_unpack_eta(mld_polyveck *p,
-                         const uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES])
+#define mld_polyveck_unpack_eta MLD_NAMESPACE(polyveck_unpack_eta)
+void mld_polyveck_unpack_eta(
+    mld_polyveck *p, const uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(r,  MLDSA_K * MLDSA_POLYETA_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyveck)))
@@ -613,9 +614,9 @@ __contract__(
     array_bound(p->vec[k1].coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1)))
 );
 
-#define polyveck_unpack_t0 MLD_NAMESPACE(polyveck_unpack_t0)
-void polyveck_unpack_t0(mld_polyveck *p,
-                        const uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES])
+#define mld_polyveck_unpack_t0 MLD_NAMESPACE(polyveck_unpack_t0)
+void mld_polyveck_unpack_t0(mld_polyveck *p,
+                            const uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES])
 __contract__(
   requires(memory_no_alias(r,  MLDSA_K * MLDSA_POLYT0_PACKEDBYTES))
   requires(memory_no_alias(p, sizeof(mld_polyveck)))
@@ -624,9 +625,9 @@ __contract__(
     array_bound(p->vec[k1].coeffs, 0, MLDSA_N, -(1<<(MLDSA_D-1)) + 1, (1<<(MLDSA_D-1)) + 1)))
 );
 
-#define polyvec_matrix_expand MLD_NAMESPACE(polyvec_matrix_expand)
+#define mld_polyvec_matrix_expand MLD_NAMESPACE(polyvec_matrix_expand)
 /*************************************************
- * Name:        polyvec_matrix_expand
+ * Name:        mld_polyvec_matrix_expand
  *
  * Description: Implementation of ExpandA. Generates matrix A with uniformly
  *              random coefficients a_{i,j} by performing rejection
@@ -635,8 +636,8 @@ __contract__(
  * Arguments:   - mld_polyvecl mat[MLDSA_K]: output matrix
  *              - const uint8_t rho[]: byte array containing seed rho
  **************************************************/
-void polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
-                           const uint8_t rho[MLDSA_SEEDBYTES])
+void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
+                               const uint8_t rho[MLDSA_SEEDBYTES])
 __contract__(
   requires(memory_no_alias(mat, MLDSA_K * sizeof(mld_polyvecl)))
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
@@ -647,10 +648,10 @@ __contract__(
 
 
 
-#define polyvec_matrix_pointwise_montgomery \
+#define mld_polyvec_matrix_pointwise_montgomery \
   MLD_NAMESPACE(polyvec_matrix_pointwise_montgomery)
 /*************************************************
- * Name:        polyvec_matrix_pointwise_montgomery
+ * Name:        mld_polyvec_matrix_pointwise_montgomery
  *
  * Description: Compute matrix-vector multiplication in NTT domain with
  *              pointwise multiplication and multiplication by 2^{-32}.
@@ -668,9 +669,9 @@ __contract__(
  *              - const mld_polyvecl mat[MLDSA_K]: pointer to input matrix
  *              - const mld_polyvecl *v: pointer to input vector v
  **************************************************/
-void polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
-                                         const mld_polyvecl mat[MLDSA_K],
-                                         const mld_polyvecl *v)
+void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
+                                             const mld_polyvecl mat[MLDSA_K],
+                                             const mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(t, sizeof(mld_polyveck)))
   requires(memory_no_alias(mat, MLDSA_K*sizeof(mld_polyvecl)))

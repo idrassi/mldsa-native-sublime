@@ -8,5 +8,5 @@
 void harness(void)
 {
   mld_polyveck *v;
-  polyveck_invntt_tomont(v);
+  mld_polyveck_invntt_tomont(v);
 }

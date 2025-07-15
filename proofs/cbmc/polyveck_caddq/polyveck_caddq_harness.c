@@ -6,5 +6,5 @@
 void harness(void)
 {
   mld_polyveck *a;
-  polyveck_caddq(a);
+  mld_polyveck_caddq(a);
 }

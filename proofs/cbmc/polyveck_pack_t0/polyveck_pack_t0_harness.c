@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_polyveck *a;
   uint8_t *b;
-  polyveck_pack_t0(b, a);
+  mld_polyveck_pack_t0(b, a);
 }

@@ -52,13 +52,13 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
   memcpy(sk, tr, MLDSA_TRBYTES);
   sk += MLDSA_TRBYTES;
 
-  polyvecl_pack_eta(sk, s1);
+  mld_polyvecl_pack_eta(sk, s1);
   sk += MLDSA_L * MLDSA_POLYETA_PACKEDBYTES;
 
-  polyveck_pack_eta(sk, s2);
+  mld_polyveck_pack_eta(sk, s2);
   sk += MLDSA_K * MLDSA_POLYETA_PACKEDBYTES;
 
-  polyveck_pack_t0(sk, t0);
+  mld_polyveck_pack_t0(sk, t0);
 }
 
 void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
@@ -74,13 +74,13 @@ void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
   memcpy(tr, sk, MLDSA_TRBYTES);
   sk += MLDSA_TRBYTES;
 
-  polyvecl_unpack_eta(s1, sk);
+  mld_polyvecl_unpack_eta(s1, sk);
   sk += MLDSA_L * MLDSA_POLYETA_PACKEDBYTES;
 
-  polyveck_unpack_eta(s2, sk);
+  mld_polyveck_unpack_eta(s2, sk);
   sk += MLDSA_K * MLDSA_POLYETA_PACKEDBYTES;
 
-  polyveck_unpack_t0(t0, sk);
+  mld_polyveck_unpack_t0(t0, sk);
 }
 
 void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
@@ -92,7 +92,7 @@ void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
   memcpy(sig, c, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;
 
-  polyvecl_pack_z(sig, z);
+  mld_polyvecl_pack_z(sig, z);
   sig += MLDSA_L * MLDSA_POLYZ_PACKEDBYTES;
 
   /* Encode hints h */
@@ -249,7 +249,7 @@ int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, mld_polyveck *h,
   memcpy(c, sig, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;
 
-  polyvecl_unpack_z(z, sig);
+  mld_polyvecl_unpack_z(z, sig);
   sig += MLDSA_L * MLDSA_POLYZ_PACKEDBYTES;
 
   return mld_unpack_hints(h, sig);

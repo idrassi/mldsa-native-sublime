@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_polyveck *a, *b, *c;
   unsigned int r;
-  r = polyveck_make_hint(a, b, c);
+  r = mld_polyveck_make_hint(a, b, c);
 }

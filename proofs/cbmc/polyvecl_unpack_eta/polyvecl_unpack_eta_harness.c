@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_polyvecl *a;
   uint8_t *b;
-  polyvecl_unpack_eta(a, b);
+  mld_polyvecl_unpack_eta(a, b);
 }

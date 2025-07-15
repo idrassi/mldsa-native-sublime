@@ -6,5 +6,5 @@
 void harness(void)
 {
   mld_polyveck *a, *b, *c;
-  polyveck_power2round(a, b, c);
+  mld_polyveck_power2round(a, b, c);
 }
