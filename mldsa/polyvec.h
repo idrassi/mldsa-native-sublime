@@ -445,12 +445,13 @@ __contract__(
   requires(memory_no_alias(v0, sizeof(polyveck)))
   requires(memory_no_alias(v, sizeof(polyveck)))
   requires(forall(k0, 0, MLDSA_K,
-    array_bound(v->vec[k0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
+                  array_bound(v->vec[k0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
   assigns(memory_slice(v1, sizeof(polyveck)))
   assigns(memory_slice(v0, sizeof(polyveck)))
   ensures(forall(k1, 0, MLDSA_K,
-                 array_bound(v1->vec[k1].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)) &&
-                 array_abs_bound(v0->vec[k1].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
+                 array_bound(v1->vec[k1].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2))))
+  ensures(forall(k2, 0, MLDSA_K,
+                 array_abs_bound(v0->vec[k2].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
 );
 
 #define polyveck_make_hint MLD_NAMESPACE(polyveck_make_hint)

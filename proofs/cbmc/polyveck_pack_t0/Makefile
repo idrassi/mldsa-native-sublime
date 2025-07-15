@@ -14,7 +14,6 @@ DEFINES +=
 INCLUDES +=
 
 REMOVE_FUNCTION_BODY +=
-UNWINDSET += $(MLD_NAMESPACE)polyveck_pack_t0.0:8 # Largest value of MLDSA_K
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
@@ -27,6 +26,7 @@ USE_DYNAMIC_FRAMES=1
 # Disable any setting of EXTERNAL_SAT_SOLVER, and choose SMT backend instead
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
+CBMCFLAGS += --slice-formula
 
 FUNCTION_NAME = polyveck_pack_t0
 

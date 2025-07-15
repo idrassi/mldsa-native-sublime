@@ -486,8 +486,9 @@ void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v)
     assigns(i, memory_slice(v0, sizeof(polyveck)), memory_slice(v1, sizeof(polyveck)))
     invariant(i <= MLDSA_K)
     invariant(forall(k1, 0, i,
-                     array_bound(v1->vec[k1].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)) &&
-                     array_abs_bound(v0->vec[k1].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
+                     array_bound(v1->vec[k1].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2))))
+    invariant(forall(k2, 0, i,
+                     array_abs_bound(v0->vec[k2].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
   )
   {
     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
@@ -536,6 +537,10 @@ void polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
   unsigned int i;
 
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_K)
+  )
   {
     polyw1_pack(&r[i * MLDSA_POLYW1_PACKEDBYTES], &w1->vec[i]);
   }
@@ -546,6 +551,10 @@ void polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
 {
   unsigned int i;
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_K)
+  )
   {
     polyeta_pack(r + i * MLDSA_POLYETA_PACKEDBYTES, &p->vec[i]);
   }
@@ -556,8 +565,12 @@ void polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_L)
+  )
   {
-    polyeta_pack(r + i * MLDSA_POLYETA_PACKEDBYTES, &p->vec[i]);
+    polyeta_pack(&r[i * MLDSA_POLYETA_PACKEDBYTES], &p->vec[i]);
   }
 }
 
@@ -566,8 +579,12 @@ void polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_L)
+  )
   {
-    polyz_pack(r + i * MLDSA_POLYZ_PACKEDBYTES, &p->vec[i]);
+    polyz_pack(&r[i * MLDSA_POLYZ_PACKEDBYTES], &p->vec[i]);
   }
 }
 
@@ -577,8 +594,12 @@ void polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
 {
   unsigned int i;
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_K)
+  )
   {
-    polyt0_pack(r + i * MLDSA_POLYT0_PACKEDBYTES, &p->vec[i]);
+    polyt0_pack(&r[i * MLDSA_POLYT0_PACKEDBYTES], &p->vec[i]);
   }
 }
 
