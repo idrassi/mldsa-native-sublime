@@ -613,6 +613,10 @@ void mld_polyvecl_unpack_eta(
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_L)
+  )
   {
     mld_polyeta_unpack(&p->vec[i], r + i * MLDSA_POLYETA_PACKEDBYTES);
   }
@@ -623,6 +627,10 @@ void mld_polyvecl_unpack_z(mld_polyvecl *z,
 {
   unsigned int i;
   for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_L)
+  )
   {
     mld_polyz_unpack(&z->vec[i], r + i * MLDSA_POLYZ_PACKEDBYTES);
   }
@@ -633,6 +641,10 @@ void mld_polyveck_unpack_eta(
 {
   unsigned int i;
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, object_whole(r))
+    invariant(i <= MLDSA_K)
+  )
   {
     mld_polyeta_unpack(&p->vec[i], r + i * MLDSA_POLYETA_PACKEDBYTES);
   }
