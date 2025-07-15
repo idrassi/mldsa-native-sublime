@@ -14,7 +14,7 @@
 #include "rounding.h"
 #include "symmetric.h"
 
-void poly_reduce(mld_poly *a)
+void mld_poly_reduce(mld_poly *a)
 {
   unsigned int i;
   /* TODO: Introduce the following after using inclusive lower bounds in
@@ -33,7 +33,7 @@ void poly_reduce(mld_poly *a)
   mld_assert_bound(a->coeffs, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX);
 }
 
-void poly_caddq(mld_poly *a)
+void mld_poly_caddq(mld_poly *a)
 {
   unsigned int i;
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
@@ -52,7 +52,7 @@ void poly_caddq(mld_poly *a)
 }
 /* Reference: We use destructive version (output=first input) to avoid
  *            reasoning about aliasing in the CBMC specification */
-void poly_add(mld_poly *r, const mld_poly *b)
+void mld_poly_add(mld_poly *r, const mld_poly *b)
 {
   unsigned int i;
   for (i = 0; i < MLDSA_N; ++i)
@@ -70,7 +70,7 @@ void poly_add(mld_poly *r, const mld_poly *b)
 }
 /* Reference: We use destructive version (output=first input) to avoid
  *            reasoning about aliasing in the CBMC specification */
-void poly_sub(mld_poly *r, const mld_poly *b)
+void mld_poly_sub(mld_poly *r, const mld_poly *b)
 {
   unsigned int i;
 
@@ -85,7 +85,7 @@ void poly_sub(mld_poly *r, const mld_poly *b)
   }
 }
 
-void poly_shiftl(mld_poly *a)
+void mld_poly_shiftl(mld_poly *a)
 {
   unsigned int i;
   mld_assert_bound(a->coeffs, MLDSA_N, 0, 1 << 10);
@@ -104,14 +104,14 @@ void poly_shiftl(mld_poly *a)
 }
 
 #if !defined(MLD_USE_NATIVE_NTT)
-void poly_ntt(mld_poly *a)
+void mld_poly_ntt(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
   ntt(a->coeffs);
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_NTT_BOUND);
 }
 #else  /* !MLD_USE_NATIVE_NTT */
-void poly_ntt(mld_poly *p)
+void mld_poly_ntt(mld_poly *p)
 {
   mld_assert_abs_bound(p->coeffs, MLDSA_N, MLDSA_Q);
   mld_ntt_native(p->coeffs);
@@ -120,14 +120,14 @@ void poly_ntt(mld_poly *p)
 #endif /* MLD_USE_NATIVE_NTT */
 
 #if !defined(MLD_USE_NATIVE_INTT)
-void poly_invntt_tomont(mld_poly *a)
+void mld_poly_invntt_tomont(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
   invntt_tomont(a->coeffs);
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_INTT_BOUND);
 }
 #else  /* !MLD_USE_NATIVE_INTT */
-void poly_invntt_tomont(mld_poly *a)
+void mld_poly_invntt_tomont(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
   mld_intt_native(a->coeffs);
@@ -135,8 +135,8 @@ void poly_invntt_tomont(mld_poly *a)
 }
 #endif /* MLD_USE_NATIVE_INTT */
 
-void poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
-                               const mld_poly *b)
+void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
+                                   const mld_poly *b)
 {
   unsigned int i;
 
@@ -150,7 +150,7 @@ void poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
   }
 }
 
-void poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
+void mld_poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
 {
   unsigned int i;
   mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
@@ -171,7 +171,7 @@ void poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
   mld_assert_bound(a1->coeffs, MLDSA_N, 0, ((MLDSA_Q - 1) / MLD_2_POW_D) + 1);
 }
 
-void poly_decompose(mld_poly *a1, mld_poly *a0, const mld_poly *a)
+void mld_poly_decompose(mld_poly *a1, mld_poly *a0, const mld_poly *a)
 {
   unsigned int i;
   mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
@@ -191,7 +191,8 @@ void poly_decompose(mld_poly *a1, mld_poly *a0, const mld_poly *a)
   mld_assert_bound(a1->coeffs, MLDSA_N, 0, (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 }
 
-unsigned int poly_make_hint(mld_poly *h, const mld_poly *a0, const mld_poly *a1)
+unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
+                                const mld_poly *a1)
 {
   unsigned int i, s = 0;
 
@@ -211,7 +212,7 @@ unsigned int poly_make_hint(mld_poly *h, const mld_poly *a0, const mld_poly *a1)
   return s;
 }
 
-void poly_use_hint(mld_poly *b, const mld_poly *a, const mld_poly *h)
+void mld_poly_use_hint(mld_poly *b, const mld_poly *a, const mld_poly *h)
 {
   unsigned int i;
   mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
@@ -233,7 +234,7 @@ void poly_use_hint(mld_poly *b, const mld_poly *a, const mld_poly *h)
  * This is unnecessary as it's always a compile-time constant.
  * We instead model it as a precondition.
  */
-int poly_chknorm(const mld_poly *a, int32_t B)
+int mld_poly_chknorm(const mld_poly *a, int32_t B)
 {
   unsigned int i;
   int rc = 0;
@@ -351,7 +352,7 @@ __contract__(
  *           - Pass nonce packed in the extended seed array instead of a third
  *             argument.
  * */
-void poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
+void mld_poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
 {
   unsigned int ctr;
   unsigned int buflen = POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES;
@@ -377,9 +378,9 @@ void poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
   mld_xof128_release(&state);
 }
 
-void poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
-                     mld_poly *vec3,
-                     uint8_t seed[4][MLD_ALIGN_UP(MLDSA_SEEDBYTES + 2)])
+void mld_poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
+                         mld_poly *vec3,
+                         uint8_t seed[4][MLD_ALIGN_UP(MLDSA_SEEDBYTES + 2)])
 {
   /* Temporary buffers for XOF output before rejection sampling */
   MLD_ALIGN uint8_t
@@ -555,9 +556,10 @@ __contract__(
   return ctr;
 }
 
-void poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2, mld_poly *r3,
-                         const uint8_t seed[MLDSA_CRHBYTES], uint8_t nonce0,
-                         uint8_t nonce1, uint8_t nonce2, uint8_t nonce3)
+void mld_poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
+                             mld_poly *r3, const uint8_t seed[MLDSA_CRHBYTES],
+                             uint8_t nonce0, uint8_t nonce1, uint8_t nonce2,
+                             uint8_t nonce3)
 {
   /* Temporary buffers for XOF output before rejection sampling */
   MLD_ALIGN uint8_t
@@ -631,8 +633,8 @@ void poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2, mld_poly *r3,
 
 #define POLY_UNIFORM_GAMMA1_NBLOCKS \
   ((MLDSA_POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1) / STREAM256_BLOCKBYTES)
-void poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
-                         uint16_t nonce)
+void mld_poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
+                             uint16_t nonce)
 {
   MLD_ALIGN uint8_t buf[POLY_UNIFORM_GAMMA1_NBLOCKS * STREAM256_BLOCKBYTES];
   MLD_ALIGN uint8_t extseed[MLDSA_CRHBYTES + 2];
@@ -646,15 +648,16 @@ void poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
   mld_xof256_absorb(&state, extseed, MLDSA_CRHBYTES + 2);
 
   mld_xof256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
-  polyz_unpack(a, buf);
+  mld_polyz_unpack(a, buf);
 
   mld_xof256_release(&state);
 }
 
-void poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
-                            mld_poly *r3, const uint8_t seed[MLDSA_CRHBYTES],
-                            uint16_t nonce0, uint16_t nonce1, uint16_t nonce2,
-                            uint16_t nonce3)
+void mld_poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
+                                mld_poly *r3,
+                                const uint8_t seed[MLDSA_CRHBYTES],
+                                uint16_t nonce0, uint16_t nonce1,
+                                uint16_t nonce2, uint16_t nonce3)
 {
   /* Temporary buffers for XOF output before rejection sampling */
   MLD_ALIGN uint8_t
@@ -682,15 +685,15 @@ void poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   mld_xof256_x4_absorb(&state, extseed, MLDSA_CRHBYTES + 2);
   mld_xof256_x4_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
 
-  polyz_unpack(r0, buf[0]);
-  polyz_unpack(r1, buf[1]);
-  polyz_unpack(r2, buf[2]);
-  polyz_unpack(r3, buf[3]);
+  mld_polyz_unpack(r0, buf[0]);
+  mld_polyz_unpack(r1, buf[1]);
+  mld_polyz_unpack(r2, buf[2]);
+  mld_polyz_unpack(r3, buf[3]);
   mld_xof256_x4_release(&state);
 }
 
 
-void poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
+void mld_poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
 {
   unsigned int i, j, pos;
   uint64_t signs;
@@ -764,7 +767,7 @@ void poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
   mld_assert_bound(c->coeffs, MLDSA_N, -1, 2);
 }
 
-void polyeta_pack(uint8_t *r, const mld_poly *a)
+void mld_polyeta_pack(uint8_t *r, const mld_poly *a)
 {
   unsigned int i;
   uint8_t t[8];
@@ -804,7 +807,7 @@ void polyeta_pack(uint8_t *r, const mld_poly *a)
 #endif /* MLDSA_ETA != 2 && MLDSA_ETA != 4 */
 }
 
-void polyeta_unpack(mld_poly *r, const uint8_t *a)
+void mld_polyeta_unpack(mld_poly *r, const uint8_t *a)
 {
   unsigned int i;
 
@@ -851,7 +854,7 @@ void polyeta_unpack(mld_poly *r, const uint8_t *a)
                    MLDSA_ETA + 1);
 }
 
-void polyt1_pack(uint8_t *r, const mld_poly *a)
+void mld_polyt1_pack(uint8_t *r, const mld_poly *a)
 {
   unsigned int i;
   mld_assert_bound(a->coeffs, MLDSA_N, 0, 1 << 10);
@@ -871,7 +874,7 @@ void polyt1_pack(uint8_t *r, const mld_poly *a)
   }
 }
 
-void polyt1_unpack(mld_poly *r, const uint8_t *a)
+void mld_polyt1_unpack(mld_poly *r, const uint8_t *a)
 {
   unsigned int i;
 
@@ -893,7 +896,7 @@ void polyt1_unpack(mld_poly *r, const uint8_t *a)
   mld_assert_bound(r->coeffs, MLDSA_N, 0, 1 << 10);
 }
 
-void polyt0_pack(uint8_t *r, const mld_poly *a)
+void mld_polyt0_pack(uint8_t *r, const mld_poly *a)
 {
   unsigned int i;
   uint32_t t[8];
@@ -937,7 +940,7 @@ void polyt0_pack(uint8_t *r, const mld_poly *a)
   }
 }
 
-void polyt0_unpack(mld_poly *r, const uint8_t *a)
+void mld_polyt0_unpack(mld_poly *r, const uint8_t *a)
 {
   unsigned int i;
 
@@ -996,7 +999,7 @@ void polyt0_unpack(mld_poly *r, const uint8_t *a)
                    (1 << (MLDSA_D - 1)) + 1);
 }
 
-void polyz_pack(uint8_t *r, const mld_poly *a)
+void mld_polyz_pack(uint8_t *r, const mld_poly *a)
 {
   unsigned int i;
   uint32_t t[4];
@@ -1044,7 +1047,7 @@ void polyz_pack(uint8_t *r, const mld_poly *a)
 #endif /* MLDSA_MODE != 2 */
 }
 
-void polyz_unpack(mld_poly *r, const uint8_t *a)
+void mld_polyz_unpack(mld_poly *r, const uint8_t *a)
 {
   unsigned int i;
 
@@ -1104,7 +1107,7 @@ void polyz_unpack(mld_poly *r, const uint8_t *a)
   mld_assert_bound(r->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 }
 
-void polyw1_pack(uint8_t *r, const mld_poly *a)
+void mld_polyw1_pack(uint8_t *r, const mld_poly *a)
 {
   unsigned int i;
 

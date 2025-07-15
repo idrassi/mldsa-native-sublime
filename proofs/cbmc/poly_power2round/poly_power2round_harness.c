@@ -7,5 +7,5 @@
 void harness(void)
 {
   mld_poly *a, *a0, *a1;
-  poly_power2round(a0, a1, a);
+  mld_poly_power2round(a0, a1, a);
 }

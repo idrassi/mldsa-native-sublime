@@ -8,5 +8,5 @@ void harness(void)
 {
   mld_poly *c;
   uint8_t *seed;
-  poly_challenge(c, seed);
+  mld_poly_challenge(c, seed);
 }

@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_poly *a, *b, *c;
   unsigned int r;
-  r = poly_make_hint(a, b, c);
+  r = mld_poly_make_hint(a, b, c);
 }

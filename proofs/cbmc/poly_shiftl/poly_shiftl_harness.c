@@ -6,5 +6,5 @@
 void harness(void)
 {
   mld_poly *a;
-  poly_shiftl(a);
+  mld_poly_shiftl(a);
 }

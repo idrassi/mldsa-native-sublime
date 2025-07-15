@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_poly *a;
   uint8_t *b;
-  polyw1_pack(b, a);
+  mld_polyw1_pack(b, a);
 }

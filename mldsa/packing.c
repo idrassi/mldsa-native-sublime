@@ -19,7 +19,7 @@ void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
 
   for (i = 0; i < MLDSA_K; ++i)
   {
-    polyt1_pack(pk + i * MLDSA_POLYT1_PACKEDBYTES, &t1->vec[i]);
+    mld_polyt1_pack(pk + i * MLDSA_POLYT1_PACKEDBYTES, &t1->vec[i]);
   }
 }
 
@@ -33,7 +33,7 @@ void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
 
   for (i = 0; i < MLDSA_K; ++i)
   {
-    polyt1_unpack(&t1->vec[i], pk + i * MLDSA_POLYT1_PACKEDBYTES);
+    mld_polyt1_unpack(&t1->vec[i], pk + i * MLDSA_POLYT1_PACKEDBYTES);
   }
 }
 

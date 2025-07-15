@@ -6,5 +6,5 @@
 void harness(void)
 {
   mld_poly *r, *b;
-  poly_add(r, b);
+  mld_poly_add(r, b);
 }

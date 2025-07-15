@@ -27,28 +27,28 @@ __contract__(
 {
 /* Sample short vectors s1 and s2 */
 #if MLDSA_MODE == 2
-  poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3], seed,
-                      0, 1, 2, 3);
-  poly_uniform_eta_4x(&s2->vec[0], &s2->vec[1], &s2->vec[2], &s2->vec[3], seed,
-                      4, 5, 6, 7);
+  mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
+                          seed, 0, 1, 2, 3);
+  mld_poly_uniform_eta_4x(&s2->vec[0], &s2->vec[1], &s2->vec[2], &s2->vec[3],
+                          seed, 4, 5, 6, 7);
 #elif MLDSA_MODE == 3
-  poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3], seed,
-                      0, 1, 2, 3);
-  poly_uniform_eta_4x(&s1->vec[4], &s2->vec[0], &s2->vec[1],
-                      &s2->vec[2] /* irrelevant */, seed, 4, 5, 6,
-                      0xFF /* irrelevant */);
-  poly_uniform_eta_4x(&s2->vec[2], &s2->vec[3], &s2->vec[4], &s2->vec[5], seed,
-                      7, 8, 9, 10);
+  mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
+                          seed, 0, 1, 2, 3);
+  mld_poly_uniform_eta_4x(&s1->vec[4], &s2->vec[0], &s2->vec[1],
+                          &s2->vec[2] /* irrelevant */, seed, 4, 5, 6,
+                          0xFF /* irrelevant */);
+  mld_poly_uniform_eta_4x(&s2->vec[2], &s2->vec[3], &s2->vec[4], &s2->vec[5],
+                          seed, 7, 8, 9, 10);
 #elif MLDSA_MODE == 5
-  poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3], seed,
-                      0, 1, 2, 3);
-  poly_uniform_eta_4x(&s1->vec[4], &s1->vec[5], &s1->vec[6],
-                      &s2->vec[0] /* irrelevant */, seed, 4, 5, 6,
-                      0xFF /* irrelevant */);
-  poly_uniform_eta_4x(&s2->vec[0], &s2->vec[1], &s2->vec[2], &s2->vec[3], seed,
-                      7, 8, 9, 10);
-  poly_uniform_eta_4x(&s2->vec[4], &s2->vec[5], &s2->vec[6], &s2->vec[7], seed,
-                      11, 12, 13, 14);
+  mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
+                          seed, 0, 1, 2, 3);
+  mld_poly_uniform_eta_4x(&s1->vec[4], &s1->vec[5], &s1->vec[6],
+                          &s2->vec[0] /* irrelevant */, seed, 4, 5, 6,
+                          0xFF /* irrelevant */);
+  mld_poly_uniform_eta_4x(&s2->vec[0], &s2->vec[1], &s2->vec[2], &s2->vec[3],
+                          seed, 7, 8, 9, 10);
+  mld_poly_uniform_eta_4x(&s2->vec[4], &s2->vec[5], &s2->vec[6], &s2->vec[7],
+                          seed, 11, 12, 13, 14);
 #endif /* MLDSA_MODE == 5 */
 }
 
@@ -475,13 +475,13 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   }
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */
-  poly_challenge(&cp, c);
+  mld_poly_challenge(&cp, c);
   polyvec_matrix_expand(mat, rho);
 
   polyvecl_ntt(&z);
   polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
 
-  poly_ntt(&cp);
+  mld_poly_ntt(&cp);
   polyveck_shiftl(&t1);
   polyveck_ntt(&t1);
 

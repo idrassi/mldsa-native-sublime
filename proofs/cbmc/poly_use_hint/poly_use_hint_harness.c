@@ -7,5 +7,5 @@
 void harness(void)
 {
   mld_poly *a, *b, *h;
-  poly_use_hint(b, a, h);
+  mld_poly_use_hint(b, a, h);
 }

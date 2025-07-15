@@ -50,8 +50,8 @@ static int bench(void)
   uint64_t t0, t1;
 
   /* ntt */
-  BENCH("poly_ntt", poly_ntt((mld_poly *)data0))
-  BENCH("poly_invntt_tomont", poly_invntt_tomont((mld_poly *)data0))
+  BENCH("poly_ntt", mld_poly_ntt((mld_poly *)data0))
+  BENCH("poly_invntt_tomont", mld_poly_invntt_tomont((mld_poly *)data0))
 
   return 0;
 }

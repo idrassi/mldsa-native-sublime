@@ -7,5 +7,5 @@ void harness(void)
 {
   mld_poly *a;
   uint8_t *b;
-  polyz_unpack(a, b);
+  mld_polyz_unpack(a, b);
 }
