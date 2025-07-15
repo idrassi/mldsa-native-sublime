@@ -36,9 +36,9 @@ $(BUILD_DIR)/libmldsa.a: $(MLDSA44_OBJS) $(MLDSA65_OBJS) $(MLDSA87_OBJS)
 $(MLDSA44_DIR)/bin/bench_mldsa44: CFLAGS += -Itest/hal
 $(MLDSA65_DIR)/bin/bench_mldsa65: CFLAGS += -Itest/hal
 $(MLDSA87_DIR)/bin/bench_mldsa87: CFLAGS += -Itest/hal
-$(MLDSA44_DIR)/bin/bench_components_mldsa44: CFLAGS += -Itest/hal
-$(MLDSA65_DIR)/bin/bench_components_mldsa65: CFLAGS += -Itest/hal
-$(MLDSA87_DIR)/bin/bench_components_mldsa87: CFLAGS += -Itest/hal
+$(MLDSA44_DIR)/bin/bench_components_mldsa44: CFLAGS += -Itest/hal -fno-lto
+$(MLDSA65_DIR)/bin/bench_components_mldsa65: CFLAGS += -Itest/hal -fno-lto
+$(MLDSA87_DIR)/bin/bench_components_mldsa87: CFLAGS += -Itest/hal -fno-lto
 
 $(MLDSA44_DIR)/bin/test_stack44: CFLAGS += -Imldsa -fstack-usage
 $(MLDSA65_DIR)/bin/test_stack65: CFLAGS += -Imldsa -fstack-usage
