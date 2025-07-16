@@ -91,8 +91,8 @@ static int bench(void)
   for (i = 0; i < NTESTS; i++)
   {
     int ret = 0;
-    randombytes(kg_rand, sizeof(kg_rand));
-    randombytes(sig_rand, sizeof(sig_rand));
+    mld_randombytes(kg_rand, sizeof(kg_rand));
+    mld_randombytes(sig_rand, sizeof(sig_rand));
 
 
     /* Key-pair generation */
@@ -111,8 +111,8 @@ static int bench(void)
 
 
     /* Signing */
-    randombytes(ctx, CTXLEN);
-    randombytes(m, MLEN);
+    mld_randombytes(ctx, CTXLEN);
+    mld_randombytes(m, MLEN);
 
     /* TODO: shouldn't this be moved to be in the internal function? */
     pre[0] = 0;

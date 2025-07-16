@@ -25,7 +25,7 @@ static int cmp_uint64_t(const void *a, const void *b)
 #define BENCH(txt, code)                                \
   for (i = 0; i < NTESTS; i++)                          \
   {                                                     \
-    randombytes((uint8_t *)data0, sizeof(data0));       \
+    mld_randombytes((uint8_t *)data0, sizeof(data0));   \
     for (j = 0; j < NWARMUP; j++)                       \
     {                                                   \
       code;                                             \

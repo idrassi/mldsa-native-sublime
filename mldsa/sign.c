@@ -102,7 +102,7 @@ int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
 int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
 {
   uint8_t seed[MLDSA_SEEDBYTES];
-  randombytes(seed, MLDSA_SEEDBYTES);
+  mld_randombytes(seed, MLDSA_SEEDBYTES);
   return crypto_sign_keypair_internal(pk, sk, seed);
 }
 
@@ -382,7 +382,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
   }
 
 #ifdef MLD_RANDOMIZED_SIGNING
-  randombytes(rnd, MLDSA_RNDBYTES);
+  mld_randombytes(rnd, MLDSA_RNDBYTES);
 #else
   for (i = 0; i < MLDSA_RNDBYTES; i++)
   {
@@ -402,7 +402,7 @@ int crypto_sign_signature_extmu(uint8_t *sig, size_t *siglen,
   uint8_t rnd[MLDSA_RNDBYTES];
 
 #ifdef MLD_RANDOMIZED_SIGNING
-  randombytes(rnd, MLDSA_RNDBYTES);
+  mld_randombytes(rnd, MLDSA_RNDBYTES);
 #else
   size_t i;
   for (i = 0; i < MLDSA_RNDBYTES; i++)

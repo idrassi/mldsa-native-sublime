@@ -11,10 +11,11 @@
 #include "cbmc.h"
 #include "common.h"
 
-void randombytes(uint8_t *out, size_t outlen)
+void randombytes(uint8_t *out, size_t outlen);
+static MLD_INLINE void mld_randombytes(uint8_t *out, size_t outlen)
 __contract__(
   requires(memory_no_alias(out, outlen))
   assigns(memory_slice(out, outlen))
-);
+) { randombytes(out, outlen); }
 
 #endif /* !MLD_RANDOMBYTES_H */
