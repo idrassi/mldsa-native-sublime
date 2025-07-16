@@ -5,10 +5,8 @@
 #include "ntt.h"
 #include "params.h"
 
-void invntt_tomont(int32_t a[MLDSA_N]);
-
 void harness(void)
 {
   int32_t *a;
-  invntt_tomont(a);
+  mld_invntt_tomont(a);
 }

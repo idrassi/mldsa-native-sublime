@@ -145,7 +145,7 @@ __contract__(
 }
 
 
-void ntt(int32_t a[MLDSA_N])
+void mld_ntt(int32_t a[MLDSA_N])
 {
   unsigned int layer;
 
@@ -202,20 +202,7 @@ __contract__(
   }
 }
 
-/*************************************************
- * Name:        invntt_tomont
- *
- * Description: Inverse NTT and multiplication by Montgomery factor mont^2 /256.
- *              In-place. No modular reductions after additions or subtractions;
- *              Input coefficients need to be smaller than MLDSA_Q
- *              in absolute value.
- *              Output coefficient are smaller than MLD_INTT_BOUND
- *              in absolute value.
- *
- * Arguments:   - int32_t a[MLDSA_N]: input/output coefficient array
- **************************************************/
-void invntt_tomont(int32_t a[MLDSA_N])
-
+void mld_invntt_tomont(int32_t a[MLDSA_N])
 {
   unsigned int layer, j;
 

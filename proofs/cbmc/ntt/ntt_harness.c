@@ -7,5 +7,5 @@
 void harness(void)
 {
   int32_t *r;
-  ntt(r);
+  mld_ntt(r);
 }

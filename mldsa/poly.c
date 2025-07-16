@@ -107,7 +107,7 @@ void mld_poly_shiftl(mld_poly *a)
 void mld_poly_ntt(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
-  ntt(a->coeffs);
+  mld_ntt(a->coeffs);
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_NTT_BOUND);
 }
 #else  /* !MLD_USE_NATIVE_NTT */
@@ -123,7 +123,7 @@ void mld_poly_ntt(mld_poly *p)
 void mld_poly_invntt_tomont(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
-  invntt_tomont(a->coeffs);
+  mld_invntt_tomont(a->coeffs);
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_INTT_BOUND);
 }
 #else  /* !MLD_USE_NATIVE_INTT */
