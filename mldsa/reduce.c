@@ -34,7 +34,7 @@ static int32_t mld_cast_uint32_to_int32(uint32_t x)
 #pragma CPROVER check pop
 #endif
 
-int32_t montgomery_reduce(int64_t a)
+int32_t mld_montgomery_reduce(int64_t a)
 {
   /* check-magic: 58728449 == unsigned_mod(pow(MLDSA_Q, -1, 2^32), 2^32) */
   const uint64_t QINV = 58728449;
@@ -59,7 +59,7 @@ int32_t montgomery_reduce(int64_t a)
   return (int32_t)r;
 }
 
-int32_t reduce32(int32_t a)
+int32_t mld_reduce32(int32_t a)
 {
   int32_t t;
 
@@ -69,7 +69,7 @@ int32_t reduce32(int32_t a)
   return t;
 }
 
-int32_t caddq(int32_t a)
+int32_t mld_caddq(int32_t a)
 {
   a += (a >> 31) & MLDSA_Q;
   return a;

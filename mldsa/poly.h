@@ -290,7 +290,7 @@ __contract__(
  * Name:        mld_poly_chknorm
  *
  * Description: Check infinity norm of polynomial against given bound.
- *              Assumes input coefficients were reduced by reduce32().
+ *              Assumes input coefficients were reduced by mld_reduce32().
  *
  * Arguments:   - const mld_poly *a: pointer to polynomial
  *              - int32_t B: norm bound

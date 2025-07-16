@@ -11,22 +11,22 @@
 
 #define MONT -4186625 /* 2^32 % MLDSA_Q */
 
-/* Upper bound for domain of reduce32() */
+/* Upper bound for domain of mld_reduce32() */
 #define REDUCE32_DOMAIN_MAX (INT32_MAX - (1 << 22))
 
-/* Absolute bound for range of reduce32() */
+/* Absolute bound for range of mld_reduce32() */
 #define REDUCE32_RANGE_MAX 6283009
 
-/* Absolute bound for domain of montgomery_reduce() */
+/* Absolute bound for domain of mld_montgomery_reduce() */
 #define MONTGOMERY_REDUCE_DOMAIN_MAX ((int64_t)INT32_MIN * INT32_MIN)
 
-/* Absolute bound for tight domain of montgomery_reduce() */
+/* Absolute bound for tight domain of mld_montgomery_reduce() */
 #define MONTGOMERY_REDUCE_STRONG_DOMAIN_MAX ((int64_t)INT32_MIN * -MLDSA_Q)
 
 
-#define montgomery_reduce MLD_NAMESPACE(montgomery_reduce)
+#define mld_montgomery_reduce MLD_NAMESPACE(montgomery_reduce)
 /*************************************************
- * Name:        montgomery_reduce
+ * Name:        mld_montgomery_reduce
  *
  * Description:
  *      For finite field element a with
@@ -35,7 +35,7 @@
  *        INT32_MIN <= r < REDUCE32_DOMAIN_MAX
  *
  *      The upper-bound on the result ensures that a result from this
- *      function can be used as an input to reduce32() declared below.
+ *      function can be used as an input to mld_reduce32() declared below.
  *
  *      Additionally, as a special case, if the input a is in range
  *        -MONTGOMERY_REDUCE_STRONG_DOMAIN_MAX < a <
@@ -46,7 +46,7 @@
  *
  * Returns r.
  **************************************************/
-int32_t montgomery_reduce(int64_t a)
+int32_t mld_montgomery_reduce(int64_t a)
 __contract__(
   requires(a >= -MONTGOMERY_REDUCE_DOMAIN_MAX && a <= MONTGOMERY_REDUCE_DOMAIN_MAX)
   ensures(return_value >= INT32_MIN && return_value < REDUCE32_DOMAIN_MAX)
@@ -56,9 +56,9 @@ __contract__(
           (return_value > -MLDSA_Q && return_value < MLDSA_Q))
 );
 
-#define reduce32 MLD_NAMESPACE(reduce32)
+#define mld_reduce32 MLD_NAMESPACE(reduce32)
 /*************************************************
- * Name:        reduce32
+ * Name:        mld_reduce32
  *
  * Description: For finite field element a with a <= 2^{31} - 2^{22} - 1,
  *              compute r \equiv a (mod MLDSA_Q) such that
@@ -68,16 +68,16 @@ __contract__(
  *
  * Returns r.
  **************************************************/
-int32_t reduce32(int32_t a)
+int32_t mld_reduce32(int32_t a)
 __contract__(
   requires(a <= REDUCE32_DOMAIN_MAX)
   ensures(return_value >= -REDUCE32_RANGE_MAX)
   ensures(return_value <   REDUCE32_RANGE_MAX)
 );
 
-#define caddq MLD_NAMESPACE(caddq)
+#define mld_caddq MLD_NAMESPACE(caddq)
 /*************************************************
- * Name:        caddq
+ * Name:        mld_caddq
  *
  * Description: Add MLDSA_Q if input coefficient is negative.
  *
@@ -85,7 +85,7 @@ __contract__(
  *
  * Returns r.
  **************************************************/
-int32_t caddq(int32_t a)
+int32_t mld_caddq(int32_t a)
 __contract__(
   requires(a > -MLDSA_Q)
   requires(a < MLDSA_Q)
