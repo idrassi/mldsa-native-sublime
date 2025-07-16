@@ -8,5 +8,5 @@ void harness(void)
 {
   uint8_t *a, *b;
   mld_polyveck *c;
-  pack_pk(a, b, c);
+  mld_pack_pk(a, b, c);
 }

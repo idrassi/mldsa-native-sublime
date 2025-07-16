@@ -10,5 +10,5 @@ void harness(void)
   mld_polyveck *h;
   mld_polyvecl *z;
   unsigned int nh;
-  pack_sig(a, b, z, h, nh);
+  mld_pack_sig(a, b, z, h, nh);
 }

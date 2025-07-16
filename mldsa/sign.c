@@ -91,11 +91,11 @@ int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
   /* Extract t1 and write public key */
   mld_polyveck_caddq(&t1);
   mld_polyveck_power2round(&t2, &t0, &t1);
-  pack_pk(pk, rho, &t2);
+  mld_pack_pk(pk, rho, &t2);
 
   /* Compute H(rho, t1) and write secret key */
   shake256(tr, MLDSA_TRBYTES, pk, CRYPTO_PUBLICKEYBYTES);
-  pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
+  mld_pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
   return 0;
 }
 
@@ -297,7 +297,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   key = tr + MLDSA_TRBYTES;
   mu = key + MLDSA_SEEDBYTES;
   rhoprime = mu + MLDSA_CRHBYTES;
-  unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+  mld_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
 
   if (!externalmu)
   {
@@ -451,8 +451,8 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
     return -1;
   }
 
-  unpack_pk(rho, &t1, pk);
-  if (unpack_sig(c, &z, &h, sig))
+  mld_unpack_pk(rho, &t1, pk);
+  if (mld_unpack_sig(c, &z, &h, sig))
   {
     return -1;
   }

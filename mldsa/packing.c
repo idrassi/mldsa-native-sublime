@@ -9,8 +9,8 @@
 #include "poly.h"
 #include "polyvec.h"
 
-void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
-             const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
+void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
+                 const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 {
   unsigned int i;
 
@@ -23,8 +23,8 @@ void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   }
 }
 
-void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
-               const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
+void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
+                   const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 {
   unsigned int i;
 
@@ -37,11 +37,11 @@ void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
   }
 }
 
-void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
-             const uint8_t rho[MLDSA_SEEDBYTES],
-             const uint8_t tr[MLDSA_TRBYTES],
-             const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
-             const mld_polyvecl *s1, const mld_polyveck *s2)
+void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
+                 const uint8_t rho[MLDSA_SEEDBYTES],
+                 const uint8_t tr[MLDSA_TRBYTES],
+                 const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
+                 const mld_polyvecl *s1, const mld_polyveck *s2)
 {
   memcpy(sk, rho, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
@@ -61,9 +61,10 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
   mld_polyveck_pack_t0(sk, t0);
 }
 
-void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-               uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0, mld_polyvecl *s1,
-               mld_polyveck *s2, const uint8_t sk[CRYPTO_SECRETKEYBYTES])
+void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
+                   uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0,
+                   mld_polyvecl *s1, mld_polyveck *s2,
+                   const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 {
   memcpy(rho, sk, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
@@ -83,9 +84,9 @@ void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
   mld_polyveck_unpack_t0(t0, sk);
 }
 
-void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
-              const mld_polyvecl *z, const mld_polyveck *h,
-              const unsigned int number_of_hints)
+void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
+                  const mld_polyvecl *z, const mld_polyveck *h,
+                  const unsigned int number_of_hints)
 {
   unsigned int i, j, k;
 
@@ -243,8 +244,8 @@ __contract__(
   return 0;
 }
 
-int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, mld_polyveck *h,
-               const uint8_t sig[CRYPTO_BYTES])
+int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
+                   mld_polyveck *h, const uint8_t sig[CRYPTO_BYTES])
 {
   memcpy(c, sig, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;

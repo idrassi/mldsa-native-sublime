@@ -8,9 +8,9 @@
 #include <stdint.h>
 #include "polyvec.h"
 
-#define pack_pk MLD_NAMESPACE(pack_pk)
+#define mld_pack_pk MLD_NAMESPACE(pack_pk)
 /*************************************************
- * Name:        pack_pk
+ * Name:        mld_pack_pk
  *
  * Description: Bit-pack public key pk = (rho, t1).
  *
@@ -18,8 +18,8 @@
  *              - const uint8_t rho[]: byte array containing rho
  *              - const mld_polyveck *t1: pointer to vector t1
  **************************************************/
-void pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
-             const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
+void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
+                 const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 __contract__(
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
@@ -30,9 +30,9 @@ __contract__(
 );
 
 
-#define pack_sk MLD_NAMESPACE(pack_sk)
+#define mld_pack_sk MLD_NAMESPACE(pack_sk)
 /*************************************************
- * Name:        pack_sk
+ * Name:        mld_pack_sk
  *
  * Description: Bit-pack secret key sk = (rho, tr, key, t0, s1, s2).
  *
@@ -44,11 +44,11 @@ __contract__(
  *              - const mld_polyvecl *s1: pointer to vector s1
  *              - const mld_polyveck *s2: pointer to vector s2
  **************************************************/
-void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
-             const uint8_t rho[MLDSA_SEEDBYTES],
-             const uint8_t tr[MLDSA_TRBYTES],
-             const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
-             const mld_polyvecl *s1, const mld_polyveck *s2)
+void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
+                 const uint8_t rho[MLDSA_SEEDBYTES],
+                 const uint8_t tr[MLDSA_TRBYTES],
+                 const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
+                 const mld_polyvecl *s1, const mld_polyveck *s2)
 __contract__(
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
@@ -67,9 +67,9 @@ __contract__(
 );
 
 
-#define pack_sig MLD_NAMESPACE(pack_sig)
+#define mld_pack_sig MLD_NAMESPACE(pack_sig)
 /*************************************************
- * Name:        pack_sig
+ * Name:        mld_pack_sig
  *
  * Description: Bit-pack signature sig = (c, z, h).
  *
@@ -85,9 +85,9 @@ __contract__(
  * in the reference implementation. It is added here to ease
  * proof of type safety.
  **************************************************/
-void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
-              const mld_polyvecl *z, const mld_polyveck *h,
-              const unsigned int number_of_hints)
+void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
+                  const mld_polyvecl *z, const mld_polyveck *h,
+                  const unsigned int number_of_hints)
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
@@ -101,9 +101,9 @@ __contract__(
   assigns(memory_slice(sig, CRYPTO_BYTES))
 );
 
-#define unpack_pk MLD_NAMESPACE(unpack_pk)
+#define mld_unpack_pk MLD_NAMESPACE(unpack_pk)
 /*************************************************
- * Name:        unpack_pk
+ * Name:        mld_unpack_pk
  *
  * Description: Unpack public key pk = (rho, t1).
  *
@@ -111,8 +111,8 @@ __contract__(
  *              - const mld_polyveck *t1: pointer to output vector t1
  *              - uint8_t pk[]: byte array containing bit-packed pk
  **************************************************/
-void unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
-               const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
+void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
+                   const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 __contract__(
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
@@ -124,9 +124,9 @@ __contract__(
 );
 
 
-#define unpack_sk MLD_NAMESPACE(unpack_sk)
+#define mld_unpack_sk MLD_NAMESPACE(unpack_sk)
 /*************************************************
- * Name:        unpack_sk
+ * Name:        mld_unpack_sk
  *
  * Description: Unpack secret key sk = (rho, tr, key, t0, s1, s2).
  *
@@ -138,9 +138,10 @@ __contract__(
  *              - const mld_polyveck *s2: pointer to output vector s2
  *              - uint8_t sk[]: byte array containing bit-packed sk
  **************************************************/
-void unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-               uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0, mld_polyvecl *s1,
-               mld_polyveck *s2, const uint8_t sk[CRYPTO_SECRETKEYBYTES])
+void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
+                   uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0,
+                   mld_polyvecl *s1, mld_polyveck *s2,
+                   const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 __contract__(
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))
   requires(memory_no_alias(tr, MLDSA_TRBYTES))
@@ -163,9 +164,9 @@ __contract__(
     array_bound(s2->vec[k2].coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1)))
 );
 
-#define unpack_sig MLD_NAMESPACE(unpack_sig)
+#define mld_unpack_sig MLD_NAMESPACE(unpack_sig)
 /*************************************************
- * Name:        unpack_sig
+ * Name:        mld_unpack_sig
  *
  * Description: Unpack signature sig = (c, z, h).
  *
@@ -177,8 +178,8 @@ __contract__(
  *
  * Returns 1 in case of malformed signature; otherwise 0.
  **************************************************/
-int unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z, mld_polyveck *h,
-               const uint8_t sig[CRYPTO_BYTES])
+int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
+                   mld_polyveck *h, const uint8_t sig[CRYPTO_BYTES])
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
