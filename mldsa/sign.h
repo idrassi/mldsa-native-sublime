@@ -12,7 +12,7 @@
 #include "poly.h"
 #include "polyvec.h"
 
-#define crypto_sign_keypair_internal MLD_NAMESPACE(crypto_sign_keypair_internal)
+#define crypto_sign_keypair_internal MLD_NAMESPACE(keypair_internal)
 /*************************************************
  * Name:        crypto_sign_keypair_internal
  *
