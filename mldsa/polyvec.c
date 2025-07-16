@@ -561,7 +561,7 @@ void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
     invariant(i <= MLDSA_K)
   )
   {
-    mld_polyeta_pack(r + i * MLDSA_POLYETA_PACKEDBYTES, &p->vec[i]);
+    mld_polyeta_pack(&r[i * MLDSA_POLYETA_PACKEDBYTES], &p->vec[i]);
   }
 }
 
@@ -575,7 +575,7 @@ void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
     invariant(i <= MLDSA_L)
   )
   {
-    mld_polyeta_pack(r + i * MLDSA_POLYETA_PACKEDBYTES, &p->vec[i]);
+    mld_polyeta_pack(&r[i * MLDSA_POLYETA_PACKEDBYTES], &p->vec[i]);
   }
 }
 
@@ -589,7 +589,7 @@ void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
     invariant(i <= MLDSA_L)
   )
   {
-    mld_polyz_pack(r + i * MLDSA_POLYZ_PACKEDBYTES, &p->vec[i]);
+    mld_polyz_pack(&r[i * MLDSA_POLYZ_PACKEDBYTES], &p->vec[i]);
   }
 }
 
@@ -604,7 +604,7 @@ void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
     invariant(i <= MLDSA_K)
   )
   {
-    mld_polyt0_pack(r + i * MLDSA_POLYT0_PACKEDBYTES, &p->vec[i]);
+    mld_polyt0_pack(&r[i * MLDSA_POLYT0_PACKEDBYTES], &p->vec[i]);
   }
 }
 

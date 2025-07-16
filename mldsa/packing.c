@@ -18,6 +18,10 @@ void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   pk += MLDSA_SEEDBYTES;
 
   for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, object_whole(pk))
+    invariant(i <= MLDSA_K)
+  )
   {
     mld_polyt1_pack(pk + i * MLDSA_POLYT1_PACKEDBYTES, &t1->vec[i]);
   }

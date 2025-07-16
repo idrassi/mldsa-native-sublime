@@ -1107,13 +1107,13 @@ void mld_polyz_unpack(mld_poly *r, const uint8_t *a)
   mld_assert_bound(r->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 }
 
-void mld_polyw1_pack(uint8_t *r, const mld_poly *a)
+void mld_polyw1_pack(uint8_t r[MLDSA_POLYW1_PACKEDBYTES], const mld_poly *a)
 {
   unsigned int i;
 
-#if MLDSA_MODE == 2
-  mld_assert_bound(a->coeffs, MLDSA_N, 0, 44);
+  mld_assert_bound(a->coeffs, MLDSA_N, 0, (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 
+#if MLDSA_MODE == 2
   for (i = 0; i < MLDSA_N / 4; ++i)
   __loop__(
     invariant(i <= MLDSA_N/4))
@@ -1126,8 +1126,6 @@ void mld_polyw1_pack(uint8_t *r, const mld_poly *a)
     r[3 * i + 2] |= (a->coeffs[4 * i + 3] << 2) & 0xFF;
   }
 #else  /* MLDSA_MODE == 2 */
-  mld_assert_bound(a->coeffs, MLDSA_N, 0, 16);
-
   for (i = 0; i < MLDSA_N / 2; ++i)
   __loop__(
     invariant(i <= MLDSA_N/2))

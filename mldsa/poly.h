@@ -654,20 +654,12 @@ __contract__(
  *                            MLDSA_POLYW1_PACKEDBYTES bytes
  *              - const mld_poly *a: pointer to input polynomial
  **************************************************/
-void mld_polyw1_pack(uint8_t *r, const mld_poly *a)
-#if MLDSA_MODE == 2
+void mld_polyw1_pack(uint8_t r[MLDSA_POLYW1_PACKEDBYTES], const mld_poly *a)
 __contract__(
   requires(memory_no_alias(r, MLDSA_POLYW1_PACKEDBYTES))
   requires(memory_no_alias(a, sizeof(mld_poly)))
-  requires(array_bound(a->coeffs, 0, MLDSA_N, 0, 44))
-  assigns(object_whole(r)));
-#else  /* MLDSA_MODE == 2 */
-__contract__(
-  requires(memory_no_alias(r, MLDSA_POLYW1_PACKEDBYTES))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
-  requires(array_bound(a->coeffs, 0, MLDSA_N, 0, 16))
-  assigns(object_whole(r)));
-#endif /* MLDSA_MODE != 2 */
-
+  requires(array_bound(a->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
+  assigns(object_whole(r))
+);
 
 #endif /* !MLD_POLY_H */
