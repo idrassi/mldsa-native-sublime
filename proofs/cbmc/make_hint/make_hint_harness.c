@@ -7,5 +7,5 @@ void harness(void)
 {
   int32_t a, b;
   unsigned int r;
-  r = make_hint(a, b);
+  r = mld_make_hint(a, b);
 }

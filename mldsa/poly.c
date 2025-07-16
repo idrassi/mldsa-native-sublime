@@ -163,7 +163,7 @@ void mld_poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
     invariant(array_bound(a1->coeffs, 0, i, 0, ((MLDSA_Q - 1) / MLD_2_POW_D) + 1))
   )
   {
-    power2round(&a0->coeffs[i], &a1->coeffs[i], a->coeffs[i]);
+    mld_power2round(&a0->coeffs[i], &a1->coeffs[i], a->coeffs[i]);
   }
 
   mld_assert_bound(a0->coeffs, MLDSA_N, -(MLD_2_POW_D / 2) + 1,
@@ -184,7 +184,7 @@ void mld_poly_decompose(mld_poly *a1, mld_poly *a0, const mld_poly *a)
     invariant(array_abs_bound(a0->coeffs, 0, i, MLDSA_GAMMA2+1))
   )
   {
-    decompose(&a0->coeffs[i], &a1->coeffs[i], a->coeffs[i]);
+    mld_decompose(&a0->coeffs[i], &a1->coeffs[i], a->coeffs[i]);
   }
 
   mld_assert_abs_bound(a0->coeffs, MLDSA_N, MLDSA_GAMMA2 + 1);
@@ -203,7 +203,7 @@ unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
     invariant(array_bound(h->coeffs, 0, i, 0, 2))
   )
   {
-    const unsigned int hint_bit = make_hint(a0->coeffs[i], a1->coeffs[i]);
+    const unsigned int hint_bit = mld_make_hint(a0->coeffs[i], a1->coeffs[i]);
     h->coeffs[i] = hint_bit;
     s += hint_bit;
   }
@@ -224,7 +224,7 @@ void mld_poly_use_hint(mld_poly *b, const mld_poly *a, const mld_poly *h)
     invariant(array_bound(b->coeffs, 0, i, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
   )
   {
-    b->coeffs[i] = use_hint(a->coeffs[i], h->coeffs[i]);
+    b->coeffs[i] = mld_use_hint(a->coeffs[i], h->coeffs[i]);
   }
 
   mld_assert_bound(b->coeffs, MLDSA_N, 0, (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));

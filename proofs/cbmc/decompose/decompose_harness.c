@@ -8,5 +8,5 @@ void harness(void)
 {
   int32_t *a0, *a1;
   int32_t a;
-  decompose(a0, a1, a);
+  mld_decompose(a0, a1, a);
 }

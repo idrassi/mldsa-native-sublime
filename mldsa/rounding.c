@@ -7,13 +7,13 @@
 #include "rounding.h"
 
 
-void power2round(int32_t *a0, int32_t *a1, const int32_t a)
+void mld_power2round(int32_t *a0, int32_t *a1, const int32_t a)
 {
   *a1 = (a + (1 << (MLDSA_D - 1)) - 1) >> MLDSA_D;
   *a0 = a - (*a1 << MLDSA_D);
 }
 
-void decompose(int32_t *a0, int32_t *a1, int32_t a)
+void mld_decompose(int32_t *a0, int32_t *a1, int32_t a)
 {
   *a1 = (a + 127) >> 7;
   /* We know a >= 0 and a < MLDSA_Q, so... */
@@ -38,7 +38,7 @@ void decompose(int32_t *a0, int32_t *a1, int32_t a)
   *a0 -= (((MLDSA_Q - 1) / 2 - *a0) >> 31) & MLDSA_Q;
 }
 
-unsigned int make_hint(int32_t a0, int32_t a1)
+unsigned int mld_make_hint(int32_t a0, int32_t a1)
 {
   if (a0 > MLDSA_GAMMA2 || a0 < -MLDSA_GAMMA2 ||
       (a0 == -MLDSA_GAMMA2 && a1 != 0))
@@ -49,11 +49,11 @@ unsigned int make_hint(int32_t a0, int32_t a1)
   return 0;
 }
 
-int32_t use_hint(int32_t a, unsigned int hint)
+int32_t mld_use_hint(int32_t a, unsigned int hint)
 {
   int32_t a0, a1;
 
-  decompose(&a0, &a1, a);
+  mld_decompose(&a0, &a1, a);
   if (hint == 0)
   {
     return a1;
