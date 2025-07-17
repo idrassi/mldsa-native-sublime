@@ -177,16 +177,16 @@ __contract__(
  **************************************************/
 static int mld_attempt_signature_generation(
     uint8_t *sig, const uint8_t *mu, const uint8_t rhoprime[MLDSA_CRHBYTES],
-    uint16_t nonce, const polyvecl mat[MLDSA_K], const polyvecl *s1,
-    const polyveck *s2, const polyveck *t0)
+    uint16_t nonce, const mld_polyvecl mat[MLDSA_K], const mld_polyvecl *s1,
+    const mld_polyveck *s2, const mld_polyveck *t0)
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(mu, MLDSA_CRHBYTES))
   requires(memory_no_alias(rhoprime, MLDSA_CRHBYTES))
-  requires(memory_no_alias(mat, MLDSA_K * sizeof(polyvecl)))
-  requires(memory_no_alias(s1, sizeof(polyvecl)))
-  requires(memory_no_alias(s2, sizeof(polyveck)))
-  requires(memory_no_alias(t0, sizeof(polyveck)))
+  requires(memory_no_alias(mat, MLDSA_K * sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s2, sizeof(mld_polyveck)))
+  requires(memory_no_alias(t0, sizeof(mld_polyveck)))
   requires(nonce <= NONCE_UB)
   requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
                                          array_bound(mat[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
@@ -199,38 +199,38 @@ __contract__(
 {
   uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   unsigned int n;
-  polyvecl y, z;
-  polyveck w2, w1, w0, h;
-  poly cp;
+  mld_polyvecl y, z;
+  mld_polyveck w2, w1, w0, h;
+  mld_poly cp;
   int z_invalid, w0_invalid, h_invalid;
 
   /* Sample intermediate vector y */
-  polyvecl_uniform_gamma1(&y, rhoprime, nonce);
+  mld_polyvecl_uniform_gamma1(&y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
   z = y;
-  polyvecl_ntt(&z);
-  polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
-  polyveck_reduce(&w1);
-  polyveck_invntt_tomont(&w1);
+  mld_polyvecl_ntt(&z);
+  mld_polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
+  mld_polyveck_reduce(&w1);
+  mld_polyveck_invntt_tomont(&w1);
 
   /* Decompose w and call the random oracle */
-  polyveck_caddq(&w1);
-  polyveck_decompose(&w2, &w0, &w1);
-  polyveck_pack_w1(sig, &w2);
+  mld_polyveck_caddq(&w1);
+  mld_polyveck_decompose(&w2, &w0, &w1);
+  mld_polyveck_pack_w1(sig, &w2);
 
   mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
         MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
-  poly_challenge(&cp, challenge_bytes);
-  poly_ntt(&cp);
+  mld_poly_challenge(&cp, challenge_bytes);
+  mld_poly_ntt(&cp);
 
   /* Compute z, reject if it reveals secret */
-  polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
-  polyvecl_invntt_tomont(&z);
-  polyvecl_add(&z, &y);
-  polyvecl_reduce(&z);
+  mld_polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
+  mld_polyvecl_invntt_tomont(&z);
+  mld_polyvecl_add(&z, &y);
+  mld_polyvecl_reduce(&z);
 
-  z_invalid = polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+  z_invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
   if (z_invalid)
   {
     return -1; /* reject */
@@ -245,35 +245,35 @@ __contract__(
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
-  polyveck_pointwise_poly_montgomery(&h, &cp, s2);
-  polyveck_invntt_tomont(&h);
-  polyveck_sub(&w0, &h);
-  polyveck_reduce(&w0);
-  w0_invalid = polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  mld_polyveck_pointwise_poly_montgomery(&h, &cp, s2);
+  mld_polyveck_invntt_tomont(&h);
+  mld_polyveck_sub(&w0, &h);
+  mld_polyveck_reduce(&w0);
+  w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
   if (w0_invalid)
   {
     return -1; /* reject */
   }
 
   /* Compute hints for w1 */
-  polyveck_pointwise_poly_montgomery(&h, &cp, t0);
-  polyveck_invntt_tomont(&h);
-  polyveck_reduce(&h);
-  h_invalid = polyveck_chknorm(&h, MLDSA_GAMMA2);
+  mld_polyveck_pointwise_poly_montgomery(&h, &cp, t0);
+  mld_polyveck_invntt_tomont(&h);
+  mld_polyveck_reduce(&h);
+  h_invalid = mld_polyveck_chknorm(&h, MLDSA_GAMMA2);
   if (h_invalid)
   {
     return -1; /* reject */
   }
 
-  polyveck_add(&w0, &h);
-  n = polyveck_make_hint(&h, &w0, &w2);
+  mld_polyveck_add(&w0, &h);
+  n = mld_polyveck_make_hint(&h, &w0, &w2);
   if (n > MLDSA_OMEGA)
   {
     return -1; /* reject */
   }
 
   /* All is well - write signature */
-  pack_sig(sig, challenge_bytes, &z, &h, n);
+  mld_pack_sig(sig, challenge_bytes, &z, &h, n);
   return 0; /* success */
 }
 
@@ -287,8 +287,8 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
 {
   uint8_t seedbuf[2 * MLDSA_SEEDBYTES + MLDSA_TRBYTES + 2 * MLDSA_CRHBYTES];
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
-  polyvecl mat[MLDSA_K], s1;
-  polyveck t0, s2;
+  mld_polyvecl mat[MLDSA_K], s1;
+  mld_polyveck t0, s2;
 
   uint16_t nonce = 0;
 
