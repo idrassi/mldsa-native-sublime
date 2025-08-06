@@ -16,6 +16,7 @@ import time
 import logging
 import subprocess
 import json
+import re
 
 from enum import Enum
 from functools import reduce
@@ -696,13 +697,6 @@ class Tests:
                 log = logger(f"CBMC ({i+1}/{num_proofs})", scheme, None, None)
                 log.info(f"Starting CBMC proof for {func}")
                 start = time.time()
-                if self.args.verbose is False:
-                    extra_args = {
-                        "stdout": subprocess.DEVNULL,
-                        "stderr": subprocess.DEVNULL,
-                    }
-                else:
-                    extra_args = {}
                 try:
                     p = subprocess.run(
                         [
@@ -716,12 +710,12 @@ class Tests:
                         + self.make_j(),
                         cwd="proofs/cbmc",
                         env=os.environ.copy() | envvars,
-                        capture_output=True,
                         timeout=self.args.timeout,
+                        capture_output=(self.args.verbose is False),
                     )
-                except subprocess.TimeoutExpired:
+                except subprocess.TimeoutExpired as e:
                     log.error(f"   TIMEOUT (after {self.args.timeout}s)")
-                    log.error(p.stderr)
+                    log.error(e.stderr.decode())
                     self.fail(f"CBMC proof for {func}")
                     if self.args.fail_upon_error:
                         log.error(
@@ -729,18 +723,21 @@ class Tests:
                         )
                         exit(1)
                     continue
-
                 end = time.time()
                 dur = int(end - start)
                 if p.returncode != 0:
                     log.error(f"   FAILED (after {dur}s)")
-                    log.error(p.stderr.decode())
+                    if p.stderr is not None:
+                        log.error(p.stderr.decode())
                     self.fail(f"CBMC proof for {func}")
                 else:
                     log.info(f"   SUCCESS (after {dur}s)")
 
         def run_cbmc(mldsa_mode):
-            proofs = list_proofs()
+            all_proofs = list_proofs()
+            proofs = all_proofs
+            scheme = SCHEME.from_mode(mldsa_mode)
+            log = logger(f"Run CBMC", scheme, None, None)
             if self.args.start_with is not None:
                 try:
                     idx = proofs.index(self.args.start_with)
@@ -750,7 +747,12 @@ class Tests:
                         "Could not find function {self.args.start_with}. Running all proofs"
                     )
             if self.args.proof is not None:
-                proofs = self.args.proof
+                proofs = []
+                for pat in self.args.proof:
+                    # Replace wildcards by regexp wildcards
+                    pat = pat.replace("*", ".*")
+                    proofs += list(filter(lambda x: re.match(pat, x), all_proofs))
+                proofs = sorted(set(proofs))
 
             if self.args.single_step:
                 run_cbmc_single_step(mldsa_mode, proofs)
@@ -1002,7 +1004,7 @@ def cli():
         "-p",
         "--proof",
         nargs="+",
-        help="Space separated list of functions for which to run the CBMC proofs.",
+        help='Space separated list of functions for which to run the CBMC proofs. Wildcard patterns "*" are allowed.',
         default=None,
     )
 
