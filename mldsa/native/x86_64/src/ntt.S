@@ -33,7 +33,10 @@ vpsrlq		$32,%ymm\r0,%ymm\r0
 vpblendd	$0xAA,%ymm\r1,%ymm\r0,%ymm\r3
 .endm
 
-.macro butterfly l,h,zl0=1,zl1=1,zh0=2,zh1=2
+# Montgomery multiplication primitive
+# Input: %ymm0 = qinv, input/output in %ymm13,%ymm14,%ymm12,%ymm_h
+# This extracts the core Montgomery multiplication from the butterfly
+.macro montgomery_mul zl0,zl1,zh0,zh1,h
 vpmuldq		%ymm\zl0,%ymm\h,%ymm13
 vmovshdup	%ymm\h,%ymm12
 vpmuldq		%ymm\zl1,%ymm12,%ymm14
@@ -47,11 +50,17 @@ vpmuldq		%ymm0,%ymm14,%ymm14
 vmovshdup	%ymm\h,%ymm\h
 vpblendd	$0xAA,%ymm12,%ymm\h,%ymm\h
 
-vpsubd		%ymm\h,%ymm\l,%ymm12
-vpaddd		%ymm\h,%ymm\l,%ymm\l
-
 vmovshdup	%ymm13,%ymm13
 vpblendd	$0xAA,%ymm14,%ymm13,%ymm13
+.endm
+
+.macro butterfly l,h,zl0=1,zl1=1,zh0=2,zh1=2
+# Use Montgomery multiplication primitive
+montgomery_mul	\zl0,\zl1,\zh0,\zh1,\h
+
+# Complete butterfly operation
+vpsubd		%ymm\h,%ymm\l,%ymm12
+vpaddd		%ymm\h,%ymm\l,%ymm\l
 
 vpaddd		%ymm13,%ymm12,%ymm\h
 vpsubd		%ymm13,%ymm\l,%ymm\l
