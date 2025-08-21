@@ -17,11 +17,16 @@
 
 void mld_poly_reduce(mld_poly *a)
 {
+#if !defined(MLD_USE_NATIVE_POLY_REDUCE)
   unsigned int i;
+#endif
   /* TODO: Introduce the following after using inclusive lower bounds in
    * the underlying debug function mld_debug_check_bounds(). */
   /* mld_assert_bound(a->coeffs, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX); */
 
+#if defined(MLD_USE_NATIVE_POLY_REDUCE)
+  mld_poly_reduce_native(a->coeffs);
+#else
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
     invariant(i <= MLDSA_N)
@@ -30,6 +35,7 @@ void mld_poly_reduce(mld_poly *a)
   {
     a->coeffs[i] = mld_reduce32(a->coeffs[i]);
   }
+#endif /* !MLD_USE_NATIVE_POLY_REDUCE */
 
   mld_assert_bound(a->coeffs, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX);
 }
