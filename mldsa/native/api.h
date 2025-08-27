@@ -168,4 +168,18 @@ static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
                                                   unsigned buflen);
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM_ETA4 */
 
+#if defined(MLD_USE_NATIVE_POLY_REDUCE)
+/*************************************************
+ * Name:        mld_poly_reduce_native
+ *
+ * Description: Inplace reduction of all coefficients of polynomial to
+ *              representative in [-6283009,6283008]. Assumes input
+ *              coefficients to be at most 2^31 - 2^22 - 1 in absolute
+ *              value.
+ *
+ * Arguments:   - int32_t *a: pointer to input/output polynomial
+ **************************************************/
+static MLD_INLINE void mld_poly_reduce_native(int32_t a[MLDSA_N]);
+#endif /* MLD_USE_NATIVE_POLY_REDUCE */
+
 #endif /* !MLD_NATIVE_API_H */

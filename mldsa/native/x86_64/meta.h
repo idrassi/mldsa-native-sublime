@@ -17,6 +17,7 @@
 #define MLD_USE_NATIVE_REJ_UNIFORM
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA2
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA4
+#define MLD_USE_NATIVE_POLY_REDUCE
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
@@ -96,6 +97,11 @@ static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
   outlen = (int)mld_rej_uniform_eta4_avx2(r, buf);
   MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
   return outlen;
+}
+
+static MLD_INLINE void mld_poly_reduce_native(int32_t a[MLDSA_N])
+{
+  mld_poly_reduce_avx2(a);
 }
 
 #endif /* !__ASSEMBLER__ */

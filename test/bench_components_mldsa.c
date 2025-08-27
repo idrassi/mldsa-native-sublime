@@ -53,6 +53,9 @@ static int bench(void)
   BENCH("poly_ntt", mld_poly_ntt((mld_poly *)data0))
   BENCH("poly_invntt_tomont", mld_poly_invntt_tomont((mld_poly *)data0))
 
+  /* polynomial reduction */
+  BENCH("poly_reduce", mld_poly_reduce((mld_poly *)data0))
+
   return 0;
 }
 
