@@ -231,9 +231,9 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
   return result;
 }
 
-static void shake256_absorb_with_residual(
-  keccak_state *state, const uint8_t *in, size_t inlen,
-  uint8_t *residual, size_t *pos)
+static void shake256_absorb_with_residual(keccak_state *state,
+                                          const uint8_t *in, size_t inlen,
+                                          uint8_t *residual, size_t *pos)
 __contract__(
     requires(0 <= *pos && pos <= 8)
     requires(memory_no_alias(state, sizeof(uint64_t) * MLD_KECCAK_LANES))
@@ -245,24 +245,30 @@ __contract__(
 )
 {
   size_t nb;
-  if(in){
-    if (*pos) {
+  if (in)
+  {
+    if (*pos)
+    {
       nb = inlen < 8 - *pos ? inlen : 8 - *pos;
       memcpy(residual + *pos, in, nb);
       inlen -= nb;
       in += nb;
       *pos += nb;
-      if (*pos == 8) {
+      if (*pos == 8)
+      {
         shake256_absorb(state, residual, 8U);
+        *pos = 0;
       }
     }
     nb = inlen & ~7UL;
-    if (nb) {
+    if (nb)
+    {
       shake256_absorb(state, in, nb);
       in += nb;
       inlen -= nb;
     }
-    if (inlen) {
+    if (inlen)
+    {
       memcpy(residual, in, inlen);
       *pos = inlen;
     }
@@ -308,12 +314,13 @@ __contract__(
 {
   keccak_state state;
   uint8_t buf[8];
-  size_t pos=0;
+  size_t pos = 0;
   shake256_init(&state);
   shake256_absorb_with_residual(&state, in1, in1len, buf, &pos);
   shake256_absorb_with_residual(&state, in2, in2len, buf, &pos);
   shake256_absorb_with_residual(&state, in3, in3len, buf, &pos);
-  if(pos) {
+  if (pos)
+  {
     shake256_absorb(&state, buf, pos);
   }
   mld_shake256_finalize(&state);
