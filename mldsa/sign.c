@@ -231,6 +231,44 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
   return result;
 }
 
+static void shake256_absorb_with_residual(
+  keccak_state *state, const uint8_t *in, size_t inlen,
+  uint8_t *residual, size_t *pos)
+__contract__(
+    requires(0 <= *pos && pos <= 8)
+    requires(memory_no_alias(state, sizeof(uint64_t) * MLD_KECCAK_LANES))
+    requires(in == NULL || memory_no_alias(in, inlen))
+    requires(memory_no_alias(residual, 8))
+    assigns(memory_slice(state, sizeof(uint64_t) * MLD_KECCAK_LANES))
+    assigns(memory_slice(residual, 8))
+    assigns(*pos)
+)
+{
+  size_t nb;
+  if(in){
+    if (*pos) {
+      nb = inlen < 8 - *pos ? inlen : 8 - *pos;
+      memcpy(residual + *pos, in, nb);
+      inlen -= nb;
+      in += nb;
+      *pos += nb;
+      if (*pos == 8) {
+        shake256_absorb(state, residual, 8U);
+      }
+    }
+    nb = inlen & ~7UL;
+    if (nb) {
+      shake256_absorb(state, in, nb);
+      in += nb;
+      inlen -= nb;
+    }
+    if (inlen) {
+      memcpy(residual, in, inlen);
+      *pos = inlen;
+    }
+  }
+}
+
 /*************************************************
  * Name:        mld_H
  *
@@ -268,16 +306,15 @@ __contract__(
   assigns(memory_slice(out, outlen))
 )
 {
-  mld_shake256ctx state;
-  mld_shake256_init(&state);
-  mld_shake256_absorb(&state, in1, in1len);
-  if (in2 != NULL)
-  {
-    mld_shake256_absorb(&state, in2, in2len);
-  }
-  if (in3 != NULL)
-  {
-    mld_shake256_absorb(&state, in3, in3len);
+  keccak_state state;
+  uint8_t buf[8];
+  size_t pos=0;
+  shake256_init(&state);
+  shake256_absorb_with_residual(&state, in1, in1len, buf, &pos);
+  shake256_absorb_with_residual(&state, in2, in2len, buf, &pos);
+  shake256_absorb_with_residual(&state, in3, in3len, buf, &pos);
+  if(pos) {
+    shake256_absorb(&state, buf, pos);
   }
   mld_shake256_finalize(&state);
   mld_shake256_squeeze(out, outlen, &state);
@@ -285,6 +322,7 @@ __contract__(
 
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(&state, sizeof(state));
+  mld_zeroize(&buf, sizeof(buf));
 }
 
 /* Reference: The reference implementation does not explicitly   */
