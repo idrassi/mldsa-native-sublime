@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "api.h"
+#include "../mldsa/sign.h"
 
 static void test_keygen_only(void)
 {
