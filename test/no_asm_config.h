@@ -7,19 +7,49 @@
 
 #define MLD_RANDOMIZED_SIGNING
 
-#ifndef MLDSA_MODE
-#define MLDSA_MODE 2
+/******************************************************************************
+ * Name:        MLD_CONFIG_PARAMETER_SET
+ *
+ * Description: Parameter set to use for ML-DSA.
+ *
+ *              This must be one of:
+ *              - MLD_PARAMETER_SET_44 (ML-DSA-44)
+ *              - MLD_PARAMETER_SET_65 (ML-DSA-65)
+ *              - MLD_PARAMETER_SET_87 (ML-DSA-87)
+ *
+ *****************************************************************************/
+#ifndef MLD_CONFIG_PARAMETER_SET
+#define MLD_CONFIG_PARAMETER_SET MLD_PARAMETER_SET_44
 #endif
 
-#if MLDSA_MODE == 2
-#define MLD_NAMESPACETOP MLD_44_ref
-#define MLD_NAMESPACE(s) MLD_44_ref_##s
-#elif MLDSA_MODE == 3
-#define MLD_NAMESPACETOP MLD_65_ref
-#define MLD_NAMESPACE(s) MLD_65_ref_##s
-#elif MLDSA_MODE == 5
-#define MLD_NAMESPACETOP MLD_87_ref
-#define MLD_NAMESPACE(s) MLD_87_ref_##s
+/******************************************************************************
+ * Name:        MLD_CONFIG_NAMESPACE
+ *
+ * Description: Namespace to use for ML-DSA symbols.
+ *
+ *              If this is undefined, a default namespace based on the
+ *              parameter set will be used.
+ *
+ *****************************************************************************/
+#ifndef MLD_CONFIG_NAMESPACE
+#if MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_44
+#define MLD_CONFIG_NAMESPACE MLD_44_ref
+#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_65
+#define MLD_CONFIG_NAMESPACE MLD_65_ref
+#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_87
+#define MLD_CONFIG_NAMESPACE MLD_87_ref
+#endif
+#endif
+
+/* Backward compatibility */
+#ifndef MLDSA_MODE
+#if MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_44
+#define MLDSA_MODE 2
+#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_65
+#define MLDSA_MODE 3
+#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_87
+#define MLDSA_MODE 5
+#endif
 #endif
 
 /******************************************************************************
