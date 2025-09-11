@@ -21,23 +21,6 @@
 #define MLD_87_SECRETKEYBYTES 4896
 #define MLD_87_BYTES 4627
 
-int MLD_NAMESPACE_K(keypair)(uint8_t *pk, uint8_t *sk);
-
-int MLD_NAMESPACE_K(signature)(uint8_t *sig, size_t *siglen, const uint8_t *m,
-                               size_t mlen, const uint8_t *ctx, size_t ctxlen,
-                               const uint8_t *sk);
-
-int MLD_NAMESPACE_K(sign)(uint8_t *sm, size_t *smlen, const uint8_t *m,
-                          size_t mlen, const uint8_t *ctx, size_t ctxlen,
-                          const uint8_t *sk);
-
-int MLD_NAMESPACE_K(verify)(const uint8_t *sig, size_t siglen, const uint8_t *m,
-                            size_t mlen, const uint8_t *ctx, size_t ctxlen,
-                            const uint8_t *pk);
-
-int MLD_NAMESPACE_K(open)(uint8_t *m, size_t *mlen, const uint8_t *sm,
-                          size_t smlen, const uint8_t *ctx, size_t ctxlen,
-                          const uint8_t *pk);
 
 #if MLD_CONFIG_PARAMETER_SET == 44
 #define CRYPTO_PUBLICKEYBYTES MLD_44_PUBLICKEYBYTES

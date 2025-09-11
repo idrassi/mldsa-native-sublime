@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../mldsa/api.h"
+#include "../mldsa/sign.h"
 #include "../mldsa/sys.h"
 #include "notrandombytes/notrandombytes.h"
 
