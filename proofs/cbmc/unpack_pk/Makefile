@@ -14,13 +14,13 @@ DEFINES +=
 INCLUDES +=
 
 REMOVE_FUNCTION_BODY +=
-UNWINDSET += $(MLD_NAMESPACE)unpack_pk.0:8 # Largest value of MLDSA_K
+UNWINDSET += mld_unpack_pk.0:8 # Largest value of MLDSA_K
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/packing.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)unpack_pk
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyt1_unpack
+CHECK_FUNCTION_CONTRACTS=mld_unpack_pk
+USE_FUNCTION_CONTRACTS=mld_polyt1_unpack
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
@@ -28,7 +28,7 @@ USE_DYNAMIC_FRAMES=1
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 
-FUNCTION_NAME = unpack_pk
+FUNCTION_NAME = mld_unpack_pk
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

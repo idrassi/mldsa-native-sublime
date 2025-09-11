@@ -19,12 +19,12 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/sign.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)signature_internal
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)unpack_sk \
+CHECK_FUNCTION_CONTRACTS=mld_signature_internal
+USE_FUNCTION_CONTRACTS=mld_unpack_sk \
                        mld_H \
-                       $(MLD_NAMESPACE)polyvec_matrix_expand \
-                       $(MLD_NAMESPACE)polyvecl_ntt \
-                       $(MLD_NAMESPACE)polyveck_ntt \
+                       mld_polyvec_matrix_expand \
+                       mld_polyvecl_ntt \
+                       mld_polyveck_ntt \
                        mld_attempt_signature_generation
 USE_FUNCTION_CONTRACTS+=mld_zeroize
 
@@ -37,7 +37,7 @@ CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 CBMCFLAGS += --no-array-field-sensitivity
 
-FUNCTION_NAME = crypto_sign_signature_internal
+FUNCTION_NAME = mld_crypto_sign_signature_internal
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

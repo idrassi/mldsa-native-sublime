@@ -19,19 +19,19 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/sign.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)keypair_internal
+CHECK_FUNCTION_CONTRACTS=mld_keypair_internal
 USE_FUNCTION_CONTRACTS=$(FIPS202_NAMESPACE)shake256
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_expand
+USE_FUNCTION_CONTRACTS+=mld_polyvec_matrix_expand
 USE_FUNCTION_CONTRACTS+=mld_sample_s1_s2
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvecl_ntt
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_pointwise_montgomery
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_reduce
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_invntt_tomont
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_add
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_caddq
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_power2round
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)pack_pk
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)pack_sk
+USE_FUNCTION_CONTRACTS+=mld_polyvecl_ntt
+USE_FUNCTION_CONTRACTS+=mld_polyvec_matrix_pointwise_montgomery
+USE_FUNCTION_CONTRACTS+=mld_polyveck_reduce
+USE_FUNCTION_CONTRACTS+=mld_polyveck_invntt_tomont
+USE_FUNCTION_CONTRACTS+=mld_polyveck_add
+USE_FUNCTION_CONTRACTS+=mld_polyveck_caddq
+USE_FUNCTION_CONTRACTS+=mld_polyveck_power2round
+USE_FUNCTION_CONTRACTS+=mld_pack_pk
+USE_FUNCTION_CONTRACTS+=mld_pack_sk
 USE_FUNCTION_CONTRACTS+=mld_zeroize
 USE_FUNCTION_CONTRACTS+=mld_check_pct
 
@@ -43,7 +43,7 @@ EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 
-FUNCTION_NAME = crypto_sign_keypair_internal
+FUNCTION_NAME = mld_crypto_sign_keypair_internal
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

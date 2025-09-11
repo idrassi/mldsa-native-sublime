@@ -14,13 +14,13 @@ DEFINES +=
 INCLUDES +=
 
 REMOVE_FUNCTION_BODY +=
-UNWINDSET += $(MLD_NAMESPACE)polyveck_unpack_t0.0:8 # Largest value of MLDSA_K
+UNWINDSET += mld_polyveck_unpack_t0.0:8 # Largest value of MLDSA_K
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyveck_unpack_t0
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyt0_unpack
+CHECK_FUNCTION_CONTRACTS=mld_polyveck_unpack_t0
+USE_FUNCTION_CONTRACTS=mld_polyt0_unpack
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
@@ -28,7 +28,7 @@ USE_DYNAMIC_FRAMES=1
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 
-FUNCTION_NAME = polyveck_unpack_t0
+FUNCTION_NAME = mld_polyveck_unpack_t0
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

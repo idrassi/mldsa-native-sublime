@@ -1,6 +1,7 @@
 // Copyright (c) The mldsa-native project authors
 // SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
 
+#include "api.h"
 #include "sign.h"
 
 void mld_H(uint8_t *out, size_t outlen, const uint8_t *in1, size_t in1len,

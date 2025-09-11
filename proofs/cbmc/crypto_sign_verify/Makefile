@@ -19,8 +19,8 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/sign.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)verify
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)verify_internal
+CHECK_FUNCTION_CONTRACTS=mld_verify
+USE_FUNCTION_CONTRACTS=mld_verify_internal
 USE_FUNCTION_CONTRACTS+=mld_zeroize
 
 APPLY_LOOP_CONTRACTS=on
@@ -31,7 +31,7 @@ EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 
-FUNCTION_NAME = crypto_sign_verify
+FUNCTION_NAME = mld_crypto_sign_verify
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

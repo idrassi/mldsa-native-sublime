@@ -2,6 +2,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+#include "api.h"
 #include "sign.h"
 
 int mld_check_pct(uint8_t const pk[CRYPTO_PUBLICKEYBYTES],

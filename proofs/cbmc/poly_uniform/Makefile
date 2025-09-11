@@ -19,7 +19,7 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/poly.c $(SRCDIR)/mldsa/fips202/fips202.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)poly_uniform
+CHECK_FUNCTION_CONTRACTS=mld_poly_uniform
 USE_FUNCTION_CONTRACTS=$(FIPS202_NAMESPACE)shake128_init $(FIPS202_NAMESPACE)shake128_absorb $(FIPS202_NAMESPACE)shake128_finalize $(FIPS202_NAMESPACE)shake128_squeezeblocks mld_rej_uniform
 USE_FUNCTION_CONTRACTS+=mld_zeroize
 APPLY_LOOP_CONTRACTS=on
@@ -30,7 +30,7 @@ EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 
-FUNCTION_NAME = poly_uniform
+FUNCTION_NAME = mld_poly_uniform
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

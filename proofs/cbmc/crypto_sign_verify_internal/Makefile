@@ -19,25 +19,25 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/sign.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)verify_internal
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)unpack_pk
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)unpack_sig
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvecl_chknorm
+CHECK_FUNCTION_CONTRACTS=mld_verify_internal
+USE_FUNCTION_CONTRACTS=mld_unpack_pk
+USE_FUNCTION_CONTRACTS+=mld_unpack_sig
+USE_FUNCTION_CONTRACTS+=mld_polyvecl_chknorm
 USE_FUNCTION_CONTRACTS+=mld_H
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_challenge
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_expand
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvecl_ntt
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_pointwise_montgomery
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_ntt
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_shiftl
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_ntt
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_pointwise_poly_montgomery
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_sub
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_reduce
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_invntt_tomont
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_caddq
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_use_hint
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_pack_w1
+USE_FUNCTION_CONTRACTS+=mld_poly_challenge
+USE_FUNCTION_CONTRACTS+=mld_polyvec_matrix_expand
+USE_FUNCTION_CONTRACTS+=mld_polyvecl_ntt
+USE_FUNCTION_CONTRACTS+=mld_polyvec_matrix_pointwise_montgomery
+USE_FUNCTION_CONTRACTS+=mld_poly_ntt
+USE_FUNCTION_CONTRACTS+=mld_polyveck_shiftl
+USE_FUNCTION_CONTRACTS+=mld_polyveck_ntt
+USE_FUNCTION_CONTRACTS+=mld_polyveck_pointwise_poly_montgomery
+USE_FUNCTION_CONTRACTS+=mld_polyveck_sub
+USE_FUNCTION_CONTRACTS+=mld_polyveck_reduce
+USE_FUNCTION_CONTRACTS+=mld_polyveck_invntt_tomont
+USE_FUNCTION_CONTRACTS+=mld_polyveck_caddq
+USE_FUNCTION_CONTRACTS+=mld_polyveck_use_hint
+USE_FUNCTION_CONTRACTS+=mld_polyveck_pack_w1
 USE_FUNCTION_CONTRACTS+=mld_zeroize
 
 APPLY_LOOP_CONTRACTS=on
@@ -48,7 +48,7 @@ EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 
-FUNCTION_NAME = crypto_sign_verify_internal
+FUNCTION_NAME = mld_crypto_sign_verify_internal
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

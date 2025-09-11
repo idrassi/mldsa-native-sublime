@@ -1,6 +1,7 @@
 // Copyright (c) The mldsa-native project authors
 // SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
 
+#include "api.h"
 #include "sign.h"
 
 static void mld_sample_s1_s2(mld_polyvecl *s1, mld_polyveck *s2,

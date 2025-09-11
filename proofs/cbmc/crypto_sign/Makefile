@@ -20,7 +20,7 @@ PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/sign.c
 
 CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACETOP)
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)signature
+USE_FUNCTION_CONTRACTS=mld_signature
 
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
@@ -30,7 +30,7 @@ EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 
-FUNCTION_NAME = crypto_sign
+FUNCTION_NAME = mld_crypto_sign
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

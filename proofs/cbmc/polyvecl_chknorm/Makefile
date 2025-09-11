@@ -19,8 +19,8 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyvecl_chknorm
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)poly_chknorm
+CHECK_FUNCTION_CONTRACTS=mld_polyvecl_chknorm
+USE_FUNCTION_CONTRACTS=mld_poly_chknorm
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
@@ -30,7 +30,7 @@ CBMCFLAGS=--smt2
 CBMCFLAGS += --slice-formula
 CBMCFLAGS += --no-array-field-sensitivity
 
-FUNCTION_NAME = polyvecl_chknorm
+FUNCTION_NAME = mld_polyvecl_chknorm
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

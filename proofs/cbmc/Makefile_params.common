@@ -6,17 +6,19 @@ ifndef MLDSA_MODE
 endif
 
 MLDSA_MODE ?= 3
-FIPS202_NAMESPACE = mldsa_fips202_ref_
 
 ifeq ($(MLDSA_MODE),2)
-     MLD_NAMESPACETOP=MLD_44_ref
-     MLD_NAMESPACE=MLD_44_ref_
+     MLD_CONFIG_PARAMETER_SET=44
 else ifeq ($(MLDSA_MODE),3)
-     MLD_NAMESPACETOP=MLD_65_ref
-     MLD_NAMESPACE=MLD_65_ref_
+     MLD_CONFIG_PARAMETER_SET=65
 else ifeq ($(MLDSA_MODE),5)
-     MLD_NAMESPACETOP=MLD_87_ref
-     MLD_NAMESPACE=MLD_87_ref_
+     MLD_CONFIG_PARAMETER_SET=87
 else
      $(error Invalid value of MLDSA_MODE)
 endif
+
+# Add parameter set configuration to build
+DEFINES += -DMLD_CONFIG_PARAMETER_SET=$(MLD_CONFIG_PARAMETER_SET)
+
+# FIPS202 namespace for CBMC proofs
+FIPS202_NAMESPACE = mldsa_fips202_ref_
