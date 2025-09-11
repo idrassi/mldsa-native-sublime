@@ -7,19 +7,12 @@
 
 #define MLD_RANDOMIZED_SIGNING
 
-#ifndef MLDSA_MODE
-#define MLDSA_MODE 2
+#ifndef MLD_CONFIG_PARAMETER_SET
+#define MLD_CONFIG_PARAMETER_SET 44
 #endif
 
-#if MLDSA_MODE == 2
-#define MLD_NAMESPACETOP MLD_44_ref
-#define MLD_NAMESPACE(s) MLD_44_ref_##s
-#elif MLDSA_MODE == 3
-#define MLD_NAMESPACETOP MLD_65_ref
-#define MLD_NAMESPACE(s) MLD_65_ref_##s
-#elif MLDSA_MODE == 5
-#define MLD_NAMESPACETOP MLD_87_ref
-#define MLD_NAMESPACE(s) MLD_87_ref_##s
+#ifndef MLD_CONFIG_NAMESPACE_PREFIX
+#define MLD_CONFIG_NAMESPACE_PREFIX mld
 #endif
 
 
