@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../mldsa/api.h"
 #include "../mldsa/randombytes.h"
 #include "../mldsa/sign.h"
 #include "hal.h"
