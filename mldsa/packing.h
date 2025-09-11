@@ -6,6 +6,7 @@
 #define MLD_PACKING_H
 
 #include <stdint.h>
+#include "api.h"
 #include "polyvec.h"
 
 #define mld_pack_pk MLD_NAMESPACE(pack_pk)

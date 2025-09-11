@@ -33,6 +33,7 @@ $(error Neither 'shasum' nor 'sha256sum' found. Please install one of these tool
 endif
 
 include test/mk/config.mk
+include test/mk/compiler.mk
 include test/mk/components.mk
 include test/mk/rules.mk
 

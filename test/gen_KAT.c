@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include "../mldsa/api.h"
 #include "../mldsa/fips202/fips202.h"
 #include "../mldsa/sign.h"
 #include "../mldsa/sys.h"
