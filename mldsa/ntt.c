@@ -6,6 +6,7 @@
 
 #include "ntt.h"
 #include "reduce.h"
+#include "common.h"
 
 static int32_t mld_fqmul(int32_t a, int32_t b)
 __contract__(
