@@ -19,21 +19,8 @@
  *
  *****************************************************************************/
 #ifndef MLD_CONFIG_PARAMETER_SET
-/* Map legacy MLDSA_MODE to new parameter set for backward compatibility */
-#ifndef MLDSA_MODE
-#define MLDSA_MODE 2
-#endif
-
-#if MLDSA_MODE == 2
-#define MLD_CONFIG_PARAMETER_SET 44
-#elif MLDSA_MODE == 3
-#define MLD_CONFIG_PARAMETER_SET 65
-#elif MLDSA_MODE == 5
-#define MLD_CONFIG_PARAMETER_SET 87
-#else
 #define MLD_CONFIG_PARAMETER_SET 44 /* Default to ML-DSA-44 */
 #endif
-#endif /* !MLD_CONFIG_PARAMETER_SET */
 
 /******************************************************************************
  * Name:        MLD_CONFIG_NAMESPACE_PREFIX

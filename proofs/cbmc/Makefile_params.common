@@ -1,20 +1,21 @@
 # Copyright (c) The mldsa-native project authors
 # SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
 
-ifndef MLDSA_MODE
-       $(warning MLDSA_MODE not set -- defaulting to MLDSA_MODE=3)
+ifndef MLD_CONFIG_PARAMETER_SET
+       $(warning MLD_CONFIG_PARAMETER_SET not set -- defaulting to MLD_CONFIG_PARAMETER_SET=65)
 endif
 
-MLDSA_MODE ?= 3
+MLD_CONFIG_PARAMETER_SET ?= 65
 
-ifeq ($(MLDSA_MODE),2)
-     MLD_CONFIG_PARAMETER_SET=44
-else ifeq ($(MLDSA_MODE),3)
-     MLD_CONFIG_PARAMETER_SET=65
-else ifeq ($(MLDSA_MODE),5)
-     MLD_CONFIG_PARAMETER_SET=87
+# Validate parameter set
+ifeq ($(MLD_CONFIG_PARAMETER_SET),44)
+     # ML-DSA-44 is valid
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
+     # ML-DSA-65 is valid
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),87)
+     # ML-DSA-87 is valid
 else
-     $(error Invalid value of MLDSA_MODE)
+     $(error Invalid value of MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87)
 endif
 
 # Add parameter set configuration to build

@@ -41,16 +41,6 @@
 #endif
 #endif
 
-/* Backward compatibility */
-#ifndef MLDSA_MODE
-#if MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_44
-#define MLDSA_MODE 2
-#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_65
-#define MLDSA_MODE 3
-#elif MLD_CONFIG_PARAMETER_SET == MLD_PARAMETER_SET_87
-#define MLDSA_MODE 5
-#endif
-#endif
 
 /******************************************************************************
  * Name:        MLD_CONFIG_ARITH_BACKEND_FILE
