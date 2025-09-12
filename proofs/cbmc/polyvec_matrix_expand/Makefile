@@ -18,6 +18,7 @@ UNWINDSET +=
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
+PROJECT_SOURCES += $(SRCDIR)/mldsa/poly.c
 
 CHECK_FUNCTION_CONTRACTS=mld_polyvec_matrix_expand
 USE_FUNCTION_CONTRACTS=mld_poly_uniform_4x mld_poly_uniform
