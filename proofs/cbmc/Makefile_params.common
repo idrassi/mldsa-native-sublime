@@ -6,20 +6,3 @@ ifndef MLD_CONFIG_PARAMETER_SET
 endif
 
 MLD_CONFIG_PARAMETER_SET ?= 65
-
-# Validate parameter set
-ifeq ($(MLD_CONFIG_PARAMETER_SET),44)
-     # ML-DSA-44 is valid
-else ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
-     # ML-DSA-65 is valid
-else ifeq ($(MLD_CONFIG_PARAMETER_SET),87)
-     # ML-DSA-87 is valid
-else
-     $(error Invalid value of MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87)
-endif
-
-# Add parameter set configuration to build
-DEFINES += -DMLD_CONFIG_PARAMETER_SET=$(MLD_CONFIG_PARAMETER_SET)
-
-# FIPS202 namespace for CBMC proofs
-FIPS202_NAMESPACE = mldsa_fips202_ref_
