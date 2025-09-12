@@ -61,9 +61,9 @@ on:
       slothy:
         type: boolean
         default: false
-      cbmc_mldsa_mode:
+      cbmc_mldsa_parameter_set:
         type: string
-        default: 2
+        default: 44
 env:
   AWS_ROLE: arn:aws:iam::904233116199:role/mldsa-native-ci
   AWS_REGION: us-east-1
@@ -174,7 +174,7 @@ jobs:
         with:
           nix-shell: ci-cbmc
           nix-verbose: ${{ inputs.verbose }}
-          mldsa_mode: ${{ inputs.cbmc_mldsa_mode }}
+          mldsa_parameter_set: ${{ inputs.cbmc_mldsa_parameter_set }}
           gh_token: ${{ secrets.AWS_GITHUB_TOKEN }}
       # - name: SLOTHY
       #   if: ${{ inputs.slothy }}

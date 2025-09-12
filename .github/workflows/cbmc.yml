@@ -28,7 +28,7 @@ jobs:
       kattest: false
       acvptest: false
       cbmc: true
-      cbmc_mldsa_mode: 2
+      cbmc_mldsa_parameter_set: 44
     secrets: inherit
   cbmc_65:
     name: CBMC (ML-DSA-65)
@@ -50,7 +50,7 @@ jobs:
       kattest: false
       acvptest: false
       cbmc: true
-      cbmc_mldsa_mode: 3
+      cbmc_mldsa_parameter_set: 65
     secrets: inherit
   cbmc_87:
     name: CBMC (ML-DSA-87)
@@ -72,5 +72,5 @@ jobs:
       kattest: false
       acvptest: false
       cbmc: true
-      cbmc_mldsa_mode: 5
+      cbmc_mldsa_parameter_set: 87
     secrets: inherit
