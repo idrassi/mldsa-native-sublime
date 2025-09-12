@@ -1,8 +1,20 @@
 # Copyright (c) The mldsa-native project authors
 # SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
 
+# No default - force explicit parameter set from environment
 ifndef MLD_CONFIG_PARAMETER_SET
-       $(warning MLD_CONFIG_PARAMETER_SET not set -- defaulting to MLD_CONFIG_PARAMETER_SET=65)
-       MLD_CONFIG_PARAMETER_SET = 65
+	$(error MLD_CONFIG_PARAMETER_SET must be set to 44, 65, or 87)
 endif
+
+# Validate parameter set
+ifeq ($(MLD_CONFIG_PARAMETER_SET),44)
+	# Valid parameter set - ML-DSA-44
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
+	# Valid parameter set - ML-DSA-65
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),87)
+	# Valid parameter set - ML-DSA-87
+else
+	$(error Invalid value for MLD_CONFIG_PARAMETER_SET: $(MLD_CONFIG_PARAMETER_SET). Must be 44, 65, or 87)
+endif
+
 FIPS202_NAMESPACE = mldsa_fips202_ref_
