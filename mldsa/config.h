@@ -41,46 +41,6 @@
 #endif
 
 /******************************************************************************
- * Name:        MLD_CONFIG_MULTILEVEL_WITH_SHARED
- *
- * Description: This is for multi-level builds of mldsa-native only. If you
- *              need only a single parameter set, keep this unset.
- *
- *              If this is set, all MLD_CONFIG_PARAMETER_SET-independent
- *              code will be included in the build, including code needed only
- *              for other parameter sets.
- *
- *              To build mldsa-native with support for all parameter sets,
- *              build it three times -- once per parameter set -- and set the
- *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
- *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-/* #define MLD_CONFIG_MULTILEVEL_WITH_SHARED */
-
-/******************************************************************************
- * Name:        MLD_CONFIG_MULTILEVEL_NO_SHARED
- *
- * Description: This is for multi-level builds of mldsa-native only. If you
- *              need only a single parameter set, keep this unset.
- *
- *              If this is set, no MLD_CONFIG_PARAMETER_SET-independent code
- *              will be included in the build.
- *
- *              To build mldsa-native with support for all parameter sets,
- *              build it three times -- once per parameter set -- and set the
- *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
- *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-/* #define MLD_CONFIG_MULTILEVEL_NO_SHARED */
-
-
-/******************************************************************************
  * Name:        MLD_CONFIG_FILE
  *
  * Description: If defined, this is a header that will be included instead
