@@ -986,6 +986,14 @@ def cli():
     )
 
     cbmc_parser.add_argument(
+        "--parameter-set",
+        help="MLDSA parameter set (alias for --mode).",
+        choices=["44", "65", "87", "ALL"],
+        type=str.upper,
+        dest="mode",
+    )
+
+    cbmc_parser.add_argument(
         "--single-step",
         help="Run one proof a time. This is useful for debugging",
         action="store_true",
