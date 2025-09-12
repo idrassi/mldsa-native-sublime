@@ -1042,7 +1042,7 @@ void mld_polyz_pack(uint8_t *r, const mld_poly *a)
 
   mld_assert_bound(a->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   for (i = 0; i < MLDSA_N / 4; ++i)
   __loop__(
     invariant(i <= MLDSA_N/4))
@@ -1065,7 +1065,7 @@ void mld_polyz_pack(uint8_t *r, const mld_poly *a)
     r[9 * i + 7] = (t[3] >> 2) & 0xFF;
     r[9 * i + 8] = (t[3] >> 10) & 0xFF;
   }
-#else  /* MLDSA_MODE == 2 */
+#else  /* MLD_CONFIG_PARAMETER_SET == 44 */
   for (i = 0; i < MLDSA_N / 2; ++i)
   __loop__(
     invariant(i <= MLDSA_N/2))
@@ -1080,14 +1080,14 @@ void mld_polyz_pack(uint8_t *r, const mld_poly *a)
     r[5 * i + 3] = (t[1] >> 4) & 0xFF;
     r[5 * i + 4] = (t[1] >> 12) & 0xFF;
   }
-#endif /* MLDSA_MODE != 2 */
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 */
 }
 
 void mld_polyz_unpack(mld_poly *r, const uint8_t *a)
 {
   unsigned int i;
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   for (i = 0; i < MLDSA_N / 4; ++i)
   __loop__(
     invariant(i <= MLDSA_N/4)
@@ -1118,7 +1118,7 @@ void mld_polyz_unpack(mld_poly *r, const uint8_t *a)
     r->coeffs[4 * i + 2] = MLDSA_GAMMA1 - r->coeffs[4 * i + 2];
     r->coeffs[4 * i + 3] = MLDSA_GAMMA1 - r->coeffs[4 * i + 3];
   }
-#else  /* MLDSA_MODE == 2 */
+#else  /* MLD_CONFIG_PARAMETER_SET == 44 */
   for (i = 0; i < MLDSA_N / 2; ++i)
   __loop__(
     invariant(i <= MLDSA_N/2)
@@ -1138,7 +1138,7 @@ void mld_polyz_unpack(mld_poly *r, const uint8_t *a)
     r->coeffs[2 * i + 0] = MLDSA_GAMMA1 - r->coeffs[2 * i + 0];
     r->coeffs[2 * i + 1] = MLDSA_GAMMA1 - r->coeffs[2 * i + 1];
   }
-#endif /* MLDSA_MODE != 2 */
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 */
 
   mld_assert_bound(r->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 }
@@ -1149,7 +1149,7 @@ void mld_polyw1_pack(uint8_t r[MLDSA_POLYW1_PACKEDBYTES], const mld_poly *a)
 
   mld_assert_bound(a->coeffs, MLDSA_N, 0, (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   for (i = 0; i < MLDSA_N / 4; ++i)
   __loop__(
     invariant(i <= MLDSA_N/4))
@@ -1161,12 +1161,12 @@ void mld_polyw1_pack(uint8_t r[MLDSA_POLYW1_PACKEDBYTES], const mld_poly *a)
     r[3 * i + 2] = (a->coeffs[4 * i + 2] >> 4) & 0xFF;
     r[3 * i + 2] |= (a->coeffs[4 * i + 3] << 2) & 0xFF;
   }
-#else  /* MLDSA_MODE == 2 */
+#else  /* MLD_CONFIG_PARAMETER_SET == 44 */
   for (i = 0; i < MLDSA_N / 2; ++i)
   __loop__(
     invariant(i <= MLDSA_N/2))
   {
     r[i] = a->coeffs[2 * i + 0] | (a->coeffs[2 * i + 1] << 4);
   }
-#endif /* MLDSA_MODE != 2 */
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 */
 }

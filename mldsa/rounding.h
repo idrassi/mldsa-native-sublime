@@ -76,20 +76,20 @@ __contract__(
   /* We know a >= 0 and a < MLDSA_Q, so... */
   cassert(*a1 >= 0 && *a1 <= 65472);
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   *a1 = (*a1 * 11275 + (1 << 23)) >> 24;
   cassert(*a1 >= 0 && *a1 <= 44);
 
   *a1 = mld_ct_sel_int32(0, *a1, mld_ct_cmask_neg_i32(43 - *a1));
   cassert(*a1 >= 0 && *a1 <= 43);
-#else /* MLDSA_MODE == 2 */
+#else /* MLD_CONFIG_PARAMETER_SET == 44 */
   *a1 = (*a1 * 1025 + (1 << 21)) >> 22;
   cassert(*a1 >= 0 && *a1 <= 16);
 
   *a1 &= 15;
   cassert(*a1 >= 0 && *a1 <= 15);
 
-#endif /* MLDSA_MODE != 2 */
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 */
 
   *a0 = a - *a1 * 2 * MLDSA_GAMMA2;
   *a0 = mld_ct_sel_int32(*a0 - MLDSA_Q, *a0,
@@ -146,7 +146,7 @@ __contract__(
     return a1;
   }
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   if (a0 > 0)
   {
     return (a1 == 43) ? 0 : a1 + 1;
@@ -155,7 +155,7 @@ __contract__(
   {
     return (a1 == 0) ? 43 : a1 - 1;
   }
-#else  /* MLDSA_MODE == 2 */
+#else  /* MLD_CONFIG_PARAMETER_SET == 44 */
   if (a0 > 0)
   {
     return (a1 + 1) & 15;
@@ -164,7 +164,7 @@ __contract__(
   {
     return (a1 - 1) & 15;
   }
-#endif /* MLDSA_MODE != 2 */
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 */
 }
 
 

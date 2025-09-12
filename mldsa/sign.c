@@ -97,12 +97,12 @@ __contract__(
 )
 {
 /* Sample short vectors s1 and s2 */
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
   mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
                           seed, 0, 1, 2, 3);
   mld_poly_uniform_eta_4x(&s2->vec[0], &s2->vec[1], &s2->vec[2], &s2->vec[3],
                           seed, 4, 5, 6, 7);
-#elif MLDSA_MODE == 3
+#elif MLD_CONFIG_PARAMETER_SET == 65
   mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
                           seed, 0, 1, 2, 3);
   mld_poly_uniform_eta_4x(&s1->vec[4], &s2->vec[0], &s2->vec[1],
@@ -110,7 +110,7 @@ __contract__(
                           0xFF /* irrelevant */);
   mld_poly_uniform_eta_4x(&s2->vec[2], &s2->vec[3], &s2->vec[4], &s2->vec[5],
                           seed, 7, 8, 9, 10);
-#elif MLDSA_MODE == 5
+#elif MLD_CONFIG_PARAMETER_SET == 87
   mld_poly_uniform_eta_4x(&s1->vec[0], &s1->vec[1], &s1->vec[2], &s1->vec[3],
                           seed, 0, 1, 2, 3);
   mld_poly_uniform_eta_4x(&s1->vec[4], &s1->vec[5], &s1->vec[6],
@@ -120,7 +120,7 @@ __contract__(
                           seed, 7, 8, 9, 10);
   mld_poly_uniform_eta_4x(&s2->vec[4], &s2->vec[5], &s2->vec[6], &s2->vec[7],
                           seed, 11, 12, 13, 14);
-#endif /* MLDSA_MODE == 5 */
+#endif /* MLD_CONFIG_PARAMETER_SET == 87 */
 }
 
 MLD_MUST_CHECK_RETURN_VALUE
