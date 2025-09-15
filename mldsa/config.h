@@ -27,15 +27,57 @@
  *
  * Description: The prefix to use to namespace global symbols from mldsa/.
  *
- *              In a multi-level build, level-dependent symbols will
- *              additionally be prefixed with the parameter set (44/65/87).
+ *              In a multi-level build (that is, if either
+ *              - MLD_CONFIG_MULTILEVEL_WITH_SHARED, or
+ *              - MLD_CONFIG_MULTILEVEL_NO_SHARED,
+ *              are set), level-dependent symbols will additionally be prefixed
+ *              with the parameter set (44/65/87).
  *
  *              This can also be set using CFLAGS.
  *
  *****************************************************************************/
 #if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
-#define MLD_CONFIG_NAMESPACE_PREFIX mld
+#define MLD_CONFIG_NAMESPACE_PREFIX MLD_DEFAULT_NAMESPACE_PREFIX
 #endif
+
+/******************************************************************************
+ * Name:        MLD_CONFIG_MULTILEVEL_WITH_SHARED
+ *
+ * Description: This is for multi-level builds of mldsa-native only. If you
+ *              need only a single parameter set, keep this unset.
+ *
+ *              If this is set, all MLD_CONFIG_PARAMETER_SET-independent
+ *              code will be included in the build, including code needed only
+ *              for other parameter sets.
+ *
+ *              To build mldsa-native with support for all parameter sets,
+ *              build it three times -- once per parameter set -- and set the
+ *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
+ *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_MULTILEVEL_WITH_SHARED */
+
+/******************************************************************************
+ * Name:        MLD_CONFIG_MULTILEVEL_NO_SHARED
+ *
+ * Description: This is for multi-level builds of mldsa-native only. If you
+ *              need only a single parameter set, keep this unset.
+ *
+ *              If this is set, no MLD_CONFIG_PARAMETER_SET-independent code
+ *              will be included in the build.
+ *
+ *              To build mldsa-native with support for all parameter sets,
+ *              build it three times -- once per parameter set -- and set the
+ *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
+ *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_MULTILEVEL_NO_SHARED */
 
 
 /******************************************************************************
@@ -226,7 +268,9 @@
  *
  * This maintains compatibility with existing code that references MLDSA_MODE
  * while internally using the new MLD_CONFIG_PARAMETER_SET system.
+ * Only define if not already defined (e.g., via command line).
  */
+#ifndef MLDSA_MODE
 #if MLD_CONFIG_PARAMETER_SET == 44
 #define MLDSA_MODE 2
 #elif MLD_CONFIG_PARAMETER_SET == 65
@@ -235,6 +279,27 @@
 #define MLDSA_MODE 5
 #else
 #error Invalid value for MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87.
+#endif
+#endif
+
+/* Default namespace
+ *
+ * Don't change this. If you need a different namespace, re-define
+ * MLD_CONFIG_NAMESPACE_PREFIX above instead, and remove the following.
+ *
+ * The default MLDSA namespace is
+ *
+ *   PQCP_MLDSA_NATIVE_MLDSA<LEVEL>_
+ *
+ * e.g., PQCP_MLDSA_NATIVE_MLDSA44_
+ */
+
+#if MLD_CONFIG_PARAMETER_SET == 44
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA44
+#elif MLD_CONFIG_PARAMETER_SET == 65
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA65
+#elif MLD_CONFIG_PARAMETER_SET == 87
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA87
 #endif
 
 #endif /* !MLD_CONFIG_H */
