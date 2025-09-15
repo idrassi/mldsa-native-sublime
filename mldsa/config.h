@@ -280,7 +280,7 @@
 #else
 #error Invalid value for MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87.
 #endif
-#endif
+#endif /* !MLDSA_MODE */
 
 /* Default namespace
  *
