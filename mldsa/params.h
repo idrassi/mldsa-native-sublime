@@ -7,6 +7,10 @@
 
 #include "common.h"
 
+#if !defined(MLD_CONFIG_PARAMETER_SET)
+#error MLD_CONFIG_PARAMETER_SET is not defined
+#endif
+
 #define MLDSA_SEEDBYTES 32
 #define MLDSA_CRHBYTES 64
 #define MLDSA_TRBYTES 64
@@ -16,7 +20,7 @@
 #define MLDSA_Q_HALF ((MLDSA_Q + 1) / 2) /* 4190209 */
 #define MLDSA_D 13
 
-#if MLDSA_MODE == 2
+#if MLD_CONFIG_PARAMETER_SET == 44
 
 #define MLDSA_K 4
 #define MLDSA_L 4
@@ -31,7 +35,7 @@
 #define MLDSA_POLYW1_PACKEDBYTES 192
 #define MLDSA_POLYETA_PACKEDBYTES 96
 
-#elif MLDSA_MODE == 3
+#elif MLD_CONFIG_PARAMETER_SET == 65
 
 #define MLDSA_K 6
 #define MLDSA_L 5
@@ -46,7 +50,7 @@
 #define MLDSA_POLYW1_PACKEDBYTES 128
 #define MLDSA_POLYETA_PACKEDBYTES 128
 
-#elif MLDSA_MODE == 5
+#elif MLD_CONFIG_PARAMETER_SET == 87
 
 #define MLDSA_K 8
 #define MLDSA_L 7
@@ -61,7 +65,10 @@
 #define MLDSA_POLYW1_PACKEDBYTES 128
 #define MLDSA_POLYETA_PACKEDBYTES 96
 
-#endif /* MLDSA_MODE == 5 */
+#else /* MLD_CONFIG_PARAMETER_SET == 87 */
+#error Invalid value for MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87.
+#endif /* MLD_CONFIG_PARAMETER_SET != 44 && MLD_CONFIG_PARAMETER_SET != 65 && \
+          MLD_CONFIG_PARAMETER_SET != 87 */
 
 #define MLDSA_POLYT1_PACKEDBYTES 320
 #define MLDSA_POLYT0_PACKEDBYTES 416

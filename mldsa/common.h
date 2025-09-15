@@ -29,6 +29,35 @@
 #define MLD_CONCAT_(x1, x2) x1##x2
 #define MLD_CONCAT(x1, x2) MLD_CONCAT_(x1, x2)
 
+#if defined(MLD_MULTILEVEL_BUILD)
+#define MLD_ADD_PARAM_SET(s) MLD_CONCAT(s, MLD_CONFIG_PARAMETER_SET)
+#else
+#define MLD_ADD_PARAM_SET(s) s
+#endif
+
+#if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
+#define MLD_CONFIG_NAMESPACE_PREFIX mld
+#endif
+
+#define MLD_NAMESPACE_PREFIX MLD_CONCAT(MLD_CONFIG_NAMESPACE_PREFIX, _)
+#define MLD_NAMESPACE_PREFIX_K \
+  MLD_CONCAT(MLD_ADD_PARAM_SET(MLD_CONFIG_NAMESPACE_PREFIX), _)
+
+/* Functions are prefixed by MLD_CONFIG_NAMESPACE_PREFIX.
+ *
+ * Functions depending on the parameter set are additionally prefixed with
+ * 44/65/87. See config.h.
+ *
+ * Example: If MLD_CONFIG_NAMESPACE_PREFIX is PQCP_MLDSA_NATIVE_MLDSA, then
+ * MLD_NAMESPACE_K(keypair) becomes PQCP_MLDSA_NATIVE_MLDSA44_keypair/
+ * PQCP_MLDSA_NATIVE_MLDSA65_keypair/PQCP_MLDSA_NATIVE_MLDSA87_keypair.
+ */
+#define MLD_NAMESPACE(s) MLD_CONCAT(MLD_NAMESPACE_PREFIX, s)
+#define MLD_NAMESPACE_K(s) MLD_CONCAT(MLD_NAMESPACE_PREFIX_K, s)
+
+/* Backward compatibility */
+#define MLD_NAMESPACETOP MLD_ADD_PARAM_SET(MLD_CONFIG_NAMESPACE_PREFIX)
+
 /* On Apple platforms, we need to emit leading underscore
  * in front of assembly symbols. We thus introducee a separate
  * namespace wrapper for ASM symbols. */

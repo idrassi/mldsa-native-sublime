@@ -7,19 +7,34 @@
 
 #define MLD_RANDOMIZED_SIGNING
 
-#ifndef MLDSA_MODE
-#define MLDSA_MODE 2
+/******************************************************************************
+ * Name:        MLD_CONFIG_PARAMETER_SET
+ *
+ * Description: Specifies the parameter set for ML-DSA
+ *              - MLD_CONFIG_PARAMETER_SET=44 corresponds to ML-DSA-44
+ *              - MLD_CONFIG_PARAMETER_SET=65 corresponds to ML-DSA-65
+ *              - MLD_CONFIG_PARAMETER_SET=87 corresponds to ML-DSA-87
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+#ifndef MLD_CONFIG_PARAMETER_SET
+#define MLD_CONFIG_PARAMETER_SET 65 /* Default to ML-DSA-65 */
 #endif
 
-#if MLDSA_MODE == 2
-#define MLD_NAMESPACETOP MLD_44_ref
-#define MLD_NAMESPACE(s) MLD_44_ref_##s
-#elif MLDSA_MODE == 3
-#define MLD_NAMESPACETOP MLD_65_ref
-#define MLD_NAMESPACE(s) MLD_65_ref_##s
-#elif MLDSA_MODE == 5
-#define MLD_NAMESPACETOP MLD_87_ref
-#define MLD_NAMESPACE(s) MLD_87_ref_##s
+/******************************************************************************
+ * Name:        MLD_CONFIG_NAMESPACE_PREFIX
+ *
+ * Description: The prefix to use to namespace global symbols from mldsa/.
+ *
+ *              In a multi-level build, level-dependent symbols will
+ *              additionally be prefixed with the parameter set (44/65/87).
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+#if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
+#define MLD_CONFIG_NAMESPACE_PREFIX mld
 #endif
 
 
@@ -205,6 +220,21 @@
  *****************************************************************************/
 /* #define MLD_CONFIG_NO_ASM_VALUE_BARRIER */
 
+/*************************  Config internals  ********************************/
 
+/* Backward compatibility - define MLDSA_MODE based on MLD_CONFIG_PARAMETER_SET
+ *
+ * This maintains compatibility with existing code that references MLDSA_MODE
+ * while internally using the new MLD_CONFIG_PARAMETER_SET system.
+ */
+#if MLD_CONFIG_PARAMETER_SET == 44
+#define MLDSA_MODE 2
+#elif MLD_CONFIG_PARAMETER_SET == 65
+#define MLDSA_MODE 3
+#elif MLD_CONFIG_PARAMETER_SET == 87
+#define MLDSA_MODE 5
+#else
+#error Invalid value for MLD_CONFIG_PARAMETER_SET. Must be 44, 65, or 87.
+#endif
 
 #endif /* !MLD_CONFIG_H */

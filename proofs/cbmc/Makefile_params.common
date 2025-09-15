@@ -8,15 +8,28 @@ endif
 MLDSA_MODE ?= 3
 FIPS202_NAMESPACE = mldsa_fips202_ref_
 
+# Map MLDSA_MODE to MLD_CONFIG_PARAMETER_SET for backward compatibility
+ifeq ($(MLDSA_MODE),2)
+MLD_CONFIG_PARAMETER_SET=44
+else ifeq ($(MLDSA_MODE),3)
+MLD_CONFIG_PARAMETER_SET=65
+else ifeq ($(MLDSA_MODE),5)
+MLD_CONFIG_PARAMETER_SET=87
+else
+$(error Invalid value for MLDSA_MODE)
+endif
+
+# Keep backward compatibility namespace definitions for existing proofs
 ifeq ($(MLDSA_MODE),2)
      MLD_NAMESPACETOP=MLD_44_ref
      MLD_NAMESPACE=MLD_44_ref_
+     MLD_NAMESPACE_K=MLD_44_ref_
 else ifeq ($(MLDSA_MODE),3)
      MLD_NAMESPACETOP=MLD_65_ref
      MLD_NAMESPACE=MLD_65_ref_
+     MLD_NAMESPACE_K=MLD_65_ref_
 else ifeq ($(MLDSA_MODE),5)
      MLD_NAMESPACETOP=MLD_87_ref
      MLD_NAMESPACE=MLD_87_ref_
-else
-     $(error Invalid value of MLDSA_MODE)
+     MLD_NAMESPACE_K=MLD_87_ref_
 endif

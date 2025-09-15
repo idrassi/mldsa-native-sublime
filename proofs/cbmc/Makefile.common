@@ -535,7 +535,18 @@ ifndef MLDSA_MODE
     $(error MLDSA_MODE not set)
 endif
 
-DEFINES += -DMLDSA_MODE=$(MLDSA_MODE)
+ifeq ($(MLDSA_MODE),2)
+MLD_CONFIG_PARAMETER_SET=44
+else ifeq ($(MLDSA_MODE),3)
+MLD_CONFIG_PARAMETER_SET=65
+else ifeq ($(MLDSA_MODE),5)
+MLD_CONFIG_PARAMETER_SET=87
+else
+$(error Invalid value for MLDSA_MODE)
+endif
+
+DEFINES += -DMLD_CONFIG_NAMESPACE_PREFIX=mld
+DEFINES += -DMLD_CONFIG_PARAMETER_SET=$(MLD_CONFIG_PARAMETER_SET)
 # Give visibility to all static functions
 DEFINES += -Dstatic=
 
