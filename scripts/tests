@@ -716,13 +716,12 @@ class Tests:
                         + self.make_j(),
                         cwd="proofs/cbmc",
                         env=os.environ.copy() | envvars,
+                        capture_output=True,
                         timeout=self.args.timeout,
-                        capture_output=(self.args.verbose is False),
                     )
-                except subprocess.TimeoutExpired as e:
+                except subprocess.TimeoutExpired:
                     log.error(f"   TIMEOUT (after {self.args.timeout}s)")
-                    if e.stderr is not None:
-                        log.error(e.stderr.decode())
+                    log.error(p.stderr)
                     self.fail(f"CBMC proof for {func}")
                     if self.args.fail_upon_error:
                         log.error(
