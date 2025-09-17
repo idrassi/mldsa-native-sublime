@@ -123,7 +123,7 @@ __contract__(
 {
   unsigned int i;
 
-  while (pos + inlen >= r)
+  while (inlen >= r - pos)
   __loop__(
     assigns(pos, i, in, inlen,
       memory_slice(s, sizeof(uint64_t) *  MLD_KECCAK_LANES))
@@ -144,7 +144,7 @@ __contract__(
     pos = 0;
   }
 
-  for (i = pos; i < pos + inlen; i++)
+  for (i = pos; i - pos < inlen; i++)
   __loop__(
     invariant(i >= pos && i - pos <= inlen)
     invariant(in == loop_entry(in) + (i - pos)))
