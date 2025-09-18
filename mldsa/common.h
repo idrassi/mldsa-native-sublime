@@ -131,8 +131,8 @@
 #endif /* MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202 */
 
 #if !defined(__ASSEMBLER__)
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 /*************************************************
  * Name:        mld_zeroize
