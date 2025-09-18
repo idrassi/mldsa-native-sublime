@@ -14,62 +14,6 @@
 #include "keccakf1600.h"
 
 #define NROUNDS 24
-#define ROL(a, offset) ((a << offset) ^ (a >> (64 - offset)))
-
-/*************************************************
- * Name:        load64
- *
- * Description: Load 8 bytes into uint64_t in little-endian order
- *
- * Arguments:   - const uint8_t *x: pointer to input byte array
- *
- * Returns the loaded 64-bit unsigned integer
- **************************************************/
-static uint64_t load64(const uint8_t x[8])
-__contract__(
-  requires(memory_no_alias(x, sizeof(uint8_t) * 8))
-)
-{
-  unsigned int i;
-  uint64_t r = 0;
-
-  for (i = 0; i < 8; i++)
-  __loop__(
-    invariant(i <= 8)
-  )
-  {
-    r |= (uint64_t)x[i] << 8 * i;
-  }
-
-  return r;
-}
-
-/*************************************************
- * Name:        store64
- *
- * Description: Store a 64-bit integer to array of 8 bytes in little-endian
- *order
- *
- * Arguments:   - uint8_t *x: pointer to the output byte array (allocated)
- *              - uint64_t u: input 64-bit unsigned integer
- **************************************************/
-static void store64(uint8_t x[8], uint64_t u)
-__contract__(
-  requires(memory_no_alias(x, sizeof(uint8_t) * 8))
-  assigns(memory_slice(x, sizeof(uint8_t) * 8))
-)
-{
-  unsigned int i;
-
-  for (i = 0; i < 8; i++)
-  __loop__(
-    invariant(i <= 8)
-  )
-  {
-    /* Explicitly truncate to uint8_t */
-    x[i] = (uint8_t)((u >> (8 * i)) & 0xFF);
-  }
-}
 
 /*************************************************
  * Name:        keccak_init
@@ -84,16 +28,7 @@ __contract__(
   assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
 )
 {
-  unsigned int i;
-  for (i = 0; i < MLD_KECCAK_LANES; i++)
-  __loop__(
-    invariant(i <= MLD_KECCAK_LANES)
-    invariant(forall(k, 0, i, s[k] == 0))
-  )
-  {
-    s[i] = 0;
-  }
-
+  memset(s, 0, sizeof(uint64_t) * MLD_KECCAK_LANES);
   cassert(forall(k, 0, MLD_KECCAK_LANES, s[k] == 0));
 }
 
@@ -121,38 +56,23 @@ __contract__(
   assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
   ensures(return_value < r))
 {
-  unsigned int i;
-
   while (inlen >= r - pos)
   __loop__(
-    assigns(pos, i, in, inlen,
+    assigns(pos, in, inlen,
       memory_slice(s, sizeof(uint64_t) *  MLD_KECCAK_LANES))
     invariant(inlen <= loop_entry(inlen))
     invariant(pos <= r)
     invariant(in == loop_entry(in) + (loop_entry(inlen) - inlen)))
   {
-    for (i = pos; i < r; i++)
-    __loop__(
-      assigns(i, in, memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-      invariant(i >= pos && i <= r)
-      invariant(in == loop_entry(in) + (i - pos)))
-    {
-      s[i / 8] ^= (uint64_t)*in++ << 8 * (i % 8);
-    }
+    mld_keccakf1600_xor_bytes(s, in, pos, r - pos);
     inlen -= r - pos;
+    in += r - pos;
     mld_keccakf1600_permute(s);
     pos = 0;
   }
+  mld_keccakf1600_xor_bytes(s, in, pos, inlen);
 
-  for (i = pos; i - pos < inlen; i++)
-  __loop__(
-    invariant(i >= pos && i - pos <= inlen)
-    invariant(in == loop_entry(in) + (i - pos)))
-  {
-    s[i / 8] ^= (uint64_t)*in++ << 8 * (i % 8);
-  }
-
-  return i;
+  return pos + inlen;
 }
 
 /*************************************************
@@ -174,8 +94,9 @@ __contract__(
   assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
 )
 {
-  s[pos / 8] ^= (uint64_t)p << 8 * (pos % 8);
-  s[r / 8 - 1] ^= 1ULL << 63;
+  uint8_t b = 0x80;
+  mld_keccakf1600_xor_bytes(s, &p, pos, 1);
+  mld_keccakf1600_xor_bytes(s, &b, r - 1, 1);
 }
 
 /*************************************************
@@ -199,7 +120,8 @@ static unsigned int keccak_squeeze(uint8_t *out, size_t outlen,
                                    unsigned int pos, unsigned int r)
 __contract__(
   requires((r == SHAKE128_RATE && pos <= SHAKE128_RATE) ||
-    (r == SHAKE256_RATE && pos <= SHAKE256_RATE))
+           (r == SHAKE256_RATE && pos <= SHAKE256_RATE) ||
+           (r == SHA3_512_RATE && pos <= SHA3_512_RATE))
   requires(outlen <= 8 * r /* somewhat arbitrary bound */)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
   requires(memory_no_alias(out, outlen))
@@ -231,19 +153,11 @@ __contract__(
       mld_keccakf1600_permute(s);
       pos = 0;
     }
-    for (i = pos; i < r && i < pos + bytes_to_go; i++)
-    __loop__(
-      assigns(i, out_offset, memory_slice(out, outlen))
-      invariant(i >= pos && i <= r && i <= pos + bytes_to_go)
-      invariant(out_offset == loop_entry(out_offset) + (i - pos))
-    )
-    {
-      const uint64_t lane = s[i / 8];
-      out[out_offset] = (uint8_t)((lane >> (8 * (i % 8))) & 0xFF);
-      out_offset++;
-    }
-    bytes_to_go -= i - pos;
-    pos = i;
+    i = bytes_to_go < r - pos ? bytes_to_go : r - pos;
+    mld_keccakf1600_extract_bytes(s, out + out_offset, pos, i);
+    bytes_to_go -= i;
+    pos += i;
+    out_offset += i;
   }
 
   return pos;
@@ -266,44 +180,29 @@ static void keccak_absorb_once(uint64_t s[MLD_KECCAK_LANES],
                                const unsigned int r, const uint8_t *in,
                                size_t inlen, uint8_t p)
 __contract__(
-  requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
+  requires(r < sizeof(uint64_t) * MLD_KECCAK_LANES)
+  requires((r / 8) >= 1)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
   requires(memory_no_alias(in, inlen))
   assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES)))
 {
-  unsigned int i;
-
-  for (i = 0; i < MLD_KECCAK_LANES; i++)
-  __loop__(invariant(i <= MLD_KECCAK_LANES))
-  {
-    s[i] = 0;
-  }
+  memset(s, 0, sizeof(uint64_t) * MLD_KECCAK_LANES);
+  cassert(forall(k, 0, MLD_KECCAK_LANES, s[k] == 0));
 
   while (inlen >= r)
   __loop__(
+    assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES), in, inlen)
     invariant(inlen <= loop_entry(inlen))
     invariant(in == loop_entry(in) + (loop_entry(inlen) - inlen)))
   {
-    for (i = 0; i < r / 8; i++)
-    __loop__(invariant(i <= r / 8))
-    {
-      s[i] ^= load64(in + 8 * i);
-    }
+    mld_keccakf1600_xor_bytes(s, in, 0, r);
+    mld_keccakf1600_permute(s);
     in += r;
     inlen -= r;
-    mld_keccakf1600_permute(s);
   }
-
-  for (i = 0; i < inlen; i++)
-  __loop__(invariant(i <= inlen))
-  {
-    s[i / 8] ^= (uint64_t)in[i] << 8 * (i % 8);
-  }
-
-  s[i / 8] ^= (uint64_t)p << 8 * (i % 8);
-  s[(r - 1) / 8] ^= 1ULL << 63;
+  mld_keccakf1600_xor_bytes(s, in, 0, inlen);
+  keccak_finalize(s, inlen, r, p);
 }
-
 /*************************************************
  * Name:        keccak_squeezeblocks
  *
@@ -602,16 +501,10 @@ void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
  **************************************************/
 void sha3_256(uint8_t h[SHA3_256_HASHBYTES], const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
   uint64_t s[MLD_KECCAK_LANES];
 
   keccak_absorb_once(s, SHA3_256_RATE, in, inlen, 0x06);
-  mld_keccakf1600_permute(s);
-  for (i = 0; i < 4; i++)
-  __loop__(invariant(i <= 4))
-  {
-    store64(h + 8 * i, s[i]);
-  }
+  keccak_squeeze(h, SHA3_256_HASHBYTES, s, SHA3_256_RATE, SHA3_256_RATE);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(s, sizeof(s));
@@ -628,16 +521,10 @@ void sha3_256(uint8_t h[SHA3_256_HASHBYTES], const uint8_t *in, size_t inlen)
  **************************************************/
 void sha3_512(uint8_t h[SHA3_512_HASHBYTES], const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
   uint64_t s[MLD_KECCAK_LANES];
 
   keccak_absorb_once(s, SHA3_512_RATE, in, inlen, 0x06);
-  mld_keccakf1600_permute(s);
-  for (i = 0; i < 8; i++)
-  __loop__(invariant(i <= 8))
-  {
-    store64(h + 8 * i, s[i]);
-  }
+  keccak_squeeze(h, SHA3_512_HASHBYTES, s, SHA3_512_RATE, SHA3_512_RATE);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(s, sizeof(s));
