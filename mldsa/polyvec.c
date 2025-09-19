@@ -242,6 +242,9 @@ void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
 void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
                                            const mld_polyvecl *v)
 {
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY)
+  mld_polyvecl_pointwise_acc_montgomery_native(w->coeffs, (const int32_t(*)[MLDSA_N])u->vec, (const int32_t(*)[MLDSA_N])v->vec);
+#else
   unsigned int i, j;
   /* The first input is bounded by [0, Q-1] inclusive
    * The second input is bounded by [-9Q+1, 9Q-1] inclusive . Hence, we can
@@ -289,6 +292,7 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
     cassert(r < MLDSA_Q);
     w->coeffs[i] = r;
   }
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
 }
 
 

@@ -18,6 +18,7 @@
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA2
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA4
 #define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
@@ -104,6 +105,13 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
 {
   mld_pointwise_avx2((__m256i *)c, (const __m256i *)a, (const __m256i *)b,
                      mld_qdata.vec);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N], const int32_t v[MLDSA_L][MLDSA_N])
+{
+  mld_pointwise_acc_avx2((__m256i *)w, (const __m256i *)u, (const __m256i *)v,
+                         mld_qdata.vec);
 }
 
 #endif /* !__ASSEMBLER__ */
