@@ -161,7 +161,8 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
 }
 
 static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
-    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N], const int32_t v[MLDSA_L][MLDSA_N])
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N])
 {
   mld_pointwise_acc_avx2((__m256i *)w, (const __m256i *)u, (const __m256i *)v,
                          mld_qdata.vec);
