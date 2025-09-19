@@ -78,4 +78,12 @@ void mld_polyz_unpack_17_avx2(__m256i *r, const uint8_t *a);
 #define mld_polyz_unpack_19_avx2 MLD_NAMESPACE(mld_polyz_unpack_19_avx2)
 void mld_polyz_unpack_19_avx2(__m256i *r, const uint8_t *a);
 
+#define mld_pointwise_avx2 MLD_NAMESPACE(pointwise_avx2)
+void mld_pointwise_avx2(__m256i *c, const __m256i *a, const __m256i *b,
+                        const __m256i *qdata);
+
+#define mld_pointwise_acc_avx2 MLD_NAMESPACE(pointwise_acc_avx2)
+void mld_pointwise_acc_avx2(__m256i *c, const __m256i *a, const __m256i *b,
+                            const __m256i *qdata);
+
 #endif /* !MLD_NATIVE_X86_64_SRC_ARITH_NATIVE_X86_64_H */

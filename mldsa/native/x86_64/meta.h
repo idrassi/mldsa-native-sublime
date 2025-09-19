@@ -25,6 +25,7 @@
 #define MLD_USE_NATIVE_POLY_CHKNORM
 #define MLD_USE_NATIVE_POLYZ_UNPACK_17
 #define MLD_USE_NATIVE_POLYZ_UNPACK_19
+#define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
@@ -149,6 +150,13 @@ static MLD_INLINE void mld_polyz_unpack_17_native(int32_t *r, const uint8_t *a)
 static MLD_INLINE void mld_polyz_unpack_19_native(int32_t *r, const uint8_t *a)
 {
   mld_polyz_unpack_19_avx2((__m256i *)r, a);
+}
+
+static MLD_INLINE void mld_poly_pointwise_montgomery_native(
+    int32_t c[MLDSA_N], const int32_t a[MLDSA_N], const int32_t b[MLDSA_N])
+{
+  mld_pointwise_avx2((__m256i *)c, (const __m256i *)a, (const __m256i *)b,
+                     mld_qdata.vec);
 }
 
 #endif /* !__ASSEMBLER__ */
