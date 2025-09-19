@@ -10,6 +10,7 @@
 #include <string.h>
 #include "../mldsa/ntt.h"
 #include "../mldsa/poly.h"
+#include "../mldsa/polyvec.h"
 #include "../mldsa/randombytes.h"
 #include "hal.h"
 
@@ -26,6 +27,9 @@ static int cmp_uint64_t(const void *a, const void *b)
   for (i = 0; i < NTESTS; i++)                          \
   {                                                     \
     mld_randombytes((uint8_t *)data0, sizeof(data0));   \
+    mld_randombytes((uint8_t *)&polyvecl_a, sizeof(polyvecl_a)); \
+    mld_randombytes((uint8_t *)&polyvecl_b, sizeof(polyvecl_b)); \
+    mld_randombytes((uint8_t *)polyvecl_mat, sizeof(polyvecl_mat)); \
     for (j = 0; j < NWARMUP; j++)                       \
     {                                                   \
       code;                                             \
@@ -45,6 +49,10 @@ static int cmp_uint64_t(const void *a, const void *b)
 static int bench(void)
 {
   MLD_ALIGN int32_t data0[256];
+  MLD_ALIGN mld_poly poly_out;
+  MLD_ALIGN mld_polyvecl polyvecl_a, polyvecl_b;
+  MLD_ALIGN mld_polyveck polyveck_out;
+  MLD_ALIGN mld_polyvecl polyvecl_mat[MLDSA_K];
   uint64_t cyc[NTESTS];
   unsigned i, j;
   uint64_t t0, t1;
@@ -52,6 +60,10 @@ static int bench(void)
   /* ntt */
   BENCH("poly_ntt", mld_poly_ntt((mld_poly *)data0))
   BENCH("poly_invntt_tomont", mld_poly_invntt_tomont((mld_poly *)data0))
+
+  /* pointwise */
+  BENCH("polyvecl_pointwise_acc_montgomery", mld_polyvecl_pointwise_acc_montgomery(&poly_out, &polyvecl_a, &polyvecl_b))
+  BENCH("polyvec_matrix_pointwise_montgomery", mld_polyvec_matrix_pointwise_montgomery(&polyveck_out, polyvecl_mat, &polyvecl_b))
 
   return 0;
 }
