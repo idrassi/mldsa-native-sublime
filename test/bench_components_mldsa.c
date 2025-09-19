@@ -23,27 +23,27 @@ static int cmp_uint64_t(const void *a, const void *b)
   return (int)((*((const uint64_t *)a)) - (*((const uint64_t *)b)));
 }
 
-#define BENCH(txt, code)                                \
-  for (i = 0; i < NTESTS; i++)                          \
-  {                                                     \
-    mld_randombytes((uint8_t *)data0, sizeof(data0));   \
-    mld_randombytes((uint8_t *)&polyvecl_a, sizeof(polyvecl_a)); \
-    mld_randombytes((uint8_t *)&polyvecl_b, sizeof(polyvecl_b)); \
+#define BENCH(txt, code)                                            \
+  for (i = 0; i < NTESTS; i++)                                      \
+  {                                                                 \
+    mld_randombytes((uint8_t *)data0, sizeof(data0));               \
+    mld_randombytes((uint8_t *)&polyvecl_a, sizeof(polyvecl_a));    \
+    mld_randombytes((uint8_t *)&polyvecl_b, sizeof(polyvecl_b));    \
     mld_randombytes((uint8_t *)polyvecl_mat, sizeof(polyvecl_mat)); \
-    for (j = 0; j < NWARMUP; j++)                       \
-    {                                                   \
-      code;                                             \
-    }                                                   \
-                                                        \
-    t0 = get_cyclecounter();                            \
-    for (j = 0; j < NITERATIONS; j++)                   \
-    {                                                   \
-      code;                                             \
-    }                                                   \
-    t1 = get_cyclecounter();                            \
-    (cyc)[i] = t1 - t0;                                 \
-  }                                                     \
-  qsort((cyc), NTESTS, sizeof(uint64_t), cmp_uint64_t); \
+    for (j = 0; j < NWARMUP; j++)                                   \
+    {                                                               \
+      code;                                                         \
+    }                                                               \
+                                                                    \
+    t0 = get_cyclecounter();                                        \
+    for (j = 0; j < NITERATIONS; j++)                               \
+    {                                                               \
+      code;                                                         \
+    }                                                               \
+    t1 = get_cyclecounter();                                        \
+    (cyc)[i] = t1 - t0;                                             \
+  }                                                                 \
+  qsort((cyc), NTESTS, sizeof(uint64_t), cmp_uint64_t);             \
   printf(txt " cycles=%" PRIu64 "\n", (cyc)[NTESTS >> 1] / NITERATIONS);
 
 static int bench(void)
@@ -62,8 +62,12 @@ static int bench(void)
   BENCH("poly_invntt_tomont", mld_poly_invntt_tomont((mld_poly *)data0))
 
   /* pointwise */
-  BENCH("polyvecl_pointwise_acc_montgomery", mld_polyvecl_pointwise_acc_montgomery(&poly_out, &polyvecl_a, &polyvecl_b))
-  BENCH("polyvec_matrix_pointwise_montgomery", mld_polyvec_matrix_pointwise_montgomery(&polyveck_out, polyvecl_mat, &polyvecl_b))
+  BENCH("polyvecl_pointwise_acc_montgomery",
+        mld_polyvecl_pointwise_acc_montgomery(&poly_out, &polyvecl_a,
+                                              &polyvecl_b))
+  BENCH("polyvec_matrix_pointwise_montgomery",
+        mld_polyvec_matrix_pointwise_montgomery(&polyveck_out, polyvecl_mat,
+                                                &polyvecl_b))
 
   return 0;
 }
