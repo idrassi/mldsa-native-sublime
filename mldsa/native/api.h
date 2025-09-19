@@ -298,4 +298,38 @@ static MLD_INLINE void mld_polyz_unpack_17_native(int32_t *r, const uint8_t *a);
 static MLD_INLINE void mld_polyz_unpack_19_native(int32_t *r, const uint8_t *a);
 #endif /* MLD_USE_NATIVE_POLYZ_UNPACK_19 */
 
+#if defined(MLD_USE_NATIVE_POINTWISE_MONTGOMERY)
+/*************************************************
+ * Name:        mld_poly_pointwise_montgomery_native
+ *
+ * Description: Pointwise multiplication of polynomials in NTT domain
+ *              with Montgomery reduction.
+ *
+ *              Computes c[i] = a[i] * b[i] * R^(-1) mod q for all i,
+ *              where R = 2^32.
+ *
+ * Arguments:   - int32_t c[MLDSA_N]: pointer to output polynomial
+ *              - const int32_t a[MLDSA_N]: pointer to first input polynomial
+ *              - const int32_t b[MLDSA_N]: pointer to second input polynomial
+ **************************************************/
+static MLD_INLINE void mld_poly_pointwise_montgomery_native(
+    int32_t c[MLDSA_N], const int32_t a[MLDSA_N], const int32_t b[MLDSA_N]);
+#endif /* MLD_USE_NATIVE_POINTWISE_MONTGOMERY */
+
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY)
+/*************************************************
+ * Name:        mld_polyvecl_pointwise_acc_montgomery_native
+ *
+ * Description: Pointwise multiply vectors of polynomials of length L, multiply
+ *              resulting vector by 2^{-32} and add (accumulate) polynomials
+ *              in it. Input/output vectors are in NTT domain representation.
+ *
+ * Arguments:   - int32_t w[MLDSA_N]: pointer to output polynomial
+ *              - const int32_t u[MLDSA_L][MLDSA_N]: pointer to first input vector
+ *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input vector
+ **************************************************/
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N], const int32_t v[MLDSA_L][MLDSA_N]);
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
+
 #endif /* !MLD_NATIVE_API_H */
