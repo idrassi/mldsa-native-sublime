@@ -195,11 +195,14 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
  *              in it. Input/output vectors are in NTT domain representation.
  *
  * Arguments:   - int32_t w[MLDSA_N]: pointer to output polynomial
- *              - const int32_t u[MLDSA_L][MLDSA_N]: pointer to first input vector
- *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input vector
+ *              - const int32_t u[MLDSA_L][MLDSA_N]: pointer to first input
+ *vector
+ *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input
+ *vector
  **************************************************/
 static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
-    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N], const int32_t v[MLDSA_L][MLDSA_N]);
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N]);
 #endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
 
 #endif /* !MLD_NATIVE_API_H */
