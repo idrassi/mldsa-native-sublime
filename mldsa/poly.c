@@ -139,6 +139,9 @@ void mld_poly_invntt_tomont(mld_poly *a)
 void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
                                    const mld_poly *b)
 {
+#if defined(MLD_USE_NATIVE_POINTWISE_MONTGOMERY)
+  mld_poly_pointwise_montgomery_native(c->coeffs, a->coeffs, b->coeffs);
+#else
   unsigned int i;
 
   for (i = 0; i < MLDSA_N; ++i)
@@ -149,6 +152,7 @@ void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
   {
     c->coeffs[i] = mld_montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
   }
+#endif /* !MLD_USE_NATIVE_POINTWISE_MONTGOMERY */
 }
 
 void mld_poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)

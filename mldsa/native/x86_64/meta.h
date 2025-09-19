@@ -17,6 +17,7 @@
 #define MLD_USE_NATIVE_REJ_UNIFORM
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA2
 #define MLD_USE_NATIVE_REJ_UNIFORM_ETA4
+#define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
@@ -96,6 +97,13 @@ static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
   outlen = (int)mld_rej_uniform_eta4_avx2(r, buf);
   MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
   return outlen;
+}
+
+static MLD_INLINE void mld_poly_pointwise_montgomery_native(
+    int32_t c[MLDSA_N], const int32_t a[MLDSA_N], const int32_t b[MLDSA_N])
+{
+  mld_pointwise_avx2((__m256i *)c, (const __m256i *)a, (const __m256i *)b,
+                     mld_qdata.vec);
 }
 
 #endif /* !__ASSEMBLER__ */

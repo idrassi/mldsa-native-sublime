@@ -54,4 +54,12 @@ unsigned mld_rej_uniform_eta2_avx2(
 unsigned mld_rej_uniform_eta4_avx2(
     int32_t *r, const uint8_t buf[MLD_AVX2_REJ_UNIFORM_ETA4_BUFLEN]);
 
+#define mld_pointwise_avx2 MLD_NAMESPACE(pointwise_avx2)
+void mld_pointwise_avx2(__m256i *c, const __m256i *a, const __m256i *b,
+                        const __m256i *qdata);
+
+#define mld_pointwise_acc_avx2 MLD_NAMESPACE(pointwise_acc_avx2)
+void mld_pointwise_acc_avx2(__m256i *c, const __m256i *a, const __m256i *b,
+                            const __m256i *qdata);
+
 #endif /* !MLD_NATIVE_X86_64_SRC_ARITH_NATIVE_X86_64_H */
