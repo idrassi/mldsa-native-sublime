@@ -209,3 +209,23 @@ gh_group_end
 if ! $SUCCESS; then
   exit 1
 fi
+
+check-contracts()
+{
+  if python3 $ROOT/scripts/check-contracts >/dev/null; then
+    info "Check contracts"
+    gh_summary_success "Check contracts"
+  else
+    error "Check contracts"
+    gh_summary_failure "Check contracts"
+    SUCCESS=false
+  fi
+}
+
+gh_group_start "Check contracts"
+check-contracts
+gh_group_end
+
+if ! $SUCCESS; then
+  exit 1
+fi

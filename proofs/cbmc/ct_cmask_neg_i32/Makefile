@@ -4,7 +4,7 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = mld_ct_cmask_neg_i32_harness
+HARNESS_FILE = ct_cmask_neg_i32_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
