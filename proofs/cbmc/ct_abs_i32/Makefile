@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = mld_ct_get_optblocker_u32_harness
+HARNESS_FILE = ct_abs_i32_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = mld_ct_get_optblocker_u32
+PROOF_UID = mld_ct_abs_i32
 
 DEFINES += -DMLD_CONFIG_NO_ASM_VALUE_BARRIER
 INCLUDES +=
@@ -19,8 +19,8 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/ct.c
 
-CHECK_FUNCTION_CONTRACTS=mld_ct_get_optblocker_u32
-USE_FUNCTION_CONTRACTS=mld_ct_get_optblocker_u64
+CHECK_FUNCTION_CONTRACTS=mld_ct_abs_i32
+USE_FUNCTION_CONTRACTS=mld_ct_sel_int32 mld_ct_cmask_neg_i32
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
@@ -28,7 +28,7 @@ USE_DYNAMIC_FRAMES=1
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2
 
-FUNCTION_NAME = mld_ct_get_optblocker_u32
+FUNCTION_NAME = mld_ct_abs_i32
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

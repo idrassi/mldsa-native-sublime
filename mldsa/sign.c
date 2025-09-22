@@ -48,7 +48,7 @@ static int mld_check_pct(uint8_t const pk[CRYPTO_PUBLICKEYBYTES],
   int ret;
 
   /* Copy public key for testing */
-  memcpy(pk_test, pk, CRYPTO_PUBLICKEYBYTES);
+  mld_memcpy(pk_test, pk, CRYPTO_PUBLICKEYBYTES);
 
   /* Sign a test message using the original secret key */
   ret = crypto_sign_signature(signature, &siglen, message, sizeof(message),
@@ -136,7 +136,7 @@ int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
   mld_polyveck s2, t2, t1, t0;
 
   /* Get randomness for rho, rhoprime and key */
-  memcpy(inbuf, seed, MLDSA_SEEDBYTES);
+  mld_memcpy(inbuf, seed, MLDSA_SEEDBYTES);
   inbuf[MLDSA_SEEDBYTES + 0] = MLDSA_K;
   inbuf[MLDSA_SEEDBYTES + 1] = MLDSA_L;
   shake256(seedbuf, 2 * MLDSA_SEEDBYTES + MLDSA_CRHBYTES, inbuf,
@@ -475,7 +475,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
   else
   {
     /* mu has been provided directly */
-    memcpy(mu, m, MLDSA_CRHBYTES);
+    mld_memcpy(mu, m, MLDSA_CRHBYTES);
   }
 
   /* Compute rhoprime = CRH(key, rnd, mu) */
@@ -519,7 +519,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
       /* To be on the safe-side, give well-defined values to *sig and     */
       /* *siglen in case of error.                                        */
       *siglen = 0;
-      memset(sig, 0, CRYPTO_BYTES);
+      mld_memset(sig, 0, CRYPTO_BYTES);
       return -1;
     }
 
@@ -575,7 +575,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
   mld_randombytes(rnd, MLDSA_RNDBYTES);
   MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
 #else
-  memset(rnd, 0, MLDSA_RNDBYTES);
+  mld_memset(rnd, 0, MLDSA_RNDBYTES);
 #endif
 
 
@@ -601,7 +601,7 @@ int crypto_sign_signature_extmu(uint8_t *sig, size_t *siglen,
   mld_randombytes(rnd, MLDSA_RNDBYTES);
   MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
 #else
-  memset(rnd, 0, MLDSA_RNDBYTES);
+  mld_memset(rnd, 0, MLDSA_RNDBYTES);
 #endif
 
   result = crypto_sign_signature_internal(sig, siglen, mu, MLDSA_CRHBYTES, NULL,
@@ -678,7 +678,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   else
   {
     /* mu has been provided directly */
-    memcpy(mu, m, MLDSA_CRHBYTES);
+    mld_memcpy(mu, m, MLDSA_CRHBYTES);
   }
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */

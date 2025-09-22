@@ -7,92 +7,10 @@
 
 #define MLD_RANDOMIZED_SIGNING
 
-/******************************************************************************
- * Name:        MLD_CONFIG_PARAMETER_SET
- *
- * Description: Specifies the parameter set for ML-DSA
- *              - MLD_CONFIG_PARAMETER_SET=44 corresponds to ML-DSA-44
- *              - MLD_CONFIG_PARAMETER_SET=65 corresponds to ML-DSA-65
- *              - MLD_CONFIG_PARAMETER_SET=87 corresponds to ML-DSA-87
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-#ifndef MLD_CONFIG_PARAMETER_SET
-/* Map legacy MLDSA_MODE to new parameter set for backward compatibility */
 #ifndef MLDSA_MODE
 #define MLDSA_MODE 2
 #endif
 
-#if MLDSA_MODE == 2
-#define MLD_CONFIG_PARAMETER_SET 44
-#elif MLDSA_MODE == 3
-#define MLD_CONFIG_PARAMETER_SET 65
-#elif MLDSA_MODE == 5
-#define MLD_CONFIG_PARAMETER_SET 87
-#else
-#define MLD_CONFIG_PARAMETER_SET 44 /* Default to ML-DSA-44 */
-#endif
-#endif /* !MLD_CONFIG_PARAMETER_SET */
-
-/******************************************************************************
- * Name:        MLD_CONFIG_NAMESPACE_PREFIX
- *
- * Description: The prefix to use to namespace global symbols from mldsa/.
- *
- *              In a multi-level build (that is, if either
- *              - MLD_CONFIG_MULTILEVEL_WITH_SHARED, or
- *              - MLD_CONFIG_MULTILEVEL_NO_SHARED,
- *              are set, level-dependent symbols will additionally be prefixed
- *              with the parameter set (44/65/87).
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-#if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
-#define MLD_CONFIG_NAMESPACE_PREFIX MLD_DEFAULT_NAMESPACE_PREFIX
-#endif
-
-/******************************************************************************
- * Name:        MLD_CONFIG_MULTILEVEL_WITH_SHARED
- *
- * Description: This is for multi-level builds of mldsa-native only. If you
- *              need only a single parameter set, keep this unset.
- *
- *              If this is set, all MLD_CONFIG_PARAMETER_SET-independent
- *              code will be included in the build, including code needed only
- *              for other parameter sets.
- *
- *              To build mldsa-native with support for all parameter sets,
- *              build it three times -- once per parameter set -- and set the
- *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
- *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-/* #define MLD_CONFIG_MULTILEVEL_WITH_SHARED */
-
-/******************************************************************************
- * Name:        MLD_CONFIG_MULTILEVEL_NO_SHARED
- *
- * Description: This is for multi-level builds of mldsa-native only. If you
- *              need only a single parameter set, keep this unset.
- *
- *              If this is set, no MLD_CONFIG_PARAMETER_SET-independent code
- *              will be included in the build.
- *
- *              To build mldsa-native with support for all parameter sets,
- *              build it three times -- once per parameter set -- and set the
- *              option MLD_CONFIG_MULTILEVEL_WITH_SHARED for exactly one of
- *              them, and MLD_CONFIG_MULTILEVEL_NO_SHARED for the others.
- *
- *              This can also be set using CFLAGS.
- *
- *****************************************************************************/
-/* #define MLD_CONFIG_MULTILEVEL_NO_SHARED */
-
-/* Legacy namespace support for backward compatibility */
 #if MLDSA_MODE == 2
 #define MLD_NAMESPACETOP MLD_44_ref
 #define MLD_NAMESPACE(s) MLD_44_ref_##s
@@ -235,42 +153,23 @@
  *              void *mld_memset(void *s, int c, size_t n)
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_CUSTOM_MEMSET
-   #if !defined(__ASSEMBLER__)
-   #include <stdint.h>
-   #include "sys.h"
-   static MLD_INLINE void *mld_memset(void *s, int c, size_t n)
-   {
-       ... your implementation ...
-   }
-   #endif
-*/
+#define MLD_CONFIG_CUSTOM_MEMSET
+#if !defined(__ASSEMBLER__)
+#include <stddef.h>
+#include <stdint.h>
+#include "../mldsa/sys.h"
+static MLD_INLINE void *mld_memset(void *s, int c, size_t n)
+{
+  /* Simple byte-by-byte set implementation for testing */
+  unsigned char *ptr = (unsigned char *)s;
+  for (size_t i = 0; i < n; i++)
+  {
+    ptr[i] = (unsigned char)c;
+  }
+  return s;
+}
+#endif
 
-/******************************************************************************
- * Name:        MLD_CONFIG_CUSTOM_RANDOMBYTES
- *
- * Description: mldsa-native does not provide a secure randombytes
- *              implementation. Such an implementation has to provided by the
- *              consumer.
- *
- *              If this option is not set, mldsa-native expects a function
- *              void randombytes(uint8_t *out, size_t outlen).
- *
- *              Set this option and define `mld_randombytes` if you want to
- *              use a custom method to sample randombytes with a different name
- *              or signature.
- *
- *****************************************************************************/
-/* #define MLD_CONFIG_CUSTOM_RANDOMBYTES
-   #if !defined(__ASSEMBLER__)
-   #include <stdint.h>
-   #include "sys.h"
-   static MLD_INLINE void mld_randombytes(uint8_t *ptr, size_t len)
-   {
-       ... your implementation ...
-   }
-   #endif
-*/
 
 /******************************************************************************
  * Name:        MLD_CONFIG_KEYGEN_PCT
@@ -359,27 +258,6 @@
  *****************************************************************************/
 /* #define MLD_CONFIG_NO_ASM_VALUE_BARRIER */
 
-/*************************  Config internals  ********************************/
-
-/* Default namespace
- *
- * Don't change this. If you need a different namespace, re-define
- * MLD_CONFIG_NAMESPACE_PREFIX above instead, and remove the following.
- *
- * The default MLDSA namespace is
- *
- *   PQCP_MLDSA_NATIVE_MLDSA<LEVEL>_
- *
- * e.g., PQCP_MLDSA_NATIVE_MLDSA44_
- */
-
-#if MLD_CONFIG_PARAMETER_SET == 44
-#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA44
-#elif MLD_CONFIG_PARAMETER_SET == 65
-#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA65
-#elif MLD_CONFIG_PARAMETER_SET == 87
-#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA87
-#endif
 
 
 #endif /* !MLD_CONFIG_H */

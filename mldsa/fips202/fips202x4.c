@@ -107,7 +107,7 @@ void mld_shake128x4_absorb_once(mld_shake128x4ctx *state, const uint8_t *in0,
                                 const uint8_t *in1, const uint8_t *in2,
                                 const uint8_t *in3, size_t inlen)
 {
-  memset(state, 0, sizeof(mld_shake128x4ctx));
+  mld_memset(state, 0, sizeof(mld_shake128x4ctx));
   mld_keccak_absorb_once_x4(state->ctx, SHAKE128_RATE, in0, in1, in2, in3,
                             inlen, 0x1F);
 }
@@ -132,7 +132,7 @@ void mld_shake256x4_absorb_once(mld_shake256x4ctx *state, const uint8_t *in0,
                                 const uint8_t *in1, const uint8_t *in2,
                                 const uint8_t *in3, size_t inlen)
 {
-  memset(state, 0, sizeof(mld_shake256x4ctx));
+  mld_memset(state, 0, sizeof(mld_shake256x4ctx));
   mld_keccak_absorb_once_x4(state->ctx, SHAKE256_RATE, in0, in1, in2, in3,
                             inlen, 0x1F);
 }

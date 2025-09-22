@@ -4,7 +4,7 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = mld_value_barrier_u32_harness
+HARNESS_FILE = value_barrier_u32_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.

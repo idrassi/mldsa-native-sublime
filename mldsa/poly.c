@@ -592,10 +592,10 @@ void mld_poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   mld_xof256_x4_ctx state;
   unsigned buflen;
 
-  memcpy(extseed[0], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[1], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[2], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[3], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[0], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[1], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[2], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[3], seed, MLDSA_CRHBYTES);
   extseed[0][MLDSA_CRHBYTES] = nonce0;
   extseed[1][MLDSA_CRHBYTES] = nonce1;
   extseed[2][MLDSA_CRHBYTES] = nonce2;
@@ -664,7 +664,7 @@ void mld_poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
   MLD_ALIGN uint8_t extseed[MLDSA_CRHBYTES + 2];
   mld_xof256_ctx state;
 
-  memcpy(extseed, seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed, seed, MLDSA_CRHBYTES);
   extseed[MLDSA_CRHBYTES] = nonce & 0xFF;
   extseed[MLDSA_CRHBYTES + 1] = nonce >> 8;
 
@@ -696,10 +696,10 @@ void mld_poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   /* Tracks the number of coefficients we have already sampled */
   mld_xof256_x4_ctx state;
 
-  memcpy(extseed[0], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[1], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[2], seed, MLDSA_CRHBYTES);
-  memcpy(extseed[3], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[0], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[1], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[2], seed, MLDSA_CRHBYTES);
+  mld_memcpy(extseed[3], seed, MLDSA_CRHBYTES);
   extseed[0][MLDSA_CRHBYTES] = nonce0 & 0xFF;
   extseed[1][MLDSA_CRHBYTES] = nonce1 & 0xFF;
   extseed[2][MLDSA_CRHBYTES] = nonce2 & 0xFF;
@@ -751,7 +751,7 @@ void mld_poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
   }
   pos = 8;
 
-  memset(c, 0, sizeof(mld_poly));
+  mld_memset(c, 0, sizeof(mld_poly));
 
   for (i = MLDSA_N - MLDSA_TAU; i < MLDSA_N; ++i)
   __loop__(

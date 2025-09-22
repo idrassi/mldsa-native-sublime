@@ -40,7 +40,7 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
     invariant(j <= 4)
   )
   {
-    memcpy(seed_ext[j], rho, MLDSA_SEEDBYTES);
+    mld_memcpy(seed_ext[j], rho, MLDSA_SEEDBYTES);
   }
   /* Sample 4 matrix entries a time. */
   for (i = 0; i < (MLDSA_K * MLDSA_L / 4) * 4; i += 4)

@@ -14,7 +14,7 @@ void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
 {
   unsigned int i;
 
-  memcpy(pk, rho, MLDSA_SEEDBYTES);
+  mld_memcpy(pk, rho, MLDSA_SEEDBYTES);
   pk += MLDSA_SEEDBYTES;
 
   for (i = 0; i < MLDSA_K; ++i)
@@ -32,7 +32,7 @@ void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
 {
   unsigned int i;
 
-  memcpy(rho, pk, MLDSA_SEEDBYTES);
+  mld_memcpy(rho, pk, MLDSA_SEEDBYTES);
   pk += MLDSA_SEEDBYTES;
 
   for (i = 0; i < MLDSA_K; ++i)
@@ -47,13 +47,13 @@ void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
                  const uint8_t key[MLDSA_SEEDBYTES], const mld_polyveck *t0,
                  const mld_polyvecl *s1, const mld_polyveck *s2)
 {
-  memcpy(sk, rho, MLDSA_SEEDBYTES);
+  mld_memcpy(sk, rho, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
 
-  memcpy(sk, key, MLDSA_SEEDBYTES);
+  mld_memcpy(sk, key, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
 
-  memcpy(sk, tr, MLDSA_TRBYTES);
+  mld_memcpy(sk, tr, MLDSA_TRBYTES);
   sk += MLDSA_TRBYTES;
 
   mld_polyvecl_pack_eta(sk, s1);
@@ -70,13 +70,13 @@ void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
                    mld_polyvecl *s1, mld_polyveck *s2,
                    const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 {
-  memcpy(rho, sk, MLDSA_SEEDBYTES);
+  mld_memcpy(rho, sk, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
 
-  memcpy(key, sk, MLDSA_SEEDBYTES);
+  mld_memcpy(key, sk, MLDSA_SEEDBYTES);
   sk += MLDSA_SEEDBYTES;
 
-  memcpy(tr, sk, MLDSA_TRBYTES);
+  mld_memcpy(tr, sk, MLDSA_TRBYTES);
   sk += MLDSA_TRBYTES;
 
   mld_polyvecl_unpack_eta(s1, sk);
@@ -94,7 +94,7 @@ void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
 {
   unsigned int i, j, k;
 
-  memcpy(sig, c, MLDSA_CTILDEBYTES);
+  mld_memcpy(sig, c, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;
 
   mld_polyvecl_pack_z(sig, z);
@@ -115,7 +115,7 @@ void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
    * bytes may not be written, so we initialize all of them to zero
    * to start.
    */
-  memset(sig, 0, MLDSA_POLYVECH_PACKEDBYTES);
+  mld_memset(sig, 0, MLDSA_POLYVECH_PACKEDBYTES);
 
   k = 0;
   /* For each polynomial in h... */
@@ -187,7 +187,7 @@ __contract__(
   /* Set all coefficients of all polynomials to 0.    */
   /* Only those that are actually non-zero hints will */
   /* be overwritten below.                            */
-  memset(h, 0, sizeof(mld_polyveck));
+  mld_memset(h, 0, sizeof(mld_polyveck));
 
   old_hint_count = 0;
   for (i = 0; i < MLDSA_K; ++i)
@@ -251,7 +251,7 @@ __contract__(
 int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
                    mld_polyveck *h, const uint8_t sig[CRYPTO_BYTES])
 {
-  memcpy(c, sig, MLDSA_CTILDEBYTES);
+  mld_memcpy(c, sig, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;
 
   mld_polyvecl_unpack_z(z, sig);

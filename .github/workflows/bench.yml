@@ -35,6 +35,7 @@ jobs:
           archflags: -mcpu=cortex-a72 -DMLD_SYS_AARCH64_SLOW_BARREL_SHIFTER
           cflags: "-flto -DMLD_FORCE_AARCH64"
           bench_extra_args: ""
+          nix_shell: ci-bench
           only_no_opt: false
         - system: rpi5
           name: Arm Cortex-A76 (Raspberry Pi 5) benchmarks
@@ -42,6 +43,7 @@ jobs:
           archflags: "-mcpu=cortex-a76 -march=armv8.2-a"
           cflags: "-flto -DMLD_FORCE_AARCH64"
           bench_extra_args: ""
+          nix_shell: ci-bench
           only_no_opt: false
         - system: a55
           name: Arm Cortex-A55 (Snapdragon 888) benchmarks
@@ -49,6 +51,7 @@ jobs:
           archflags: "-mcpu=cortex-a55 -march=armv8.2-a"
           cflags: "-flto -static -DMLD_FORCE_AARCH64"
           bench_extra_args: -w exec-on-a55
+          nix_shell: ci-bench
           only_no_opt: false
         - system: bpi
           name: SpacemiT K1 8 (Banana Pi F3) benchmarks
@@ -57,6 +60,7 @@ jobs:
           cflags: "-static"
           bench_extra_args: -w exec-on-bpi
           cross_prefix: riscv64-unknown-linux-gnu-
+          nix_shell: ci-cross-riscv64
           only_no_opt: true
         - system: m1-mac-mini
           name: Mac Mini (M1, 2020) benchmarks
@@ -64,6 +68,7 @@ jobs:
           archflags: "-mcpu=apple-m1 -march=armv8.4-a+sha3"
           cflags: "-flto"
           bench_extra_args: "-r"
+          nix_shell: ci-bench
           only_no_opt: false
     if: github.repository_owner == 'pq-code-package' && (github.event.label.name == 'benchmark' || github.ref == 'refs/heads/main')
     runs-on: self-hosted-${{ matrix.target.system }}
@@ -79,7 +84,7 @@ jobs:
           store_results: ${{ github.repository_owner == 'pq-code-package' && github.ref == 'refs/heads/main' }}
           bench_extra_args: ${{ matrix.target.bench_extra_args }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
-          nix-shell: ${{ matrix.target.cross_prefix != '' && 'ci-cross' || 'ci-bench' }}
+          nix-shell: ${{ matrix.target.nix_shell }}
           cross_prefix: ${{ matrix.target.cross_prefix }}
           opt: true
       - uses: ./.github/actions/bench
@@ -91,7 +96,7 @@ jobs:
           store_results: ${{ github.repository_owner == 'pq-code-package' && github.ref == 'refs/heads/main' }}
           bench_extra_args: ${{ matrix.target.bench_extra_args }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
-          nix-shell: ${{ matrix.target.cross_prefix != '' && 'ci-cross' || 'ci-bench' }}
+          nix-shell: ${{ matrix.target.nix_shell }}
           cross_prefix: ${{ matrix.target.cross_prefix }}
           opt: false
 

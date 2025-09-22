@@ -180,4 +180,19 @@ static MLD_INLINE void mld_zeroize(void *ptr, size_t len)
 #endif /* !__ASSEMBLER__ */
 
 
+/* Standard library function replacements */
+#if !defined(__ASSEMBLER__)
+#if !defined(MLD_CONFIG_CUSTOM_MEMCPY)
+#include <string.h>
+#define mld_memcpy memcpy
+#endif
+
+#if !defined(MLD_CONFIG_CUSTOM_MEMSET)
+#include <string.h>
+#define mld_memset memset
+#endif
+#endif /* !__ASSEMBLER__ */
+
+
+
 #endif /* !MLD_COMMON_H */
