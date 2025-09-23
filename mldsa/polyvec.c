@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "debug.h"
 #include "poly.h"
 #include "polyvec.h"
 
@@ -120,6 +121,7 @@ void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
                                              const mld_polyvecl *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -131,6 +133,8 @@ void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
   {
     mld_polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
   }
+
+  mld_assert_abs_bound_2d(t->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 }
 
 /**************************************************************/
@@ -155,11 +159,15 @@ void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
   mld_poly_uniform_gamma1_4x(&v->vec[3], &v->vec[4], &v->vec[5], &v->vec[6],
                              seed, nonce + 3, nonce + 4, nonce + 5, nonce + 6);
 #endif /* MLDSA_L == 7 */
+
+  mld_assert_bound_2d(v->vec, MLDSA_L, MLDSA_N, -(MLDSA_GAMMA1 - 1),
+                      MLDSA_GAMMA1 + 1);
 }
 
 void mld_polyvecl_reduce(mld_polyvecl *v)
 {
   unsigned int i;
+  mld_assert_bound_2d(v->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
@@ -171,6 +179,9 @@ void mld_polyvecl_reduce(mld_polyvecl *v)
   {
     mld_poly_reduce(&v->vec[i]);
   }
+
+  mld_assert_bound_2d(v->vec, MLDSA_L, MLDSA_N, -REDUCE32_RANGE_MAX,
+                      REDUCE32_RANGE_MAX);
 }
 
 /* Reference: We use destructive version (output=first input) to avoid
@@ -191,11 +202,13 @@ void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
   {
     mld_poly_add(&u->vec[i], &v->vec[i]);
   }
+  mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
 void mld_polyvecl_ntt(mld_polyvecl *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
@@ -206,11 +219,14 @@ void mld_polyvecl_ntt(mld_polyvecl *v)
   {
     mld_poly_ntt(&v->vec[i]);
   }
+
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
 }
 
 void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
@@ -221,12 +237,16 @@ void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
   {
     mld_poly_invntt_tomont(&v->vec[i]);
   }
+
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_INTT_BOUND);
 }
 
 void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
                                             const mld_polyvecl *v)
 {
   unsigned int i;
+  mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_NTT_BOUND);
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
@@ -237,12 +257,16 @@ void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
   {
     mld_poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
+
+  mld_assert_abs_bound_2d(r->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
 }
 
 void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
                                            const mld_polyvecl *v)
 {
   unsigned int i, j;
+  mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
   /* The first input is bounded by [0, Q-1] inclusive
    * The second input is bounded by [-9Q+1, 9Q-1] inclusive . Hence, we can
    * safely accumulate in 64-bits without intermediate reductions as
@@ -289,6 +313,8 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
     cassert(r < MLDSA_Q);
     w->coeffs[i] = r;
   }
+
+  mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
 }
 
 
@@ -296,6 +322,8 @@ uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
 {
   unsigned int i;
   uint32_t t = 0;
+  mld_assert_bound_2d(v->vec, MLDSA_L, MLDSA_N, -REDUCE32_RANGE_MAX,
+                      REDUCE32_RANGE_MAX);
 
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
@@ -310,7 +338,6 @@ uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
      */
     t |= mld_poly_chknorm(&v->vec[i], bound);
   }
-
   return t;
 }
 
@@ -321,6 +348,7 @@ uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
 void mld_polyveck_reduce(mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -333,11 +361,15 @@ void mld_polyveck_reduce(mld_polyveck *v)
   {
     mld_poly_reduce(&v->vec[i]);
   }
+
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, -REDUCE32_RANGE_MAX,
+                      REDUCE32_RANGE_MAX);
 }
 
 void mld_polyveck_caddq(mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -348,6 +380,8 @@ void mld_polyveck_caddq(mld_polyveck *v)
   {
     mld_poly_caddq(&v->vec[i]);
   }
+
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
 }
 
 /* Reference: We use destructive version (output=first input) to avoid
@@ -363,15 +397,19 @@ void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
     invariant(forall(k0, i, MLDSA_K,
               forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1])))
     invariant(forall(k4, 0, i, forall(k5, 0, MLDSA_N, u->vec[k4].coeffs[k5] == loop_entry(*u).vec[k4].coeffs[k5] + v->vec[k4].coeffs[k5])))
+    invariant(forall(k6, 0, i, array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
   )
   {
     mld_poly_add(&u->vec[i], &v->vec[i]);
   }
+  mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
 void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(u->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -384,11 +422,14 @@ void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
   {
     mld_poly_sub(&u->vec[i], &v->vec[i]);
   }
+
+  mld_assert_bound_2d(u->vec, MLDSA_K, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
 void mld_polyveck_shiftl(mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, 1 << 10);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -401,11 +442,14 @@ void mld_polyveck_shiftl(mld_polyveck *v)
   {
     mld_poly_shiftl(&v->vec[i]);
   }
+
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
 }
 
 void mld_polyveck_ntt(mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -416,11 +460,13 @@ void mld_polyveck_ntt(mld_polyveck *v)
   {
     mld_poly_ntt(&v->vec[i]);
   }
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLD_NTT_BOUND);
 }
 
 void mld_polyveck_invntt_tomont(mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -431,12 +477,15 @@ void mld_polyveck_invntt_tomont(mld_polyveck *v)
   {
     mld_poly_invntt_tomont(&v->vec[i]);
   }
+
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLD_INTT_BOUND);
 }
 
 void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
                                             const mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLD_NTT_BOUND);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -447,6 +496,7 @@ void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
   {
     mld_poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
   }
+  mld_assert_abs_bound_2d(r->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 }
 
 
@@ -454,6 +504,8 @@ uint32_t mld_polyveck_chknorm(const mld_polyveck *v, int32_t bound)
 {
   unsigned int i;
   uint32_t t = 0;
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, -REDUCE32_RANGE_MAX,
+                      REDUCE32_RANGE_MAX);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -476,6 +528,7 @@ void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
                               const mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -487,12 +540,18 @@ void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
   {
     mld_poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
   }
+
+  mld_assert_bound_2d(v0->vec, MLDSA_K, MLDSA_N, -(MLD_2_POW_D / 2) + 1,
+                      (MLD_2_POW_D / 2) + 1);
+  mld_assert_bound_2d(v1->vec, MLDSA_K, MLDSA_N, 0,
+                      ((MLDSA_Q - 1) / MLD_2_POW_D) + 1);
 }
 
 void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
                             const mld_polyveck *v)
 {
   unsigned int i;
+  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -506,6 +565,10 @@ void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
   {
     mld_poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
   }
+
+  mld_assert_bound_2d(v1->vec, MLDSA_K, MLDSA_N, 0,
+                      (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
+  mld_assert_abs_bound_2d(v0->vec, MLDSA_K, MLDSA_N, MLDSA_GAMMA2 + 1);
 }
 
 unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
@@ -524,6 +587,7 @@ unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
     s += mld_poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);
   }
 
+  mld_assert_bound_2d(h->vec, MLDSA_K, MLDSA_N, 0, 2);
   return s;
 }
 
@@ -531,6 +595,8 @@ void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *u,
                            const mld_polyveck *h)
 {
   unsigned int i;
+  mld_assert_bound_2d(u->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_bound_2d(h->vec, MLDSA_K, MLDSA_N, 0, 2);
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -543,12 +609,17 @@ void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *u,
   {
     mld_poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
   }
+
+  mld_assert_bound_2d(w->vec, MLDSA_K, MLDSA_N, 0,
+                      (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 }
 
 void mld_polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
                           const mld_polyveck *w1)
 {
   unsigned int i;
+  mld_assert_bound_2d(w1->vec, MLDSA_K, MLDSA_N, 0,
+                      (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
@@ -564,6 +635,7 @@ void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyveck *p)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(p->vec, MLDSA_K, MLDSA_N, MLDSA_ETA + 1);
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     assigns(i, object_whole(r))
@@ -578,6 +650,7 @@ void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyvecl *p)
 {
   unsigned int i;
+  mld_assert_abs_bound_2d(p->vec, MLDSA_L, MLDSA_N, MLDSA_ETA + 1);
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
     assigns(i, object_whole(r))
@@ -592,6 +665,8 @@ void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
                          const mld_polyvecl *p)
 {
   unsigned int i;
+  mld_assert_bound_2d(p->vec, MLDSA_L, MLDSA_N, -(MLDSA_GAMMA1 - 1),
+                      MLDSA_GAMMA1 + 1);
   for (i = 0; i < MLDSA_L; ++i)
   __loop__(
     assigns(i, object_whole(r))
@@ -607,6 +682,8 @@ void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
                           const mld_polyveck *p)
 {
   unsigned int i;
+  mld_assert_bound_2d(p->vec, MLDSA_K, MLDSA_N, -(1 << (MLDSA_D - 1)) + 1,
+                      (1 << (MLDSA_D - 1)) + 1);
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     assigns(i, object_whole(r))
@@ -625,6 +702,9 @@ void mld_polyvecl_unpack_eta(
   {
     mld_polyeta_unpack(&p->vec[i], r + i * MLDSA_POLYETA_PACKEDBYTES);
   }
+
+  mld_assert_bound_2d(p->vec, MLDSA_L, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND,
+                      MLDSA_ETA + 1);
 }
 
 void mld_polyvecl_unpack_z(mld_polyvecl *z,
@@ -635,6 +715,9 @@ void mld_polyvecl_unpack_z(mld_polyvecl *z,
   {
     mld_polyz_unpack(&z->vec[i], r + i * MLDSA_POLYZ_PACKEDBYTES);
   }
+
+  mld_assert_bound_2d(z->vec, MLDSA_L, MLDSA_N, -(MLDSA_GAMMA1 - 1),
+                      MLDSA_GAMMA1 + 1);
 }
 
 void mld_polyveck_unpack_eta(
@@ -645,6 +728,9 @@ void mld_polyveck_unpack_eta(
   {
     mld_polyeta_unpack(&p->vec[i], r + i * MLDSA_POLYETA_PACKEDBYTES);
   }
+
+  mld_assert_bound_2d(p->vec, MLDSA_K, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND,
+                      MLDSA_ETA + 1);
 }
 
 void mld_polyveck_unpack_t0(mld_polyveck *p,
@@ -655,4 +741,7 @@ void mld_polyveck_unpack_t0(mld_polyveck *p,
   {
     mld_polyt0_unpack(&p->vec[i], r + i * MLDSA_POLYT0_PACKEDBYTES);
   }
+
+  mld_assert_bound_2d(p->vec, MLDSA_K, MLDSA_N, -(1 << (MLDSA_D - 1)) + 1,
+                      (1 << (MLDSA_D - 1)) + 1);
 }

@@ -18,9 +18,7 @@
 void mld_poly_reduce(mld_poly *a)
 {
   unsigned int i;
-  /* TODO: Introduce the following after using inclusive lower bounds in
-   * the underlying debug function mld_debug_check_bounds(). */
-  /* mld_assert_bound(a->coeffs, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX); */
+  mld_assert_bound(a->coeffs, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
@@ -74,6 +72,8 @@ void mld_poly_add(mld_poly *r, const mld_poly *b)
 void mld_poly_sub(mld_poly *r, const mld_poly *b)
 {
   unsigned int i;
+  mld_assert_abs_bound(b->coeffs, MLDSA_N, MLDSA_Q);
+  mld_assert_abs_bound(r->coeffs, MLDSA_N, MLDSA_Q);
 
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
@@ -84,6 +84,8 @@ void mld_poly_sub(mld_poly *r, const mld_poly *b)
   {
     r->coeffs[i] = r->coeffs[i] - b->coeffs[i];
   }
+
+  mld_assert_bound(r->coeffs, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
 void mld_poly_shiftl(mld_poly *a)
@@ -102,6 +104,7 @@ void mld_poly_shiftl(mld_poly *a)
      */
     a->coeffs[i] *= (1 << MLDSA_D);
   }
+  mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
 }
 
 #if !defined(MLD_USE_NATIVE_NTT)
@@ -132,7 +135,7 @@ void mld_poly_invntt_tomont(mld_poly *a)
 {
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
   mld_intt_native(a->coeffs);
-  mld_assert_abs_bound(a->coeffs, MLDSA_N, MLDSA_Q);
+  mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_INTT_BOUND);
 }
 #endif /* MLD_USE_NATIVE_INTT */
 
@@ -140,6 +143,9 @@ void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
                                    const mld_poly *b)
 {
   unsigned int i;
+
+  mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_NTT_BOUND);
+  mld_assert_abs_bound(b->coeffs, MLDSA_N, MLD_NTT_BOUND);
 
   for (i = 0; i < MLDSA_N; ++i)
   __loop__(
@@ -149,6 +155,8 @@ void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
   {
     c->coeffs[i] = mld_montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
   }
+
+  mld_assert_abs_bound(c->coeffs, MLDSA_N, MLDSA_Q);
 }
 
 void mld_poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
@@ -210,6 +218,7 @@ unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
   }
 
   mld_assert(s <= MLDSA_N);
+  mld_assert_bound(h->coeffs, MLDSA_N, 0, 2);
   return s;
 }
 
@@ -306,6 +315,7 @@ __contract__(
 {
   unsigned int ctr, pos;
   uint32_t t;
+  mld_assert_bound(a, offset, 0, MLDSA_Q);
 
 /* TODO: CBMC proof based on mld_rej_uniform_native */
 #if defined(MLD_USE_NATIVE_REJ_UNIFORM)
@@ -340,6 +350,8 @@ __contract__(
       a[ctr++] = t;
     }
   }
+
+  mld_assert_bound(a, ctr, 0, MLDSA_Q);
 
   return ctr;
 }
@@ -376,6 +388,7 @@ void mld_poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
     ctr = mld_rej_uniform(a->coeffs, MLDSA_N, ctr, buf, buflen);
   }
   mld_xof128_release(&state);
+  mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
@@ -434,6 +447,11 @@ void mld_poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
     ctr[3] = mld_rej_uniform(vec3->coeffs, MLDSA_N, ctr[3], buf[3], buflen);
   }
   mld_xof128_x4_release(&state);
+
+  mld_assert_bound(vec0->coeffs, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_bound(vec1->coeffs, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_bound(vec2->coeffs, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_bound(vec3->coeffs, MLDSA_N, 0, MLDSA_Q);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
@@ -496,6 +514,7 @@ __contract__(
   unsigned int ctr, pos;
   int t_valid;
   uint32_t t0, t1;
+  mld_assert_abs_bound(a, offset, MLDSA_ETA + 1);
 
 /* TODO: CBMC proof based on mld_rej_uniform_eta2_native */
 #if MLDSA_ETA == 2 && defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA2)
@@ -573,6 +592,8 @@ __contract__(
 #endif /* MLDSA_ETA != 2 && MLDSA_ETA != 4 */
   }
 
+  mld_assert_abs_bound(a, ctr, MLDSA_ETA + 1);
+
   return ctr;
 }
 
@@ -649,6 +670,11 @@ void mld_poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
 
   mld_xof256_x4_release(&state);
 
+  mld_assert_abs_bound(r0->coeffs, MLDSA_N, MLDSA_ETA + 1);
+  mld_assert_abs_bound(r1->coeffs, MLDSA_N, MLDSA_ETA + 1);
+  mld_assert_abs_bound(r2->coeffs, MLDSA_N, MLDSA_ETA + 1);
+  mld_assert_abs_bound(r3->coeffs, MLDSA_N, MLDSA_ETA + 1);
+
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(extseed, sizeof(extseed));
@@ -675,6 +701,8 @@ void mld_poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
   mld_polyz_unpack(a, buf);
 
   mld_xof256_release(&state);
+
+  mld_assert_bound(a->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
@@ -718,6 +746,11 @@ void mld_poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   mld_polyz_unpack(r2, buf[2]);
   mld_polyz_unpack(r3, buf[3]);
   mld_xof256_x4_release(&state);
+
+  mld_assert_bound(r0->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
+  mld_assert_bound(r1->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
+  mld_assert_bound(r2->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
+  mld_assert_bound(r3->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
@@ -796,11 +829,11 @@ void mld_poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
     signs >>= 1;
   }
 
+  mld_assert_bound(c->coeffs, MLDSA_N, -1, 2);
+
   /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(&signs, sizeof(signs));
-
-  mld_assert_bound(c->coeffs, MLDSA_N, -1, 2);
 }
 
 void mld_polyeta_pack(uint8_t *r, const mld_poly *a)

@@ -43,8 +43,8 @@ void mld_debug_check_assert(const char *file, int line, const int val);
  **************************************************/
 #define mld_debug_check_bounds MLD_NAMESPACE(mldsa_debug_check_bounds)
 void mld_debug_check_bounds(const char *file, int line, const int32_t *ptr,
-                            unsigned len, int lower_bound_exclusive,
-                            int upper_bound_exclusive);
+                            unsigned len, int64_t lower_bound_exclusive,
+                            int64_t upper_bound_exclusive);
 
 /* Check assertion, calling exit() upon failure
  *
@@ -60,14 +60,15 @@ void mld_debug_check_bounds(const char *file, int line, const int32_t *ptr,
  * value_ub: Exclusive upper value bound */
 #define mld_assert_bound(ptr, len, value_lb, value_ub)                      \
   mld_debug_check_bounds(__FILE__, __LINE__, (const int32_t *)(ptr), (len), \
-                         (value_lb) - 1, (value_ub))
+                         ((int64_t)(value_lb)) - 1, (value_ub))
 
 /* Check absolute bounds in array of int32_t's
  * ptr: Base of array, expression of type int32_t*
  * len: Number of int32_t in array
  * value_abs_bd: Exclusive absolute upper bound */
-#define mld_assert_abs_bound(ptr, len, value_abs_bd) \
-  mld_assert_bound((ptr), (len), (-(value_abs_bd) + 1), (value_abs_bd))
+#define mld_assert_abs_bound(ptr, len, value_abs_bd)               \
+  mld_assert_bound((ptr), (len), (-((int64_t)(value_abs_bd)) + 1), \
+                   (value_abs_bd))
 
 /* Version of bounds assertions for 2-dimensional arrays */
 #define mld_assert_bound_2d(ptr, len0, len1, value_lb, value_ub) \

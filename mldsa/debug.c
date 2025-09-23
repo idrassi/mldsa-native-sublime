@@ -10,6 +10,7 @@
 
 #if defined(MLDSA_DEBUG)
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
@@ -27,8 +28,8 @@ void mld_debug_check_assert(const char *file, int line, const int val)
 }
 
 void mld_debug_check_bounds(const char *file, int line, const int32_t *ptr,
-                            unsigned len, int lower_bound_exclusive,
-                            int upper_bound_exclusive)
+                            unsigned len, int64_t lower_bound_exclusive,
+                            int64_t upper_bound_exclusive)
 {
   int err = 0;
   unsigned i;
@@ -37,12 +38,12 @@ void mld_debug_check_bounds(const char *file, int line, const int32_t *ptr,
     int32_t val = ptr[i];
     if (!(val > lower_bound_exclusive && val < upper_bound_exclusive))
     {
-      fprintf(
-          stderr,
-          MLD_DEBUG_ERROR_HEADER
-          "Bounds assertion failed: Index %u, value %d out of bounds (%d,%d)\n",
-          file, line, i, (int)val, lower_bound_exclusive,
-          upper_bound_exclusive);
+      fprintf(stderr,
+              MLD_DEBUG_ERROR_HEADER
+              "Bounds assertion failed: Index %u, value %d out of bounds "
+              "(%" PRId64 ",%" PRId64 ")\n",
+              file, line, i, (int)val, lower_bound_exclusive,
+              upper_bound_exclusive);
       err = 1;
     }
   }
