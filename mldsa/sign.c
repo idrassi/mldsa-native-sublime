@@ -236,6 +236,9 @@ static void mld_H(uint8_t *out, size_t outlen, const uint8_t *in1,
                   size_t in1len, const uint8_t *in2, size_t in2len,
                   const uint8_t *in3, size_t in3len)
 __contract__(
+  requires(in1len <= MLD_MAX_BUFFER_SIZE)
+  requires(in2len <= MLD_MAX_BUFFER_SIZE)
+  requires(in3len <= MLD_MAX_BUFFER_SIZE)
   requires(outlen <= 8 * SHAKE256_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(in1, in1len))
   requires(in2 == NULL || memory_no_alias(in2, in2len))

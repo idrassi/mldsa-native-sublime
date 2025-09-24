@@ -16,6 +16,7 @@
 #define cassert(x)
 
 #else /* !CBMC */
+#include <stdint.h>
 
 #define __contract__(x) x
 #define __loop__(x) x
@@ -59,6 +60,18 @@
 #define memory_no_alias(...) __CPROVER_is_fresh(__VA_ARGS__)
 #define readable(...) __CPROVER_r_ok(__VA_ARGS__)
 #define writeable(...) __CPROVER_w_ok(__VA_ARGS__)
+
+/* Maximum supported buffer size
+ *
+ * Larger buffers may be supported, but due to internal modeling constraints
+ * in CBMC, the proofs of memory- and type-safety won't be able to run.
+ *
+ * If you find yourself in need for a buffer size larger than this,
+ * please contact the maintainers, so we can prioritize work to relax
+ * this somewhat artificial bound.
+ */
+#define MLD_MAX_BUFFER_SIZE (SIZE_MAX >> 12)
+
 
 /*
  * History variables

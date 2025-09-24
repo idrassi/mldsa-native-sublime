@@ -31,6 +31,7 @@ void mld_shake128x4_absorb_once(mld_shake128x4ctx *state, const uint8_t *in0,
                                 const uint8_t *in1, const uint8_t *in2,
                                 const uint8_t *in3, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(mld_shake128x4ctx)))
   requires(memory_no_alias(in0, inlen))
   requires(memory_no_alias(in1, inlen))
@@ -69,6 +70,7 @@ void mld_shake256x4_absorb_once(mld_shake256x4ctx *state, const uint8_t *in0,
                                 const uint8_t *in1, const uint8_t *in2,
                                 const uint8_t *in3, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(mld_shake256x4ctx)))
   requires(memory_no_alias(in0, inlen))
   requires(memory_no_alias(in1, inlen))

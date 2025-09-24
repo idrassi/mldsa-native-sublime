@@ -105,6 +105,8 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t rnd[MLDSA_RNDBYTES],
                                    const uint8_t *sk, int externalmu)
 __contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(prelen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(siglen, sizeof(size_t)))
   requires(memory_no_alias(m, mlen))
@@ -143,9 +145,11 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
                           size_t mlen, const uint8_t *ctx, size_t ctxlen,
                           const uint8_t *sk)
 __contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(siglen, sizeof(size_t)))
   requires(memory_no_alias(m, mlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
   requires((ctx == NULL && ctxlen == 0) || memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   assigns(memory_slice(sig, CRYPTO_BYTES))
@@ -209,10 +213,11 @@ MLD_EXTERNAL_API
 int crypto_sign(uint8_t *sm, size_t *smlen, const uint8_t *m, size_t mlen,
                 const uint8_t *ctx, size_t ctxlen, const uint8_t *sk)
 __contract__(
-  requires(mlen <= SIZE_MAX - CRYPTO_BYTES)
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sm, CRYPTO_BYTES + mlen))
   requires(memory_no_alias(smlen, sizeof(size_t)))
   requires(m == sm || memory_no_alias(m, mlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   assigns(memory_slice(sm, CRYPTO_BYTES + mlen))
@@ -245,6 +250,9 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
                                 const uint8_t *pre, size_t prelen,
                                 const uint8_t *pk, int externalmu)
 __contract__(
+  requires(prelen <= MLD_MAX_BUFFER_SIZE)
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(siglen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, siglen))
   requires(memory_no_alias(m, mlen))
   requires(externalmu == 0 || (externalmu == 1 && mlen == MLDSA_CRHBYTES))
@@ -277,6 +285,9 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
                        size_t mlen, const uint8_t *ctx, size_t ctxlen,
                        const uint8_t *pk)
 __contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(siglen <= MLD_MAX_BUFFER_SIZE)
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, siglen))
   requires(memory_no_alias(m, mlen))
   requires((ctx == NULL && ctxlen == 0) || memory_no_alias(ctx, ctxlen))
@@ -304,6 +315,7 @@ int crypto_sign_verify_extmu(const uint8_t *sig, size_t siglen,
                              const uint8_t mu[MLDSA_CRHBYTES],
                              const uint8_t *pk)
 __contract__(
+  requires(siglen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, siglen))
   requires(memory_no_alias(mu, MLDSA_CRHBYTES))
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
@@ -332,9 +344,11 @@ MLD_EXTERNAL_API
 int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
                      const uint8_t *ctx, size_t ctxlen, const uint8_t *pk)
 __contract__(
+  requires(smlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(m, smlen))
   requires(memory_no_alias(mlen, sizeof(size_t)))
   requires(m == sm || memory_no_alias(sm, smlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
   assigns(memory_slice(m, smlen))

@@ -39,6 +39,7 @@ __contract__(
 #define shake128_absorb FIPS202_NAMESPACE(shake128_absorb)
 void shake128_absorb(keccak_state *state, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(keccak_state)))
   requires(memory_no_alias(in, inlen))
   requires(state->pos <= SHAKE128_RATE)
@@ -70,6 +71,7 @@ __contract__(
 #define shake128_absorb_once FIPS202_NAMESPACE(shake128_absorb_once)
 void shake128_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(keccak_state)))
   requires(memory_no_alias(in, inlen))
   assigns(memory_slice(state, sizeof(keccak_state)))
@@ -102,6 +104,7 @@ __contract__(
 #define shake256_absorb FIPS202_NAMESPACE(shake256_absorb)
 void shake256_absorb(keccak_state *state, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(keccak_state)))
   requires(memory_no_alias(in, inlen))
   requires(state->pos <= SHAKE256_RATE)
@@ -133,6 +136,7 @@ __contract__(
 #define shake256_absorb_once FIPS202_NAMESPACE(shake256_absorb_once)
 void shake256_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(keccak_state)))
   requires(memory_no_alias(in, inlen))
   assigns(memory_slice(state, sizeof(keccak_state)))
@@ -157,6 +161,7 @@ void shake256_release(keccak_state *state);
 #define shake128 FIPS202_NAMESPACE(shake128)
 void shake128(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(outlen <= 8 * SHAKE128_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(in, inlen))
   requires(memory_no_alias(out, outlen))
@@ -166,6 +171,7 @@ __contract__(
 #define shake256 FIPS202_NAMESPACE(shake256)
 void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(outlen <= 8 * SHAKE256_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(in, inlen))
   requires(memory_no_alias(out, outlen))
@@ -175,6 +181,7 @@ __contract__(
 #define sha3_256 FIPS202_NAMESPACE(sha3_256)
 void sha3_256(uint8_t h[SHA3_256_HASHBYTES], const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(in, inlen))
   requires(memory_no_alias(h, SHA3_256_HASHBYTES))
   assigns(memory_slice(h, SHA3_256_HASHBYTES))
@@ -183,6 +190,7 @@ __contract__(
 #define sha3_512 FIPS202_NAMESPACE(sha3_512)
 void sha3_512(uint8_t h[SHA3_512_HASHBYTES], const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(in, inlen))
   requires(memory_no_alias(h, SHA3_512_HASHBYTES))
   assigns(memory_slice(h, SHA3_512_HASHBYTES))

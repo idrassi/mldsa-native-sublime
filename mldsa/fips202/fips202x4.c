@@ -16,6 +16,7 @@ static void mld_keccak_absorb_once_x4(uint64_t *s, uint32_t r,
                                       const uint8_t *in2, const uint8_t *in3,
                                       size_t inlen, uint8_t p)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
   requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires(memory_no_alias(in0, inlen))

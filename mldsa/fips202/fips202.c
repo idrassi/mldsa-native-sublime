@@ -48,6 +48,7 @@ static unsigned int keccak_absorb(uint64_t s[MLD_KECCAK_LANES],
                                   unsigned int pos, unsigned int r,
                                   const uint8_t *in, size_t inlen)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(r < sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires(pos <= r)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
@@ -179,6 +180,7 @@ static void keccak_absorb_once(uint64_t s[MLD_KECCAK_LANES],
                                const unsigned int r, const uint8_t *in,
                                size_t inlen, uint8_t p)
 __contract__(
+  requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(r < sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires((r / 8) >= 1)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
