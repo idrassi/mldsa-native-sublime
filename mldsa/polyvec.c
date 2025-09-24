@@ -23,6 +23,7 @@ static MLD_INLINE void mld_poly_permute_bitrev_to_custom(int32_t data[MLDSA_N])
 #endif /* !MLD_USE_NATIVE_NTT_CUSTOM_ORDER */
 
 
+MLD_INTERNAL_API
 void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
                                const uint8_t rho[MLDSA_SEEDBYTES])
 {
@@ -116,6 +117,7 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
   mld_zeroize(seed_ext, sizeof(seed_ext));
 }
 
+MLD_INTERNAL_API
 void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
                                              const mld_polyvecl mat[MLDSA_K],
                                              const mld_polyvecl *v)
@@ -140,6 +142,7 @@ void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
 /**************************************************************/
 /************ Vectors of polynomials of length MLDSA_L **************/
 /**************************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
                                  const uint8_t seed[MLDSA_CRHBYTES],
                                  uint16_t nonce)
@@ -164,6 +167,7 @@ void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
                       MLDSA_GAMMA1 + 1);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_reduce(mld_polyvecl *v)
 {
   unsigned int i;
@@ -186,6 +190,7 @@ void mld_polyvecl_reduce(mld_polyvecl *v)
 
 /* Reference: We use destructive version (output=first input) to avoid
  *            reasoning about aliasing in the CBMC specification */
+MLD_INTERNAL_API
 void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
 {
   unsigned int i;
@@ -205,6 +210,7 @@ void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_ntt(mld_polyvecl *v)
 {
   unsigned int i;
@@ -223,6 +229,7 @@ void mld_polyvecl_ntt(mld_polyvecl *v)
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
 {
   unsigned int i;
@@ -241,6 +248,7 @@ void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_INTT_BOUND);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
                                             const mld_polyvecl *v)
 {
@@ -261,6 +269,7 @@ void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
   mld_assert_abs_bound_2d(r->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
                                            const mld_polyvecl *v)
 {
@@ -303,7 +312,7 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
   mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
 }
 
-
+MLD_INTERNAL_API
 uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
 {
   unsigned int i;
@@ -330,7 +339,7 @@ uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)
 /**************************************************************/
 /************ Vectors of polynomials of length MLDSA_K **************/
 /**************************************************************/
-
+MLD_INTERNAL_API
 void mld_polyveck_reduce(mld_polyveck *v)
 {
   unsigned int i;
@@ -352,6 +361,7 @@ void mld_polyveck_reduce(mld_polyveck *v)
                       REDUCE32_RANGE_MAX);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_caddq(mld_polyveck *v)
 {
   unsigned int i;
@@ -372,6 +382,7 @@ void mld_polyveck_caddq(mld_polyveck *v)
 
 /* Reference: We use destructive version (output=first input) to avoid
  *            reasoning about aliasing in the CBMC specification */
+MLD_INTERNAL_API
 void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
 {
   unsigned int i;
@@ -391,6 +402,7 @@ void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
 {
   unsigned int i;
@@ -412,6 +424,7 @@ void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
   mld_assert_bound_2d(u->vec, MLDSA_K, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_shiftl(mld_polyveck *v)
 {
   unsigned int i;
@@ -432,6 +445,7 @@ void mld_polyveck_shiftl(mld_polyveck *v)
   mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_ntt(mld_polyveck *v)
 {
   unsigned int i;
@@ -449,6 +463,7 @@ void mld_polyveck_ntt(mld_polyveck *v)
   mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLD_NTT_BOUND);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_invntt_tomont(mld_polyveck *v)
 {
   unsigned int i;
@@ -467,6 +482,7 @@ void mld_polyveck_invntt_tomont(mld_polyveck *v)
   mld_assert_abs_bound_2d(v->vec, MLDSA_K, MLDSA_N, MLD_INTT_BOUND);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
                                             const mld_polyveck *v)
 {
@@ -485,7 +501,7 @@ void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
   mld_assert_abs_bound_2d(r->vec, MLDSA_K, MLDSA_N, MLDSA_Q);
 }
 
-
+MLD_INTERNAL_API
 uint32_t mld_polyveck_chknorm(const mld_polyveck *v, int32_t bound)
 {
   unsigned int i;
@@ -510,6 +526,7 @@ uint32_t mld_polyveck_chknorm(const mld_polyveck *v, int32_t bound)
   return t;
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
                               const mld_polyveck *v)
 {
@@ -533,6 +550,7 @@ void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
                       ((MLDSA_Q - 1) / MLD_2_POW_D) + 1);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
                             const mld_polyveck *v)
 {
@@ -557,6 +575,7 @@ void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
   mld_assert_abs_bound_2d(v0->vec, MLDSA_K, MLDSA_N, MLDSA_GAMMA2 + 1);
 }
 
+MLD_INTERNAL_API
 unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
                                     const mld_polyveck *v1)
 {
@@ -577,6 +596,7 @@ unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
   return s;
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *u,
                            const mld_polyveck *h)
 {
@@ -600,6 +620,7 @@ void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *u,
                       (MLDSA_Q - 1) / (2 * MLDSA_GAMMA2));
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
                           const mld_polyveck *w1)
 {
@@ -617,6 +638,7 @@ void mld_polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
   }
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyveck *p)
 {
@@ -632,6 +654,7 @@ void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
   }
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyvecl *p)
 {
@@ -647,6 +670,7 @@ void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
   }
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
                          const mld_polyvecl *p)
 {
@@ -663,7 +687,7 @@ void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
   }
 }
 
-
+MLD_INTERNAL_API
 void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
                           const mld_polyveck *p)
 {
@@ -680,6 +704,7 @@ void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
   }
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_unpack_eta(
     mld_polyvecl *p, const uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES])
 {
@@ -693,6 +718,7 @@ void mld_polyvecl_unpack_eta(
                       MLDSA_ETA + 1);
 }
 
+MLD_INTERNAL_API
 void mld_polyvecl_unpack_z(mld_polyvecl *z,
                            const uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES])
 {
@@ -706,6 +732,7 @@ void mld_polyvecl_unpack_z(mld_polyvecl *z,
                       MLDSA_GAMMA1 + 1);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_unpack_eta(
     mld_polyveck *p, const uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES])
 {
@@ -719,6 +746,7 @@ void mld_polyveck_unpack_eta(
                       MLDSA_ETA + 1);
 }
 
+MLD_INTERNAL_API
 void mld_polyveck_unpack_t0(mld_polyveck *p,
                             const uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES])
 {

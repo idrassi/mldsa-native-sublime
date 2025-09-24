@@ -18,6 +18,7 @@
  *              - const uint8_t rho[]: byte array containing rho
  *              - const mld_polyveck *t1: pointer to vector t1
  **************************************************/
+MLD_INTERNAL_API
 void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                  const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 __contract__(
@@ -44,6 +45,7 @@ __contract__(
  *              - const mld_polyvecl *s1: pointer to vector s1
  *              - const mld_polyveck *s2: pointer to vector s2
  **************************************************/
+MLD_INTERNAL_API
 void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
                  const uint8_t rho[MLDSA_SEEDBYTES],
                  const uint8_t tr[MLDSA_TRBYTES],
@@ -85,6 +87,7 @@ __contract__(
  * in the reference implementation. It is added here to ease
  * proof of type safety.
  **************************************************/
+MLD_INTERNAL_API
 void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
                   const mld_polyvecl *z, const mld_polyveck *h,
                   const unsigned int number_of_hints)
@@ -111,6 +114,7 @@ __contract__(
  *              - const mld_polyveck *t1: pointer to output vector t1
  *              - uint8_t pk[]: byte array containing bit-packed pk
  **************************************************/
+MLD_INTERNAL_API
 void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
                    const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 __contract__(
@@ -138,6 +142,7 @@ __contract__(
  *              - const mld_polyveck *s2: pointer to output vector s2
  *              - uint8_t sk[]: byte array containing bit-packed sk
  **************************************************/
+MLD_INTERNAL_API
 void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
                    uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0,
                    mld_polyvecl *s1, mld_polyveck *s2,
@@ -178,6 +183,7 @@ __contract__(
  *
  * Returns 1 in case of malformed signature; otherwise 0.
  **************************************************/
+MLD_INTERNAL_API
 int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
                    mld_polyveck *h, const uint8_t sig[CRYPTO_BYTES])
 __contract__(

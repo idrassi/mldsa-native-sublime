@@ -16,6 +16,20 @@
 #include "params.h"
 #include "sys.h"
 
+/* Internal and public API have external linkage by default, but
+ * this can be overwritten by the user, e.g. for single-CU builds. */
+#if !defined(MLD_CONFIG_INTERNAL_API_QUALIFIER)
+#define MLD_INTERNAL_API
+#else
+#define MLD_INTERNAL_API MLD_CONFIG_INTERNAL_API_QUALIFIER
+#endif
+
+#if !defined(MLD_CONFIG_EXTERNAL_API_QUALIFIER)
+#define MLD_EXTERNAL_API
+#else
+#define MLD_EXTERNAL_API MLD_CONFIG_EXTERNAL_API_QUALIFIER
+#endif
+
 
 #if defined(MLD_CONFIG_USE_NATIVE_BACKEND_ARITH) && \
     !defined(MLD_CONFIG_ARITH_BACKEND_FILE)

@@ -145,7 +145,7 @@ __contract__(
   }
 }
 
-
+MLD_INTERNAL_API
 void mld_ntt(int32_t a[MLDSA_N])
 {
   unsigned int layer;
@@ -203,6 +203,7 @@ __contract__(
   }
 }
 
+MLD_INTERNAL_API
 void mld_invntt_tomont(int32_t a[MLDSA_N])
 {
   unsigned int layer, j;
