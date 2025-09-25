@@ -7,7 +7,6 @@
 
 #include "cbmc.h"
 #include "debug.h"
-#include "fips202/fips202.h"
 #include "packing.h"
 #include "poly.h"
 #include "polyvec.h"

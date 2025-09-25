@@ -8,7 +8,6 @@
 
 #include "ct.h"
 #include "debug.h"
-#include "fips202/fips202x4.h"
 #include "ntt.h"
 #include "poly.h"
 #include "reduce.h"

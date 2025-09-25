@@ -107,6 +107,17 @@ static MLD_INLINE void mld_zeroize(void *ptr, size_t len)
 
 #endif /* !__ASSEMBLER__ */
 
+#if !defined(MLD_CONFIG_FIPS202_CUSTOM_HEADER)
+#define MLD_FIPS202_HEADER_FILE "fips202/fips202.h"
+#else
+#define MLD_FIPS202_HEADER_FILE MLD_CONFIG_FIPS202_CUSTOM_HEADER
+#endif
+
+#if !defined(MLD_CONFIG_FIPS202X4_CUSTOM_HEADER)
+#define MLD_FIPS202X4_HEADER_FILE "fips202/fips202x4.h"
+#else
+#define MLD_FIPS202X4_HEADER_FILE MLD_CONFIG_FIPS202X4_CUSTOM_HEADER
+#endif
 
 /* Standard library function replacements */
 #if !defined(__ASSEMBLER__)

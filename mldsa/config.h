@@ -77,6 +77,37 @@
     !defined(MLD_CONFIG_FIPS202_BACKEND_FILE)
 #define MLD_CONFIG_FIPS202_BACKEND_FILE "fips202/native/auto.h"
 #endif
+/******************************************************************************
+ * Name:        MLD_CONFIG_FIPS202_CUSTOM_HEADER
+ *
+ * Description: Custom header to use for FIPS-202
+ *
+ *              This should only be set if you intend to use a custom
+ *              FIPS-202 implementation, different from the one shipped
+ *              with mldsa-native.
+ *
+ *              If set, it must be the name of a file serving as the
+ *              replacement for mldsa/fips202/fips202.h, and exposing
+ *              the same API (see FIPS202.md).
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_FIPS202_CUSTOM_HEADER "SOME_FILE.h" */
+
+/******************************************************************************
+ * Name:        MLD_CONFIG_FIPS202X4_CUSTOM_HEADER
+ *
+ * Description: Custom header to use for FIPS-202-X4
+ *
+ *              This should only be set if you intend to use a custom
+ *              FIPS-202 implementation, different from the one shipped
+ *              with mldsa-native.
+ *
+ *              If set, it must be the name of a file serving as the
+ *              replacement for mldsa/fips202/fips202x4.h, and exposing
+ *              the same API (see FIPS202.md).
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_FIPS202X4_CUSTOM_HEADER "SOME_FILE.h" */
 
 /******************************************************************************
  * Name:        MLD_CONFIG_CUSTOM_ZEROIZE

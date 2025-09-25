@@ -9,7 +9,8 @@
 #include "cbmc.h"
 #include "common.h"
 
-#include "fips202/fips202.h"
+#include MLD_FIPS202_HEADER_FILE
+#include MLD_FIPS202X4_HEADER_FILE
 
 #define STREAM128_BLOCKBYTES SHAKE128_RATE
 #define STREAM256_BLOCKBYTES SHAKE256_RATE
