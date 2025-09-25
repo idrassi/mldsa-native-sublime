@@ -35,6 +35,7 @@
  * Specification: Implements [FIPS 204, Algorithm 41, NTT]
  *
  **************************************************/
+MLD_INTERNAL_API
 void mld_ntt(int32_t a[MLDSA_N])
 __contract__(
   requires(memory_no_alias(a, MLDSA_N * sizeof(int32_t)))
@@ -57,6 +58,7 @@ __contract__(
  *
  * Arguments:   - int32_t a[MLDSA_N]: input/output coefficient array
  **************************************************/
+MLD_INTERNAL_API
 void mld_invntt_tomont(int32_t a[MLDSA_N])
 __contract__(
   requires(memory_no_alias(a, MLDSA_N * sizeof(int32_t)))

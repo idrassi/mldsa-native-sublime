@@ -32,6 +32,7 @@
  * Returns 0 (success) or -1 (PCT failure)
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
                                  const uint8_t seed[MLDSA_SEEDBYTES])
 __contract__(
@@ -60,6 +61,7 @@ __contract__(
  * Returns 0 (success) or -1 (PCT failure)
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
 __contract__(
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
@@ -96,6 +98,7 @@ __contract__(
  *            and can return -1 in that case.
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
                                    const uint8_t *m, size_t mlen,
                                    const uint8_t *pre, size_t prelen,
@@ -135,6 +138,7 @@ __contract__(
  * Returns 0 (success) or -1 (context string too long OR nonce exhaustion)
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
                           size_t mlen, const uint8_t *ctx, size_t ctxlen,
                           const uint8_t *sk)
@@ -166,6 +170,7 @@ __contract__(
  * Returns 0 (success) or -1 (context string too long OR nonce exhaustion)
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_signature_extmu(uint8_t *sig, size_t *siglen,
                                 const uint8_t mu[MLDSA_CRHBYTES],
                                 const uint8_t *sk)
@@ -200,6 +205,7 @@ __contract__(
  * Returns 0 (success) or -1 (context string too long OR nonce exhausted)
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign(uint8_t *sm, size_t *smlen, const uint8_t *m, size_t mlen,
                 const uint8_t *ctx, size_t ctxlen, const uint8_t *sk)
 __contract__(
@@ -233,6 +239,7 @@ __contract__(
  * Returns 0 if signature could be verified correctly and -1 otherwise
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
                                 const uint8_t *m, size_t mlen,
                                 const uint8_t *pre, size_t prelen,
@@ -265,6 +272,7 @@ __contract__(
  * Returns 0 if signature could be verified correctly and -1 otherwise
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
                        size_t mlen, const uint8_t *ctx, size_t ctxlen,
                        const uint8_t *pk)
@@ -291,6 +299,7 @@ __contract__(
  * Returns 0 if signature could be verified correctly and -1 otherwise
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_verify_extmu(const uint8_t *sig, size_t siglen,
                              const uint8_t mu[MLDSA_CRHBYTES],
                              const uint8_t *pk)
@@ -319,6 +328,7 @@ __contract__(
  * Returns 0 if signed message could be verified correctly and -1 otherwise
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
 int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
                      const uint8_t *ctx, size_t ctxlen, const uint8_t *pk)
 __contract__(

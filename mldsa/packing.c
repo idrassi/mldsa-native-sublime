@@ -9,6 +9,7 @@
 #include "poly.h"
 #include "polyvec.h"
 
+MLD_INTERNAL_API
 void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                  const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 {
@@ -27,6 +28,7 @@ void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   }
 }
 
+MLD_INTERNAL_API
 void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
                    const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 {
@@ -41,6 +43,7 @@ void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
   }
 }
 
+MLD_INTERNAL_API
 void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
                  const uint8_t rho[MLDSA_SEEDBYTES],
                  const uint8_t tr[MLDSA_TRBYTES],
@@ -65,6 +68,7 @@ void mld_pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
   mld_polyveck_pack_t0(sk, t0);
 }
 
+MLD_INTERNAL_API
 void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
                    uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0,
                    mld_polyvecl *s1, mld_polyveck *s2,
@@ -88,6 +92,7 @@ void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
   mld_polyveck_unpack_t0(t0, sk);
 }
 
+MLD_INTERNAL_API
 void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
                   const mld_polyvecl *z, const mld_polyveck *h,
                   const unsigned int number_of_hints)
@@ -248,6 +253,7 @@ __contract__(
   return 0;
 }
 
+MLD_INTERNAL_API
 int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
                    mld_polyveck *h, const uint8_t sig[CRYPTO_BYTES])
 {

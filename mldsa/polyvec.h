@@ -29,6 +29,7 @@ typedef struct
  *                MLDSA_CRHBYTES
  *              - uint16_t nonce: 16-bit nonce
  *************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
                                  const uint8_t seed[MLDSA_CRHBYTES],
                                  uint16_t nonce)
@@ -51,6 +52,7 @@ __contract__(
  *
  * Arguments:   - mld_poly *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_reduce(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
@@ -73,6 +75,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector of
  *              polynomials
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyvecl)))
@@ -94,6 +97,7 @@ __contract__(
  *
  * Arguments:   - mld_polyvecl *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_ntt(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
@@ -113,6 +117,7 @@ __contract__(
  *
  * Arguments:   - mld_polyvecl *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_invntt_tomont(mld_polyvecl *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
@@ -134,6 +139,7 @@ __contract__(
  *              - mld_poly *a: pointer to input polynomial
  *              - mld_polyvecl *v: pointer to input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
                                             const mld_polyvecl *v)
 __contract__(
@@ -169,6 +175,7 @@ __contract__(
  *              - const mld_polyvecl *u: pointer to first input vector
  *              - const mld_polyvecl *v: pointer to second input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
                                            const mld_polyvecl *v)
 __contract__(
@@ -197,6 +204,7 @@ __contract__(
  * Returns 0 if norm of all polynomials is strictly smaller than B <=
  * (MLDSA_Q-1)/8 and 0xFFFFFFFF otherwise.
  **************************************************/
+MLD_INTERNAL_API
 uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t B)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
@@ -222,6 +230,7 @@ typedef struct
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_reduce(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -241,6 +250,7 @@ __contract__(
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_caddq(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -263,6 +273,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector of
  *              polynomials
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyveck)))
@@ -286,6 +297,7 @@ __contract__(
  *              - const mld_polyveck *v: pointer to second input vector to be
  *                                   subtracted from first input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(u, sizeof(mld_polyveck)))
@@ -307,6 +319,7 @@ __contract__(
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_shiftl(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -324,6 +337,7 @@ __contract__(
  *
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_ntt(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -342,6 +356,7 @@ __contract__(
  *              Output coefficients are bounded by MLD_INTT_BOUND.
  * Arguments:   - mld_polyveck *v: pointer to input/output vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_invntt_tomont(mld_polyveck *v)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -363,6 +378,7 @@ __contract__(
  *              - mld_poly *a: pointer to input polynomial
  *              - mld_polyveck *v: pointer to input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_pointwise_poly_montgomery(mld_polyveck *r, const mld_poly *a,
                                             const mld_polyveck *v)
 __contract__(
@@ -388,6 +404,7 @@ __contract__(
  * Returns 0 if norm of all polynomials are strictly smaller than B <=
  *(MLDSA_Q-1)/8 and 0xFFFFFFFF otherwise.
  **************************************************/
+MLD_INTERNAL_API
 uint32_t mld_polyveck_chknorm(const mld_polyveck *v, int32_t B)
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
@@ -414,6 +431,7 @@ __contract__(
  *                              coefficients a0
  *              - const mld_polyveck *v: pointer to input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
                               const mld_polyveck *v)
 __contract__(
@@ -443,6 +461,7 @@ __contract__(
  *                              coefficients a0
  *              - const mld_polyveck *v: pointer to input vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
                             const mld_polyveck *v)
 __contract__(
@@ -471,6 +490,7 @@ __contract__(
  *
  * Returns number of 1 bits.
  **************************************************/
+MLD_INTERNAL_API
 unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
                                     const mld_polyveck *v1)
 __contract__(
@@ -493,6 +513,7 @@ __contract__(
  *              - const mld_polyveck *u: pointer to input vector
  *              - const mld_polyveck *h: pointer to input hint vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_use_hint(mld_polyveck *w, const mld_polyveck *v,
                            const mld_polyveck *h)
 __contract__(
@@ -520,6 +541,7 @@ __contract__(
  *                            MLDSA_K* MLDSA_POLYW1_PACKEDBYTES bytes
  *              - const mld_polyveck *a: pointer to input polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_pack_w1(uint8_t r[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES],
                           const mld_polyveck *w1)
 __contract__(
@@ -541,6 +563,7 @@ __contract__(
  *                            MLDSA_K * MLDSA_POLYETA_PACKEDBYTES bytes
  *              - const polyveck *p: pointer to input polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_pack_eta(uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyveck *p)
 __contract__(
@@ -562,6 +585,7 @@ __contract__(
  *                            MLDSA_L * MLDSA_POLYETA_PACKEDBYTES bytes
  *              - const polyveck *p: pointer to input polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_pack_eta(uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES],
                            const mld_polyvecl *p)
 __contract__(
@@ -583,6 +607,7 @@ __contract__(
  *                            MLDSA_L * MLDSA_POLYZ_PACKEDBYTES bytes
  *              - const mld_polyvecl *p: pointer to input polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_pack_z(uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES],
                          const mld_polyvecl *p)
 __contract__(
@@ -604,6 +629,7 @@ __contract__(
  *                            MLDSA_K * MLDSA_POLYT0_PACKEDBYTES bytes
  *              - const mld_poly *p: pointer to input polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_pack_t0(uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES],
                           const mld_polyveck *p)
 __contract__(
@@ -625,6 +651,7 @@ __contract__(
  *              - const uint8_t *r: input byte array with
  *                                  bit-packed polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_unpack_eta(
     mld_polyvecl *p, const uint8_t r[MLDSA_L * MLDSA_POLYETA_PACKEDBYTES])
 __contract__(
@@ -646,6 +673,7 @@ __contract__(
  *              - const uint8_t *r: input byte array with
  *                                  bit-packed polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvecl_unpack_z(mld_polyvecl *z,
                            const uint8_t r[MLDSA_L * MLDSA_POLYZ_PACKEDBYTES])
 __contract__(
@@ -667,6 +695,7 @@ __contract__(
  *              - const uint8_t *r: input byte array with
  *                                  bit-packed polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_unpack_eta(
     mld_polyveck *p, const uint8_t r[MLDSA_K * MLDSA_POLYETA_PACKEDBYTES])
 __contract__(
@@ -688,6 +717,7 @@ __contract__(
  *              - const uint8_t *r: input byte array with
  *                                  bit-packed polynomial vector
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyveck_unpack_t0(mld_polyveck *p,
                             const uint8_t r[MLDSA_K * MLDSA_POLYT0_PACKEDBYTES])
 __contract__(
@@ -709,6 +739,7 @@ __contract__(
  * Arguments:   - mld_polyvecl mat[MLDSA_K]: output matrix
  *              - const uint8_t rho[]: byte array containing seed rho
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
                                const uint8_t rho[MLDSA_SEEDBYTES])
 __contract__(
@@ -742,6 +773,7 @@ __contract__(
  *              - const mld_polyvecl mat[MLDSA_K]: pointer to input matrix
  *              - const mld_polyvecl *v: pointer to input vector v
  **************************************************/
+MLD_INTERNAL_API
 void mld_polyvec_matrix_pointwise_montgomery(mld_polyveck *t,
                                              const mld_polyvecl mat[MLDSA_K],
                                              const mld_polyvecl *v)

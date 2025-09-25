@@ -260,6 +260,33 @@
 */
 
 /******************************************************************************
+ * Name:        MLD_CONFIG_INTERNAL_API_QUALIFIER
+ *
+ * Description: If set, this option provides an additional function
+ *              qualifier to be added to declarations of internal API.
+ *
+ *              The primary use case for this option are single-CU builds,
+ *              in which case this option can be set to `static`.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_INTERNAL_API_QUALIFIER */
+
+/******************************************************************************
+ * Name:        MLD_CONFIG_EXTERNAL_API_QUALIFIER
+ *
+ * Description: If set, this option provides an additional function
+ *              qualifier to be added to declarations of mldsa-native's
+ *              public API.
+ *
+ *              The primary use case for this option are single-CU builds
+ *              where the public API exposed by mldsa-native is wrapped by
+ *              another API in the consuming application. In this case,
+ *              even mldsa-native's public API can be marked `static`.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_EXTERNAL_API_QUALIFIER */
+
+/******************************************************************************
  * Name:        MLD_CONFIG_CT_TESTING_ENABLED
  *
  * Description: If set, mldsa-native annotates data as secret / public using
