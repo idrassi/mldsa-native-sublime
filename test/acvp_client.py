@@ -30,7 +30,7 @@ def download_acvp_files(version="v1.1.0.40"):
     files_to_download = [
         "ML-DSA-keyGen-FIPS204/internalProjection.json",
         "ML-DSA-sigGen-FIPS204/internalProjection.json",
-        "ML-DSA-sigGen-FIPS204/internalProjection.json",
+        "ML-DSA-sigVer-FIPS204/internalProjection.json",
     ]
 
     # Create directory structure
@@ -75,7 +75,7 @@ def loadDefaultAcvpData(version="v1.1.0.40"):
     acvp_jsons_for_version = [
         f"{data_dir}/ML-DSA-keyGen-FIPS204/internalProjection.json",
         f"{data_dir}/ML-DSA-sigGen-FIPS204/internalProjection.json",
-        f"{data_dir}/ML-DSA-sigGen-FIPS204/internalProjection.json",
+        f"{data_dir}/ML-DSA-sigVer-FIPS204/internalProjection.json",
     ]
     acvp_data = []
     for internalProjection in acvp_jsons_for_version:
