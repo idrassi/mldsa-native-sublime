@@ -3,6 +3,21 @@
  * Copyright (c) The mlkem-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ *
+ * - [REF]
+ *   CRYSTALS-Dilithium reference implementation
+ *   Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler, Stehlé
+ *   https://github.com/pq-crystals/dilithium/tree/master/ref
+ */
+
 #include <stdint.h>
 #include <string.h>
 
@@ -350,7 +365,7 @@ uint32_t mld_poly_chknorm(const mld_poly *a, int32_t B)
  * random bytes were given.
  **************************************************/
 
-/* Reference: `mld_rej_uniform()` in the reference implementation [@REF].
+/* Reference: `mld_rej_uniform()` in the reference implementation @[REF].
  *            - Our signature differs from the reference implementation
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
@@ -414,7 +429,7 @@ __contract__(
   return ctr;
 }
 
-/* Reference: poly_uniform() in the reference implementation [@REF].
+/* Reference: poly_uniform() in the reference implementation @[REF].
  *           - Simplified from reference by removing buffer tail handling
  *             since buflen % 3 = 0 always holds true (STREAM128_BLOCKBYTES =
  *             168).
@@ -450,7 +465,7 @@ void mld_poly_uniform(mld_poly *a, const uint8_t seed[MLDSA_SEEDBYTES + 2])
   mld_xof128_release(&state);
   mld_assert_bound(a->coeffs, MLDSA_N, 0, MLDSA_Q);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
 }
 
@@ -514,7 +529,7 @@ void mld_poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
   mld_assert_bound(vec2->coeffs, MLDSA_N, 0, MLDSA_Q);
   mld_assert_bound(vec3->coeffs, MLDSA_N, 0, MLDSA_Q);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
 }
 
@@ -535,7 +550,7 @@ void mld_poly_uniform_4x(mld_poly *vec0, mld_poly *vec1, mld_poly *vec2,
  *enough random bytes were given.
  **************************************************/
 
-/* Reference: `mld_rej_eta()` in the reference implementation [@REF].
+/* Reference: `mld_rej_eta()` in the reference implementation @[REF].
  *            - Our signature differs from the reference implementation
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
@@ -737,7 +752,7 @@ void mld_poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   mld_assert_abs_bound(r2->coeffs, MLDSA_N, MLDSA_ETA + 1);
   mld_assert_abs_bound(r3->coeffs, MLDSA_N, MLDSA_ETA + 1);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(extseed, sizeof(extseed));
 }
@@ -767,7 +782,7 @@ void mld_poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
 
   mld_assert_bound(a->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(extseed, sizeof(extseed));
 }
@@ -816,7 +831,7 @@ void mld_poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
   mld_assert_bound(r2->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
   mld_assert_bound(r3->coeffs, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(extseed, sizeof(extseed));
 }
@@ -896,7 +911,7 @@ void mld_poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
   mld_assert_bound(c->coeffs, MLDSA_N, -1, 2);
   mld_shake256_release(&state);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(&signs, sizeof(signs));
 }

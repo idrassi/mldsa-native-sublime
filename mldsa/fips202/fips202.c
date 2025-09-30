@@ -2,10 +2,34 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
-/* Based on the public domain implementation in crypto_hash/keccakc512/simple/
- * from http://bench.cr.yp.to/supercop.html by Ronny Van Keer and the public
- * domain "TweetFips202" implementation from https://twitter.com/tweetfips202 by
- * Gilles Van Assche, Daniel J. Bernstein, and Peter Schwabe */
+
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ *
+ * - [mupq]
+ *   Common files for pqm4, pqm3, pqriscv
+ *   Kannwischer, Petri, Rijneveld, Schwabe, Stoffelen
+ *   https://github.com/mupq/mupq
+ *
+ * - [supercop]
+ *   SUPERCOP benchmarking framework
+ *   Daniel J. Bernstein
+ *   http://bench.cr.yp.to/supercop.html
+ *
+ * - [tweetfips]
+ *   'tweetfips202' FIPS202 implementation
+ *   Van Assche, Bernstein, Schwabe
+ *   https://keccak.team/2015/tweetfips202.html
+ */
+
+/* Based on the CC0 implementation from @[mupq] and the public domain
+ * implementation @[supercop, crypto_hash/keccakc512/simple/]
+ * by Ronny Van Keer, and the public domain @[tweetfips] implementation. */
 
 #include <stddef.h>
 #include <stdint.h>
@@ -188,7 +212,7 @@ void mld_shake128_squeeze(uint8_t *out, size_t outlen, mld_shake128ctx *state)
 
 void mld_shake128_release(mld_shake128ctx *state)
 {
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(state, sizeof(mld_shake128ctx));
 }
 
@@ -217,7 +241,7 @@ void mld_shake256_squeeze(uint8_t *out, size_t outlen, mld_shake256ctx *state)
 
 void mld_shake256_release(mld_shake256ctx *state)
 {
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(state, sizeof(mld_shake256ctx));
 }
 

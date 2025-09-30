@@ -2,6 +2,16 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #ifndef MLD_SIGN_H
 #define MLD_SIGN_H
 
@@ -17,8 +27,7 @@
 /*************************************************
  * Name:        crypto_sign_keypair_internal
  *
- * Description: FIPS 204: Algorithm 6 ML-DSA.KeyGen_internal.
- *              Generates public and private key. Internal API.
+ * Description: Generates public and private key. Internal API.
  *              When MLD_CONFIG_KEYGEN_PCT is set, performs a Pairwise
  *              Consistency Test (PCT) as required by FIPS 140-3 IG.
  *
@@ -30,6 +39,9 @@
  *                               bytes)
  *
  * Returns 0 (success) or -1 (PCT failure)
+ *
+ * Specification: Implements @[FIPS204 Algorithm 6 (ML-DSA.KeyGen_internal)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -48,8 +60,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_keypair
  *
- * Description: FIPS 204: Algorithm 1 ML-DSA.KeyGen
- *              Generates public and private key.
+ * Description: Generates public and private key.
  *              When MLD_CONFIG_KEYGEN_PCT is set, performs a Pairwise
  *              Consistency Test (PCT) as required by FIPS 140-3 IG.
  *
@@ -59,6 +70,9 @@ __contract__(
  *                               array of CRYPTO_SECRETKEYBYTES bytes)
  *
  * Returns 0 (success) or -1 (PCT failure)
+ *
+ * Specification: Implements @[FIPS204 Algorithm 1 (ML-DSA.KeyGen)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -124,8 +138,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_signature
  *
- * Description: FIPS 204: Algorithm 2 ML-DSA.Sign.
- *              Computes signature.
+ * Description: Computes signature.
  *
  * Arguments:   - uint8_t *sig:   pointer to output signature (of length
  *                                CRYPTO_BYTES)
@@ -138,6 +151,9 @@ __contract__(
  *              - uint8_t *sk:    pointer to bit-packed secret key
  *
  * Returns 0 (success) or -1 (context string too long OR nonce exhaustion)
+ *
+ * Specification: Implements @[FIPS204 Algorithm 2 (ML-DSA.Sign)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -162,8 +178,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_signature_extmu
  *
- * Description:  FIPS 204: Algorithm 2 ML-DSA.Sign external mu variant.
- *               Computes signature.
+ * Description: Computes signature.
  *
  * Arguments:   - uint8_t *sig:   pointer to output signature (of length
  *                                CRYPTO_BYTES)
@@ -172,6 +187,10 @@ __contract__(
  *              - uint8_t *sk:    pointer to bit-packed secret key
  *
  * Returns 0 (success) or -1 (context string too long OR nonce exhaustion)
+ *
+ * Specification: Implements @[FIPS204 Algorithm 2 (ML-DSA.Sign external mu
+ *                variant)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -230,8 +249,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_verify_internal
  *
- * Description: FIPS 204: Algorithm 8 ML-DSA.Verify_internal.
- *              Verifies signature. Internal API.
+ * Description: Verifies signature. Internal API.
  * Arguments:   - uint8_t *m: pointer to input signature
  *              - size_t siglen: length of signature
  *              - const uint8_t *m: pointer to message
@@ -242,6 +260,9 @@ __contract__(
  *              - int externalmu: indicates input message m is processed as mu
  *
  * Returns 0 if signature could be verified correctly and -1 otherwise
+ *
+ * Specification: Implements @[FIPS204 Algorithm 8 (ML-DSA.Verify_internal)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -265,8 +286,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_verify
  *
- * Description: FIPS 204: Algorithm 3 ML-DSA.Verify.
- *              Verifies signature.
+ * Description: Verifies signature.
  *
  * Arguments:   - uint8_t *m: pointer to input signature
  *              - size_t siglen: length of signature
@@ -278,6 +298,9 @@ __contract__(
  *              - const uint8_t *pk: pointer to bit-packed public key
  *
  * Returns 0 if signature could be verified correctly and -1 otherwise
+ *
+ * Specification: Implements @[FIPS204 Algorithm 3 (ML-DSA.Verify)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -299,8 +322,7 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_verify_extmu
  *
- * Description: FIPS 204: Algorithm 3 ML-DSA.Verify external mu variant.
- *              Verifies signature.
+ * Description: Verifies signature.
  *
  * Arguments:   - uint8_t *m: pointer to input signature
  *              - size_t siglen: length of signature
@@ -308,6 +330,10 @@ __contract__(
  *              - const uint8_t *pk: pointer to bit-packed public key
  *
  * Returns 0 if signature could be verified correctly and -1 otherwise
+ *
+ * Specification: Implements @[FIPS204 Algorithm 3 (ML-DSA.Verify external mu
+ *                variant)]
+ *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API

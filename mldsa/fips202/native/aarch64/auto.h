@@ -4,6 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
+/* References
+ * ==========
+ *
+ * - [HYBRID]
+ *   Hybrid scalar/vector implementations of Keccak and SPHINCS+ on AArch64
+ *   Becker, Kannwischer
+ *   https://eprint.iacr.org/2022/1243
+ */
+
 #ifndef MLD_FIPS202_NATIVE_AARCH64_AUTO_H
 #define MLD_FIPS202_NATIVE_AARCH64_AUTO_H
 /* Default FIPS202 assembly profile for AArch64 systems */

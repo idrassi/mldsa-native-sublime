@@ -3,6 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #ifndef MLD_COMMON_H
 #define MLD_COMMON_H
 
@@ -80,7 +89,7 @@
  * Name:        mld_zeroize
  *
  * Description: Force-zeroize a buffer.
- *              FIPS 204. Section 3.6.3 Destruction of intermediate values.
+ *              @[FIPS204, Section 3.6.3] Destruction of intermediate values.
  *
  * Arguments:   void *ptr: pointer to buffer to be zeroed
  *              size_t len: Amount of bytes to be zeroed

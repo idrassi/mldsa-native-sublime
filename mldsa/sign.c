@@ -2,6 +2,27 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS140_3_IG]
+ *   Implementation Guidance for FIPS 140-3 and the Cryptographic Module
+ *   Validation Program National Institute of Standards and Technology
+ *   https://csrc.nist.gov/projects/cryptographic-module-validation-program/fips-140-3-ig-announcements
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ *
+ * - [Round3_Spec]
+ *   CRYSTALS-Dilithium Algorithm Specifications and Supporting Documentation
+ * (Version 3.1) Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler,
+ *   Stehlé
+ *   https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf
+ */
+
 #include <stdint.h>
 #include <string.h>
 
@@ -25,7 +46,7 @@ __contract__(
 
 #if defined(MLD_CONFIG_KEYGEN_PCT)
 /*************************************************
- * [FIPS 140-3 IG]
+ * @[FIPS140_3_IG]
  * (https://csrc.nist.gov/csrc/media/Projects/cryptographic-module-validation-program/documents/fips%20140-3/FIPS%20140-3%20IG.pdf)
  *
  * TE10.35.02: Pair-wise Consistency Test (PCT) for DSA keypairs
@@ -35,8 +56,8 @@ __contract__(
  * key (sk), followed by signature verification using the public key (pk).
  * Returns 0 if the signature was successfully verified, non-zero if it cannot.
  *
- * Note: FIPS 204 requires that public/private key pairs are to be used only for
- * the calculation and/of verification of digital signatures.
+ * Note: @[FIPS204] requires that public/private key pairs are to be used only
+ * for the calculation and/of verification of digital signatures.
  **************************************************/
 static int mld_check_pct(uint8_t const pk[CRYPTO_PUBLICKEYBYTES],
                          uint8_t const sk[CRYPTO_SECRETKEYBYTES])
@@ -68,7 +89,7 @@ static int mld_check_pct(uint8_t const pk[CRYPTO_PUBLICKEYBYTES],
                              0, pk_test);
   }
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(signature, sizeof(signature));
   mld_zeroize(pk_test, sizeof(pk_test));
 
@@ -171,7 +192,7 @@ int crypto_sign_keypair_internal(uint8_t *pk, uint8_t *sk,
   mld_shake256(tr, MLDSA_TRBYTES, pk, CRYPTO_PUBLICKEYBYTES);
   mld_pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values.  */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(seedbuf, sizeof(seedbuf));
   mld_zeroize(inbuf, sizeof(inbuf));
   mld_zeroize(tr, sizeof(tr));
@@ -205,7 +226,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
   MLD_CT_TESTING_SECRET(seed, sizeof(seed));
   result = crypto_sign_keypair_internal(pk, sk, seed);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(seed, sizeof(seed));
   return result;
 }
@@ -262,7 +283,7 @@ __contract__(
   mld_shake256_squeeze(out, outlen, &state);
   mld_shake256_release(&state);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(&state, sizeof(state));
 }
 
@@ -274,7 +295,7 @@ __contract__(
 /* Explicitly checking for this explicitly allows us to prove    */
 /* type-safety. Note that FIPS204 explicitly allows an upper-    */
 /* bound this loop of 814 (< (UINT16_MAX - L)/L) - see           */
-/* Appendix C of FIPS204.                                        */
+/* @[FIPS204, Appendix C].                                        */
 #define NONCE_UB ((UINT16_MAX - MLDSA_L) / MLDSA_L)
 
 /*************************************************
@@ -438,7 +459,7 @@ __contract__(
   res = 0; /* success */
 
 cleanup:
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(challenge_bytes, MLDSA_CTILDEBYTES);
   mld_zeroize(&y, sizeof(y));
   mld_zeroize(&z, sizeof(z));
@@ -534,7 +555,7 @@ int crypto_sign_signature_internal(uint8_t *sig, size_t *siglen,
     if (result == 0)
     {
       *siglen = CRYPTO_BYTES;
-      /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+      /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
       mld_zeroize(seedbuf, sizeof(seedbuf));
       mld_zeroize(mat, sizeof(mat));
       mld_zeroize(&s1, sizeof(s1));
@@ -588,7 +609,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
   result = crypto_sign_signature_internal(sig, siglen, m, mlen, pre, 2 + ctxlen,
                                           rnd, sk, 0);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(pre, sizeof(pre));
   mld_zeroize(rnd, sizeof(rnd));
 
@@ -614,7 +635,7 @@ int crypto_sign_signature_extmu(uint8_t *sig, size_t *siglen,
   result = crypto_sign_signature_internal(sig, siglen, mu, MLDSA_CRHBYTES, NULL,
                                           0, rnd, sk, 1);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(rnd, sizeof(rnd));
 
   return result;
@@ -681,7 +702,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
     mld_H(hpk, MLDSA_TRBYTES, pk, CRYPTO_PUBLICKEYBYTES, NULL, 0, NULL, 0);
     mld_H(mu, MLDSA_CRHBYTES, hpk, MLDSA_TRBYTES, pre, prelen, m, mlen);
 
-    /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+    /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
     mld_zeroize(hpk, sizeof(hpk));
   }
   else
@@ -735,7 +756,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
     }
   }
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(buf, sizeof(buf));
   mld_zeroize(rho, sizeof(rho));
   mld_zeroize(mu, sizeof(mu));
@@ -779,7 +800,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
   result =
       crypto_sign_verify_internal(sig, siglen, m, mlen, pre, 2 + ctxlen, pk, 0);
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(pre, sizeof(pre));
 
   return result;

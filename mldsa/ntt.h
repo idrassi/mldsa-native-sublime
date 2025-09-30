@@ -2,6 +2,16 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #ifndef MLD_NTT_H
 #define MLD_NTT_H
 
@@ -32,7 +42,7 @@
  *
  * Arguments:   - int32_t a[MLDSA_N]: pointer to in/output polynomial
  *
- * Specification: Implements [FIPS 204, Algorithm 41, NTT]
+ * Specification: Implements @[FIPS204, Algorithm 41 (NTT)]
  *
  **************************************************/
 MLD_INTERNAL_API

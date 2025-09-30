@@ -2,6 +2,16 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [REF]
+ *   CRYSTALS-Dilithium reference implementation
+ *   Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler, Stehlé
+ *   https://github.com/pq-crystals/dilithium/tree/master/ref
+ */
+
 #include <stdint.h>
 
 #include "ntt.h"
@@ -72,7 +82,7 @@ __contract__(
  *             5 -- 7
  */
 
-/* Reference: Embedded in `ntt()` in the reference implementation. */
+/* Reference: Embedded in `ntt()` in the reference implementation @[REF]. */
 static void mld_ntt_butterfly_block(int32_t r[MLDSA_N], const int32_t zeta,
                                     const unsigned start, const unsigned len,
                                     const int32_t bound)
@@ -119,7 +129,7 @@ __contract__(
  * - layer: Indicates which layer is being applied.
  */
 
-/* Reference: Embedded in `ntt()` in the reference implementation. */
+/* Reference: Embedded in `ntt()` in the reference implementation @[REF]. */
 static void mld_ntt_layer(int32_t r[MLDSA_N], const unsigned layer)
 __contract__(
   requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
@@ -165,7 +175,7 @@ void mld_ntt(int32_t a[MLDSA_N])
 }
 
 /* Reference: Embedded into `invntt_tomont()` in the reference implementation
- * [@REF] */
+ * @[REF] */
 static void mld_invntt_layer(int32_t r[MLDSA_N], unsigned layer)
 __contract__(
   requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))

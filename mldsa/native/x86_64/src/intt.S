@@ -8,6 +8,15 @@
  * AVX2 Dilithium implementation @[REF_AVX2].
  */
 
+/* References
+ * ==========
+ *
+ * - [REF_AVX2]
+ *   CRYSTALS-Dilithium optimized AVX2 implementation
+ *   Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler, Stehlé
+ *   https://github.com/pq-crystals/dilithium/tree/master/avx2
+ */
+
 #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_X86_64_DEFAULT) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)

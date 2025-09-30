@@ -4,6 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #include "../common.h"
 
 #include <string.h>
@@ -124,7 +133,7 @@ void mld_shake128x4_squeezeblocks(uint8_t *out0, uint8_t *out1, uint8_t *out2,
 void mld_shake128x4_init(mld_shake128x4ctx *state) { (void)state; }
 void mld_shake128x4_release(mld_shake128x4ctx *state)
 {
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(state, sizeof(mld_shake128x4ctx));
 }
 
@@ -149,6 +158,6 @@ void mld_shake256x4_squeezeblocks(uint8_t *out0, uint8_t *out1, uint8_t *out2,
 void mld_shake256x4_init(mld_shake256x4ctx *state) { (void)state; }
 void mld_shake256x4_release(mld_shake256x4ctx *state)
 {
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(state, sizeof(mld_shake256x4ctx));
 }

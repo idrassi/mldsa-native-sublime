@@ -4,9 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
-#ifndef MLD_CT_H
-#define MLD_CT_H
-
 /* References
  * ==========
  *
@@ -20,6 +17,9 @@
  *   Daniel J. Bernstein
  *   https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/hqbtIGFKIpU/m/H14H0wOlBgAJ
  */
+
+#ifndef MLD_CT_H
+#define MLD_CT_H
 
 #include <stdint.h>
 #include "cbmc.h"

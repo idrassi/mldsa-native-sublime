@@ -1,8 +1,18 @@
 /*
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: LicenseRef-PD-hp OR CC0-1.0 OR 0BSD OR MIT-0 OR MIT
- * Based on https://cr.yp.to/papers.html#surf by Daniel. J. Bernstein
  */
+
+/* References
+ * ==========
+ *
+ * - [surf]
+ *   SURF: Simple Unpredictable Random Function
+ *   Daniel J. Bernstein
+ *   https://cr.yp.to/papers.html#surf
+ */
+
+/* * Based on @[surf]*/
 
 /**
  * WARNING
@@ -12,9 +22,10 @@
  *
  */
 
-#include "notrandombytes.h"
 #include <stdint.h>
 #include <string.h>
+
+#include "notrandombytes.h"
 
 #ifdef ENABLE_CT_TESTING
 #include <valgrind/memcheck.h>

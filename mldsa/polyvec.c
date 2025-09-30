@@ -2,6 +2,16 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #include <stdint.h>
 #include <string.h>
 
@@ -113,7 +123,7 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
     }
   }
 
-  /* FIPS 204. Section 3.6.3 Destruction of intermediate values. */
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(seed_ext, sizeof(seed_ext));
 }
 

@@ -2,6 +2,21 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+
+/* References
+ * ==========
+ *
+ * - [FIPS140_3_IG]
+ *   Implementation Guidance for FIPS 140-3 and the Cryptographic Module
+ *   Validation Program National Institute of Standards and Technology
+ *   https://csrc.nist.gov/projects/cryptographic-module-validation-program/fips-140-3-ig-announcements
+ *
+ * - [FIPS204]
+ *   FIPS 204 Module-Lattice-Based Digital Signature Standard
+ *   National Institute of Standards and Technology
+ *   https://csrc.nist.gov/pubs/fips/204/final
+ */
+
 #ifndef MLD_CONFIG_H
 #define MLD_CONFIG_H
 
@@ -94,8 +109,9 @@
 /******************************************************************************
  * Name:        MLD_CONFIG_CUSTOM_ZEROIZE
  *
- * Description: In compliance with FIPS 204 Section 3.6.3, mldsa-native zeroizes
- *              intermediate stack buffers before returning from function calls.
+ * Description: In compliance with @[FIPS204, Section 3.6.3], mldsa-native
+ *              zeroizes intermediate stack buffers before returning from
+ *              function calls.
  *
  *              Set this option and define `mld_zeroize_native` if you want to
  *              use a custom method to zeroize intermediate stack buffers.

@@ -4,6 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
+/* References
+ * ==========
+ *
+ * - [REF_AVX2]
+ *   CRYSTALS-Dilithium optimized AVX2 implementation
+ *   Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler, Stehlé
+ *   https://github.com/pq-crystals/dilithium/tree/master/avx2
+ */
+
 #ifndef MLD_NATIVE_X86_64_SRC_ALIGN_H
 #define MLD_NATIVE_X86_64_SRC_ALIGN_H
 
