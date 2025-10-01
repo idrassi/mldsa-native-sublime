@@ -41,4 +41,9 @@ runs:
       - shell: ${{ env.SHELL }}
         run: |
           make clean
-          tests func --exec-wrapper="valgrind --error-exitcode=1 ${{ inputs.valgrind_flags }}" --cflags="-DMLD_CONFIG_CT_TESTING_ENABLED -DNTESTS=5 ${{ inputs.cflags }}"
+          # --vex-guest-max-insns=55 (default is 60) is a workaround for 
+          # "VEX temporary storage exhausted" errors in the x86 backend (poly_chknorm)
+          # It may increase run-time of the valgrind tests.
+          # TODO: Check with future versions of valgrind if this is still needed (both 3.24 and 3.25 fail without)
+          # TODO: Check if this is still needed once the poly_chknorm intrinsics implementation is replaced by assembly
+          tests func --exec-wrapper="valgrind --vex-guest-max-insns=55 --error-exitcode=1 ${{ inputs.valgrind_flags }}" --cflags="-DMLD_CONFIG_CT_TESTING_ENABLED -DNTESTS=5 ${{ inputs.cflags }}"
