@@ -39,6 +39,35 @@
 #define MLD_EXTERNAL_API MLD_CONFIG_EXTERNAL_API_QUALIFIER
 #endif
 
+#if defined(MLD_CONFIG_MULTILEVEL_NO_SHARED) || \
+    defined(MLD_CONFIG_MULTILEVEL_WITH_SHARED)
+#define MLD_MULTILEVEL_BUILD
+#endif
+
+#define MLD_CONCAT_(x1, x2) x1##x2
+#define MLD_CONCAT(x1, x2) MLD_CONCAT_(x1, x2)
+
+#if defined(MLD_MULTILEVEL_BUILD)
+#define MLD_ADD_PARAM_SET(s) MLD_CONCAT(s, MLD_CONFIG_PARAMETER_SET)
+#else
+#define MLD_ADD_PARAM_SET(s) s
+#endif
+
+#define MLD_NAMESPACE_PREFIX MLD_CONCAT(MLD_CONFIG_NAMESPACE_PREFIX, _)
+#define MLD_NAMESPACE_PREFIX_K \
+  MLD_CONCAT(MLD_ADD_PARAM_SET(MLD_CONFIG_NAMESPACE_PREFIX), _)
+
+/* Functions are prefixed by MLD_CONFIG_NAMESPACE_PREFIX.
+ *
+ * If multiple parameter sets are used, functions depending on the parameter
+ * set are additionally prefixed with 44/65/87. See config.h.
+ *
+ * Example: If MLD_CONFIG_NAMESPACE_PREFIX is mldsa, then
+ * MLD_NAMESPACE_K(sign) becomes mldsa44_sign/mldsa65_sign/mldsa87_sign.
+ */
+#define MLD_NAMESPACE(s) MLD_CONCAT(MLD_NAMESPACE_PREFIX, s)
+#define MLD_NAMESPACE_K(s) MLD_CONCAT(MLD_NAMESPACE_PREFIX_K, s)
+
 
 #if defined(MLD_CONFIG_USE_NATIVE_BACKEND_ARITH) && \
     !defined(MLD_CONFIG_ARITH_BACKEND_FILE)
@@ -49,8 +78,6 @@
 #include MLD_CONFIG_ARITH_BACKEND_FILE
 #endif
 
-#define MLD_CONCAT_(x1, x2) x1##x2
-#define MLD_CONCAT(x1, x2) MLD_CONCAT_(x1, x2)
 
 /* On Apple platforms, we need to emit leading underscore
  * in front of assembly symbols. We thus introducee a separate

@@ -31,57 +31,57 @@ OPT = 0
 # compilation for mldsa44
 {mldsa}.c{$(MLDSA44_BUILD_DIR)\mldsa}.obj::
     @if NOT EXIST $(MLDSA44_BUILD_DIR)\mldsa mkdir $(MLDSA44_BUILD_DIR)\mldsa
-    $(CC) $(CFLAGS) /D MLDSA_MODE=2 /c /Fo$(MLDSA44_BUILD_DIR)\mldsa\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=44 /c /Fo$(MLDSA44_BUILD_DIR)\mldsa\ $<
 
 {mldsa\fips202}.c{$(MLDSA44_BUILD_DIR)\mldsa\fips202}.obj::
     @if NOT EXIST $(MLDSA44_BUILD_DIR)\mldsa\fips202 mkdir $(MLDSA44_BUILD_DIR)\mldsa\fips202
-    $(CC) $(CFLAGS) /D MLDSA_MODE=2 /c /Fo$(MLDSA44_BUILD_DIR)\mldsa\fips202\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=44 /c /Fo$(MLDSA44_BUILD_DIR)\mldsa\fips202\ $<
 
 {test}.c{$(MLDSA44_BUILD_DIR)\test}.obj::
     @if NOT EXIST $(MLDSA44_BUILD_DIR)\test mkdir $(MLDSA44_BUILD_DIR)\test
-    $(CC) $(CFLAGS) /D MLDSA_MODE=2 /c /Fo$(MLDSA44_BUILD_DIR)\test\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=44 /c /Fo$(MLDSA44_BUILD_DIR)\test\ $<
 
 # compilation for mldsa65
 {mldsa}.c{$(MLDSA65_BUILD_DIR)\mldsa}.obj::
     @if NOT EXIST $(MLDSA65_BUILD_DIR)\mldsa mkdir $(MLDSA65_BUILD_DIR)\mldsa
-    $(CC) $(CFLAGS) /D MLDSA_MODE=3 /c /Fo$(MLDSA65_BUILD_DIR)\mldsa\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=65 /c /Fo$(MLDSA65_BUILD_DIR)\mldsa\ $<
 
 {mldsa\fips202}.c{$(MLDSA65_BUILD_DIR)\mldsa\fips202}.obj::
     @if NOT EXIST $(MLDSA65_BUILD_DIR)\mldsa\fips202 mkdir $(MLDSA65_BUILD_DIR)\mldsa\fips202
-    $(CC) $(CFLAGS) /D MLDSA_MODE=3 /c /Fo$(MLDSA65_BUILD_DIR)\mldsa\fips202\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=65 /c /Fo$(MLDSA65_BUILD_DIR)\mldsa\fips202\ $<
 
 {test}.c{$(MLDSA65_BUILD_DIR)\test}.obj::
     @if NOT EXIST $(MLDSA65_BUILD_DIR)\test mkdir $(MLDSA65_BUILD_DIR)\test
-    $(CC) $(CFLAGS) /D MLDSA_MODE=3 /c /Fo$(MLDSA65_BUILD_DIR)\test\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=65 /c /Fo$(MLDSA65_BUILD_DIR)\test\ $<
 
 # compilation for mldsa87
 {mldsa}.c{$(MLDSA87_BUILD_DIR)\mldsa}.obj::
     @if NOT EXIST $(MLDSA87_BUILD_DIR)\mldsa mkdir $(MLDSA87_BUILD_DIR)\mldsa
-    $(CC) $(CFLAGS) /D MLDSA_MODE=5 /c /Fo$(MLDSA87_BUILD_DIR)\mldsa\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=87 /c /Fo$(MLDSA87_BUILD_DIR)\mldsa\ $<
 
 {mldsa\fips202}.c{$(MLDSA87_BUILD_DIR)\mldsa\fips202}.obj::
     @if NOT EXIST $(MLDSA87_BUILD_DIR)\mldsa\fips202 mkdir $(MLDSA87_BUILD_DIR)\mldsa\fips202
-    $(CC) $(CFLAGS) /D MLDSA_MODE=5 /c /Fo$(MLDSA87_BUILD_DIR)\mldsa\fips202\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=87 /c /Fo$(MLDSA87_BUILD_DIR)\mldsa\fips202\ $<
 
 {test}.c{$(MLDSA87_BUILD_DIR)\test}.obj::
     @if NOT EXIST $(MLDSA87_BUILD_DIR)\test mkdir $(MLDSA87_BUILD_DIR)\test
-    $(CC) $(CFLAGS) /D MLDSA_MODE=5 /c /Fo$(MLDSA87_BUILD_DIR)\test\ $<
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=87 /c /Fo$(MLDSA87_BUILD_DIR)\test\ $<
 
 
 # compile functional test for mldsa44
 test_mldsa44: $(OBJ_FILES_44) $(MLDSA44_BUILD_DIR)\test\test_mldsa.obj $(BUILD_DIR)\randombytes\notrandombytes.obj
     @if NOT EXIST $(MLDSA44_BUILD_DIR)\bin mkdir $(MLDSA44_BUILD_DIR)\bin
-    $(CC) $(CFLAGS) /D MLDSA_MODE=2 /Fe$(MLDSA44_BUILD_DIR)\bin\test_mldsa44 $** /link
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=44 /Fe$(MLDSA44_BUILD_DIR)\bin\test_mldsa44 $** /link
 
 # compile functional test for mldsa65
 test_mldsa65: $(OBJ_FILES_65) $(MLDSA65_BUILD_DIR)\test\test_mldsa.obj $(BUILD_DIR)\randombytes\notrandombytes.obj
     @if NOT EXIST $(MLDSA65_BUILD_DIR)\bin mkdir $(MLDSA65_BUILD_DIR)\bin
-    $(CC) $(CFLAGS) /D MLDSA_MODE=3 /Fe$(MLDSA65_BUILD_DIR)\bin\test_mldsa65 $** /link
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=65 /Fe$(MLDSA65_BUILD_DIR)\bin\test_mldsa65 $** /link
 
 # compile functional test for mldsa87
 test_mldsa87: $(OBJ_FILES_87) $(MLDSA87_BUILD_DIR)\test\test_mldsa.obj $(BUILD_DIR)\randombytes\notrandombytes.obj
     @if NOT EXIST $(MLDSA87_BUILD_DIR)\bin mkdir $(MLDSA87_BUILD_DIR)\bin
-    $(CC) $(CFLAGS) /D MLDSA_MODE=5 /Fe$(MLDSA87_BUILD_DIR)\bin\test_mldsa87 $** /link
+    $(CC) $(CFLAGS) /D MLD_CONFIG_PARAMETER_SET=87 /Fe$(MLDSA87_BUILD_DIR)\bin\test_mldsa87 $** /link
 
 quickcheck: test_mldsa44 test_mldsa65 test_mldsa87
     $(MLDSA44_BUILD_DIR)\bin\test_mldsa44.exe

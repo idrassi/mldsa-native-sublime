@@ -184,11 +184,11 @@ class SCHEME(Enum):
     def from_mode(mode):
         if isinstance(mode, str):
             mode = int(mode)
-        if mode == 2:
+        if mode == 44:
             return SCHEME.MLDSA44
-        if mode == 3:
+        if mode == 65:
             return SCHEME.MLDSA65
-        if mode == 5:
+        if mode == 87:
             return SCHEME.MLDSA87
 
 
@@ -690,7 +690,7 @@ class Tests:
             exit(0)
 
         def run_cbmc_single_step(mldsa_mode, proofs):
-            envvars = {"MLDSA_MODE": mldsa_mode}
+            envvars = {"MLD_CONFIG_PARAMETER_SET": mldsa_mode}
             scheme = SCHEME.from_mode(mldsa_mode)
             num_proofs = len(proofs)
             for i, func in enumerate(proofs):
@@ -757,7 +757,7 @@ class Tests:
             if self.args.single_step:
                 run_cbmc_single_step(mldsa_mode, proofs)
                 return
-            envvars = {"MLDSA_MODE": mldsa_mode}
+            envvars = {"MLD_CONFIG_PARAMETER_SET": mldsa_mode}
             p = subprocess.run(
                 ["python3", "run-cbmc-proofs.py", "--summarize", "--no-coverage", "-p"]
                 + proofs
@@ -771,9 +771,9 @@ class Tests:
 
         mode = self.args.mode
         if mode == "ALL":
-            run_cbmc("2")
-            run_cbmc("3")
-            run_cbmc("5")
+            run_cbmc("44")
+            run_cbmc("65")
+            run_cbmc("87")
         else:
             run_cbmc(mode)
 
@@ -981,8 +981,8 @@ def cli():
 
     cbmc_parser.add_argument(
         "--mode",
-        help="MLDSA parameter set (MLDSA_MODE)",
-        choices=["2", "3", "5", "ALL"],
+        help="MLDSA parameter set (MLD_CONFIG_PARAMETER_SET)",
+        choices=["44", "65", "87", "ALL"],
         type=str.upper,
         default="ALL",
     )

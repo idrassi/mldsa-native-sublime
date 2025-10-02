@@ -19,8 +19,8 @@ inputs:
     description: The shell to use. Only relevant if use-nix is 'false'
     default: "bash"
   mldsa_mode:
-    description: "Security level for ML-DSA (2,3,5)"
-    default: "2"
+    description: "Security level for ML-DSA (44,65,87)"
+    default: "44"
   gh_token:
     description: Github access token to use
     required: true
@@ -50,7 +50,7 @@ runs:
               - Cadical Version $(cadical --version)
               - $(bash --version | grep -m1 "")
             EOF
-      - name: Run CBMC proofs (MLDSA_MODE=${{ inputs.mldsa_mode }})
+      - name: Run CBMC proofs (MLD_CONFIG_PARAMETER_SET=${{ inputs.mldsa_mode }})
         shell: ${{ env.SHELL }}
         run: |
           echo "::group::cbmc_${{ inputs.mldsa_mode }}"

@@ -21,7 +21,7 @@ PROJECT_SOURCES += $(SRCDIR)/mldsa/polyvec.c
 
 CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyvecl_uniform_gamma1
 USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)poly_uniform_gamma1_4x
-ifeq ($(MLDSA_MODE),3)
+ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
 USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_uniform_gamma1
 endif
 
