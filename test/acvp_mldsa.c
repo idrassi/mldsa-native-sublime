@@ -2,6 +2,7 @@
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +14,13 @@
 #define KEYGEN_USAGE "acvp_mldsa{lvl} keyGen seed=HEX"
 #define SIGGEN_USAGE \
   "acvp_mldsa{lvl} sigGen message=HEX rng=HEX sk=HEX context=HEX"
+#define SIGGEN_INTERNAL_USAGE \
+  "acvp_mldsa{lvl} sigGenInternal message=HEX rng=HEX sk=HEX externalMu=0/1"
 #define SIGVER_USAGE \
   "acvp_mldsa{lvl} sigVer message=HEX context=HEX signature=HEX pk=HEX"
+#define SIGVER_INTERNAL_USAGE                                        \
+  "acvp_mldsa{lvl} sigVerInternal message=HEX signature=HEX pk=HEX " \
+  "externalMu=0/1"
 
 /* maximum message length used in the ACVP tests */
 #define MAX_MSG_LENGTH 65536
@@ -37,7 +43,9 @@ typedef enum
 {
   keyGen,
   sigGen,
-  sigVer
+  sigGenInternal,
+  sigVer,
+  sigVerInternal
 } acvp_mode;
 
 /* Decode hex character [0-9A-Fa-f] into 0-15 */
@@ -108,6 +116,53 @@ hex_usage:
   return 1;
 }
 
+
+static int decode_keyed_int(const char *prefix_string, int *out,
+                            const char *str)
+{
+  size_t str_len = strlen(str);
+  size_t prefix_len = strlen(prefix_string);
+  char *endptr;
+  long val;
+
+  /*
+   * Check that str starts with `prefix=`
+   * Use memcmp, not strcmp
+   */
+  if (str_len < prefix_len + 1 || memcmp(prefix_string, str, prefix_len) != 0 ||
+      str[prefix_len] != '=')
+  {
+    goto int_usage;
+  }
+
+  str += prefix_len + 1;
+
+  /* Parse the integer value */
+  val = strtol(str, &endptr, 10);
+
+  /* Check for parsing errors */
+  if (*endptr != '\0' || endptr == str)
+  {
+    goto int_usage;
+  }
+
+  /* Check for overflow */
+  if (val > INT_MAX || val < INT_MIN)
+  {
+    goto int_usage;
+  }
+
+  *out = (int)val;
+  return 0;
+
+int_usage:
+  fprintf(stderr,
+          "Argument %s invalid: Expected argument of the form '%s=INT' with "
+          "INT being a decimal integer\n",
+          str, prefix_string);
+  return 1;
+}
+
 static void print_hex(const char *name, const unsigned char *raw, size_t len)
 {
   if (name != NULL)
@@ -151,6 +206,18 @@ static void acvp_mldsa_sigGen_AFT(const unsigned char *message, size_t mlen,
   print_hex("signature", sig, sizeof(sig));
 }
 
+static void acvp_mldsa_sigGenInternal_AFT(
+    const unsigned char *message, size_t mlen,
+    const unsigned char rnd[MLDSA_SEEDBYTES],
+    const unsigned char sk[CRYPTO_SECRETKEYBYTES], int externalMu)
+{
+  unsigned char sig[CRYPTO_BYTES];
+  size_t siglen;
+  CHECK(crypto_sign_signature_internal(sig, &siglen, message, mlen, NULL, 0,
+                                       rnd, sk, externalMu) == 0);
+  print_hex("signature", sig, sizeof(sig));
+}
+
 
 static int acvp_mldsa_sigVer_AFT(const unsigned char *message, size_t mlen,
                                  const unsigned char *context, size_t ctxlen,
@@ -159,6 +226,23 @@ static int acvp_mldsa_sigVer_AFT(const unsigned char *message, size_t mlen,
 {
   return crypto_sign_verify(signature, CRYPTO_BYTES, message, mlen, context,
                             ctxlen, pk);
+}
+
+
+static int acvp_mldsa_sigVerInternal_AFT(
+    const unsigned char *message, size_t mlen,
+    const unsigned char signature[CRYPTO_BYTES],
+    const unsigned char pk[CRYPTO_PUBLICKEYBYTES], int externalMu)
+{
+  if (externalMu)
+  {
+    return crypto_sign_verify_extmu(signature, CRYPTO_BYTES, message, pk);
+  }
+  else
+  {
+    return crypto_sign_verify_internal(signature, CRYPTO_BYTES, message, mlen,
+                                       NULL, 0, pk, 0);
+  }
 }
 
 int main(int argc, char *argv[])
@@ -184,9 +268,17 @@ int main(int argc, char *argv[])
   {
     mode = sigGen;
   }
+  else if (strcmp(*argv, "sigGenInternal") == 0)
+  {
+    mode = sigGenInternal;
+  }
   else if (strcmp(*argv, "sigVer") == 0)
   {
     mode = sigVer;
+  }
+  else if (strcmp(*argv, "sigVerInternal") == 0)
+  {
+    mode = sigVerInternal;
   }
   else
   {
@@ -263,6 +355,55 @@ int main(int argc, char *argv[])
       acvp_mldsa_sigGen_AFT(message, mlen, rnd, sk, context, ctxlen);
       break;
     }
+    case sigGenInternal:
+    {
+      unsigned char message[MAX_MSG_LENGTH + MAX_CTX_LENGTH + 2];
+      unsigned char rnd[MLDSA_RNDBYTES];
+      unsigned char sk[CRYPTO_SECRETKEYBYTES];
+      int externalMu;
+      size_t mlen;
+
+      /* Parse message */
+      if (argc == 0)
+      {
+        goto siggen_internal_usage;
+      }
+      mlen = (strlen(*argv) - strlen("message=")) / 2;
+      if (mlen > sizeof(message) ||
+          decode_hex("message", message, mlen, *argv) != 0)
+      {
+        goto siggen_internal_usage;
+      }
+      argc--, argv++;
+
+      /* Parse rnd */
+      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
+      {
+        goto siggen_internal_usage;
+      }
+      argc--, argv++;
+
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      {
+        goto siggen_internal_usage;
+      }
+      argc--, argv++;
+
+      /* Parse externalMu */
+      if (argc == 0 ||
+          decode_keyed_int("externalMu", &externalMu, *argv) != 0 ||
+          externalMu > 1 || externalMu < 0)
+      {
+        goto siggen_internal_usage;
+      }
+      argc--, argv++;
+
+
+      /* Call function under test */
+      acvp_mldsa_sigGenInternal_AFT(message, mlen, rnd, sk, externalMu);
+      break;
+    }
 
     case sigVer:
     {
@@ -319,6 +460,60 @@ int main(int argc, char *argv[])
       return acvp_mldsa_sigVer_AFT(message, mlen, context, ctxlen, signature,
                                    pk);
     }
+
+
+    case sigVerInternal:
+    {
+      unsigned char message[MAX_MSG_LENGTH];
+      unsigned char signature[CRYPTO_BYTES];
+      unsigned char pk[CRYPTO_PUBLICKEYBYTES];
+      size_t mlen;
+      int externalMu;
+
+      /* Parse message */
+      if (argc == 0)
+      {
+        goto sigver_internal_usage;
+      }
+      mlen = (strlen(*argv) - strlen("message=")) / 2;
+      if (mlen > MAX_MSG_LENGTH ||
+          decode_hex("message", message, mlen, *argv) != 0)
+      {
+        goto sigver_internal_usage;
+      }
+      argc--, argv++;
+
+      /* Parse signature */
+      if (argc == 0 ||
+          decode_hex("signature", signature, sizeof(signature), *argv) != 0)
+      {
+        goto sigver_internal_usage;
+      }
+      argc--, argv++;
+
+
+      /* Parse pk */
+      if (argc == 0 || decode_hex("pk", pk, sizeof(pk), *argv) != 0)
+      {
+        goto sigver_internal_usage;
+      }
+      argc--, argv++;
+
+      /* Parse externalMu */
+      if (argc == 0 ||
+          decode_keyed_int("externalMu", &externalMu, *argv) != 0 ||
+          externalMu > 1 || externalMu < 0)
+      {
+        goto sigver_internal_usage;
+      }
+      argc--, argv++;
+
+
+
+      /* Call function under test */
+      return acvp_mldsa_sigVerInternal_AFT(message, mlen, signature, pk,
+                                           externalMu);
+    }
   }
 
   return (0);
@@ -335,7 +530,15 @@ siggen_usage:
   fprintf(stderr, SIGGEN_USAGE "\n");
   return (1);
 
+siggen_internal_usage:
+  fprintf(stderr, SIGGEN_INTERNAL_USAGE "\n");
+  return (1);
+
 sigver_usage:
   fprintf(stderr, SIGVER_USAGE "\n");
+  return (1);
+
+sigver_internal_usage:
+  fprintf(stderr, SIGVER_INTERNAL_USAGE "\n");
   return (1);
 }
