@@ -52,7 +52,7 @@
 .endm
 
 /*
- * void mld_pointwise_acc_avx2(__m256i *c, const __m256i *a, const __m256i *b, const __m256i *qdata)
+ * void mld_pointwise_acc_l7_avx2(__m256i *c, const __m256i *a, const __m256i *b, const __m256i *qdata)
  *
  * Pointwise multiplication with accumulation across multiple polynomial vectors
  *
@@ -63,8 +63,8 @@
  *   rcx: pointer to qdata constants
  */
         .balign 4
-        .global MLD_ASM_NAMESPACE(pointwise_acc_avx2)
-MLD_ASM_FN_SYMBOL(pointwise_acc_avx2)
+        .global MLD_ASM_NAMESPACE(pointwise_acc_l7_avx2)
+MLD_ASM_FN_SYMBOL(pointwise_acc_l7_avx2)
 
 // Load constants
         vmovdqa ymm0, [rcx + (MLD_AVX2_BACKEND_DATA_OFFSET_8XQINV)*4]
@@ -83,30 +83,20 @@ _looptop2:
         pointwise 1024
         acc
 
-#if MLDSA_L >= 3
         pointwise 2048
         acc
-#endif
 
-#if MLDSA_L >= 4
         pointwise 3072
         acc
-#endif
 
-#if MLDSA_L >= 5
         pointwise 4096
         acc
-#endif
 
-#if MLDSA_L >= 6
         pointwise 5120
         acc
-#endif
 
-#if MLDSA_L >= 7
         pointwise 6144
         acc
-#endif
 
 // Reduce
         vpmuldq ymm6, ymm0, ymm2

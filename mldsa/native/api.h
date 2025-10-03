@@ -316,11 +316,12 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
     int32_t c[MLDSA_N], const int32_t a[MLDSA_N], const int32_t b[MLDSA_N]);
 #endif /* MLD_USE_NATIVE_POINTWISE_MONTGOMERY */
 
-#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY)
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4)
 /*************************************************
- * Name:        mld_polyvecl_pointwise_acc_montgomery_native
+ * Name:        mld_polyvecl_pointwise_acc_montgomery_l4_native
  *
- * Description: Pointwise multiply vectors of polynomials of length L, multiply
+ * Description: Native implementation of poly_use_hint for L = 4.
+ *              Pointwise multiply vectors of polynomials of length L, multiply
  *              resulting vector by 2^{-32} and add (accumulate) polynomials
  *              in it. Input/output vectors are in NTT domain representation.
  *
@@ -330,9 +331,49 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
  *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input
  *vector
  **************************************************/
-static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l4_native(
     int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
     const int32_t v[MLDSA_L][MLDSA_N]);
-#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4 */
+
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5)
+/*************************************************
+ * Name:        mld_polyvecl_pointwise_acc_montgomery_l5_native
+ *
+ * Description: Native implementation of poly_use_hint for L = 5.
+ *              Pointwise multiply vectors of polynomials of length L, multiply
+ *              resulting vector by 2^{-32} and add (accumulate) polynomials
+ *              in it. Input/output vectors are in NTT domain representation.
+ *
+ * Arguments:   - int32_t w[MLDSA_N]: pointer to output polynomial
+ *              - const int32_t u[MLDSA_L][MLDSA_N]: pointer to first input
+ *vector
+ *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input
+ *vector
+ **************************************************/
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l5_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N]);
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5 */
+
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7)
+/*************************************************
+ * Name:        mld_polyvecl_pointwise_acc_montgomery_l7_native
+ *
+ * Description: Native implementation of poly_use_hint for L = 7.
+ *              Pointwise multiply vectors of polynomials of length L, multiply
+ *              resulting vector by 2^{-32} and add (accumulate) polynomials
+ *              in it. Input/output vectors are in NTT domain representation.
+ *
+ * Arguments:   - int32_t w[MLDSA_N]: pointer to output polynomial
+ *              - const int32_t u[MLDSA_L][MLDSA_N]: pointer to first input
+ *vector
+ *              - const int32_t v[MLDSA_L][MLDSA_N]: pointer to second input
+ *vector
+ **************************************************/
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l7_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N]);
+#endif /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7 */
 
 #endif /* !MLD_NATIVE_API_H */

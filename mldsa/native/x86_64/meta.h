@@ -26,7 +26,9 @@
 #define MLD_USE_NATIVE_POLYZ_UNPACK_17
 #define MLD_USE_NATIVE_POLYZ_UNPACK_19
 #define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
-#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
@@ -160,12 +162,28 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
                      mld_qdata.vec);
 }
 
-static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_native(
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l4_native(
     int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
     const int32_t v[MLDSA_L][MLDSA_N])
 {
-  mld_pointwise_acc_avx2((__m256i *)w, (const __m256i *)u, (const __m256i *)v,
-                         mld_qdata.vec);
+  mld_pointwise_acc_l4_avx2((__m256i *)w, (const __m256i *)u,
+                            (const __m256i *)v, mld_qdata.vec);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l5_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N])
+{
+  mld_pointwise_acc_l5_avx2((__m256i *)w, (const __m256i *)u,
+                            (const __m256i *)v, mld_qdata.vec);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l7_native(
+    int32_t w[MLDSA_N], const int32_t u[MLDSA_L][MLDSA_N],
+    const int32_t v[MLDSA_L][MLDSA_N])
+{
+  mld_pointwise_acc_l7_avx2((__m256i *)w, (const __m256i *)u,
+                            (const __m256i *)v, mld_qdata.vec);
 }
 
 #endif /* !__ASSEMBLER__ */
