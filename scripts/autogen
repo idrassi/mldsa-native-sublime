@@ -83,6 +83,12 @@ def gen_header():
     yield ""
 
 
+def gen_yaml_header():
+    yield "# Copyright (c) The mldsa-native project authors"
+    yield "# SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT"
+    yield ""
+
+
 def get_files(pattern):
     return [str(p) for p in pathlib.Path().glob(pattern) if p.is_file()]
 
@@ -997,6 +1003,96 @@ def gen_avx2_zeta_file(dry_run=False):
     )
 
 
+def get_oqs_shared_sources(backend):
+    """Get shared source files for OQS integration"""
+    mldsa_dir = "mldsa"
+
+    # add files mldsa/*
+    sources = [
+        f"mldsa/{f}"
+        for f in os.listdir(mldsa_dir)
+        if os.path.isfile(f"{mldsa_dir}/{f}") and not f.endswith(".o")
+    ]
+
+    if backend != "ref":
+        # add files mldsa/native/* (API definitions)
+        sources += [
+            f"mldsa/native/{f}"
+            for f in os.listdir(f"{mldsa_dir}/native")
+            if os.path.isfile(f"{mldsa_dir}/native/{f}")
+        ]
+    # We use a custom config
+    sources.remove("mldsa/config.h")
+    # Add FIPS202 glue code
+    sources += [
+        "integration/liboqs/fips202_glue.h",
+        "integration/liboqs/fips202x4_glue.h",
+    ]
+    # Add custom config
+    if backend == "ref":
+        backend = "c"
+    sources.append(f"integration/liboqs/config_{backend.lower()}.h")
+
+    return sources
+
+
+def get_oqs_native_sources(backend):
+    """Get native source files for OQS integration"""
+    return [f"mldsa/native/{backend}"]
+
+
+def gen_oqs_meta_file(filename, dry_run=False):
+    """Generate OQS META.yml file with updated source lists"""
+    status_update("OQS META", filename)
+
+    with open(filename, "r") as f:
+        content = f.read()
+
+    # Parse YAML while preserving structure
+    yml_data = yaml.safe_load(content)
+
+    for impl in yml_data["implementations"]:
+        name = impl["name"]
+
+        sources = get_oqs_shared_sources(name)
+
+        # NOTE: Sorting at the end causes the libOQS importer to fail.
+        # Somehow, the native directory cannot be imported too early.
+        sources.sort()
+
+        if name != "ref":
+            sources += get_oqs_native_sources(name)
+        impl["sources"] = " ".join(sources)
+
+    # Convert back to YAML string with standard copyright header
+    yaml_header = "\n".join(gen_yaml_header())
+
+    new_content = yaml.dump(
+        yml_data,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+        encoding=None,
+    )
+
+    # Combine copyright header with new YAML content
+    new_content = yaml_header + new_content
+
+    update_file(filename, new_content, dry_run=dry_run)
+
+
+def gen_oqs_meta_files(dry_run=False):
+    """Generate all OQS META.yml files"""
+    meta_files = [
+        "integration/liboqs/ML-DSA-44_META.yml",
+        "integration/liboqs/ML-DSA-65_META.yml",
+        "integration/liboqs/ML-DSA-87_META.yml",
+    ]
+
+    for meta_file in meta_files:
+        gen_oqs_meta_file(meta_file, dry_run=dry_run)
+
+
 def adjust_header_guard_for_filename(content, header_file):
 
     status_update("header guards", header_file)
@@ -1384,7 +1480,8 @@ def _main():
 
     gen_citations(args.dry_run)
     high_level_status("Generated citations")
-
+    gen_oqs_meta_files(args.dry_run)
+    high_level_status("Generated OQS META.yml files")
     gen_c_zeta_file(args.dry_run)
     gen_aarch64_zeta_file(args.dry_run)
     gen_aarch64_rej_uniform_table(args.dry_run)

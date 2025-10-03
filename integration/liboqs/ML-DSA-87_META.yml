@@ -10,55 +10,69 @@ length-signature: 4627
 nistkat-sha256: 4537905d2aabcf302fab2f242baed293459ecda7c230e6a67063b02c7e2840ed
 testvectors-sha256: 759a3ba35210c7e27ff90a7ce5e399295533b82ef125e6ec98af158e00268e44
 principal-submitters:
-  - Vadim Lyubashevsky
+- Vadim Lyubashevsky
 auxiliary-submitters:
-  - Shi Bai
-  - Léo Ducas
-  - Eike Kiltz
-  - Tancrède Lepoint
-  - Peter Schwabe
-  - Gregor Seiler
-  - Damien Stehlé
+- Shi Bai
+- Léo Ducas
+- Eike Kiltz
+- Tancrède Lepoint
+- Peter Schwabe
+- Gregor Seiler
+- Damien Stehlé
 implementations:
-  - name: ref
-    version: FIPS204
-    folder_name: .
-    compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_c.h"
-    signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_C_keypair
-    signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_C_signature
-    signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_C_verify
-    api-with-context-string: true
-    sources: integration/liboqs/config_c.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h mldsa/ntt.c mldsa/ntt.h mldsa/packing.c mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
-  - name: x86_64
-    version: FIPS204
-    folder_name: .
-    compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_x86_64.h"
-    signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_keypair
-    signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_signature
-    signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_verify
-    api-with-context-string: true
-    sources: integration/liboqs/config_x86_64.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h mldsa/native/api.h mldsa/native/meta.h mldsa/native/x86_64 mldsa/ntt.c mldsa/ntt.h mldsa/packing.c mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
-    supported_platforms:
-      - architecture: x86_64
-        operating_systems:
-          - Darwin
-          - Linux
-        required_flags:
-          - avx2
-          - popcnt
-  - name: aarch64
-    version: FIPS204
-    folder_name: .
-    compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_aarch64.h"
-    signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_keypair
-    signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_signature
-    signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_verify
-    api-with-context-string: true
-    sources: integration/liboqs/config_aarch64.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h mldsa/native/api.h mldsa/native/meta.h mldsa/native/aarch64 mldsa/ntt.c mldsa/ntt.h mldsa/packing.c mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
-    supported_platforms:
-      - architecture: arm_8
-        operating_systems:
-            - Linux
-            - Darwin
-        required_flags:
-            - asimd
+- name: ref
+  version: FIPS204
+  folder_name: .
+  compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_c.h"
+  signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_C_keypair
+  signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_C_signature
+  signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_C_verify
+  api-with-context-string: true
+  sources: integration/liboqs/config_c.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h
+    mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
+    mldsa/ntt.c mldsa/ntt.h mldsa/packing.c mldsa/packing.h mldsa/params.h mldsa/poly.c
+    mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h
+    mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
+- name: x86_64
+  version: FIPS204
+  folder_name: .
+  compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_x86_64.h"
+  signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_keypair
+  signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_signature
+  signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_X86_64_verify
+  api-with-context-string: true
+  sources: integration/liboqs/config_x86_64.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h
+    mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
+    mldsa/native/api.h mldsa/native/meta.h mldsa/ntt.c mldsa/ntt.h mldsa/packing.c
+    mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h
+    mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h
+    mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc mldsa/native/x86_64
+  supported_platforms:
+  - architecture: x86_64
+    operating_systems:
+    - Darwin
+    - Linux
+    required_flags:
+    - avx2
+    - popcnt
+- name: aarch64
+  version: FIPS204
+  folder_name: .
+  compile_opts: -DMLD_CONFIG_PARAMETER_SET=87 -DMLD_CONFIG_FILE="../integration/liboqs/config_aarch64.h"
+  signature_keypair: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_keypair
+  signature_signature: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_signature
+  signature_verify: PQCP_MLDSA_NATIVE_MLDSA87_AARCH64_verify
+  api-with-context-string: true
+  sources: integration/liboqs/config_aarch64.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h
+    mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
+    mldsa/native/api.h mldsa/native/meta.h mldsa/ntt.c mldsa/ntt.h mldsa/packing.c
+    mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/polyvec.c mldsa/polyvec.h
+    mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h
+    mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc mldsa/native/aarch64
+  supported_platforms:
+  - architecture: arm_8
+    operating_systems:
+    - Linux
+    - Darwin
+    required_flags:
+    - asimd
