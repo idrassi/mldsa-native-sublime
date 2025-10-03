@@ -3,6 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
  */
 
+/* References
+ * ==========
+ *
+ * - [REF_AVX2]
+ *   CRYSTALS-Dilithium optimized AVX2 implementation
+ *   Bai, Ducas, Kiltz, Lepoint, Lyubashevsky, Schwabe, Seiler, Stehlé
+ *   https://github.com/pq-crystals/dilithium/tree/master/avx2
+ */
+
 /*
  * This file is derived from the public domain
  * AVX2 Dilithium implementation @[REF_AVX2].
@@ -251,4 +260,5 @@ _looptop2:
 
         ret
 
-#endif /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED */
+#endif /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED \
+        */

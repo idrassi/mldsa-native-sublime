@@ -184,7 +184,7 @@ void mld_poly_pointwise_montgomery(mld_poly *c, const mld_poly *a,
 {
 #if defined(MLD_USE_NATIVE_POINTWISE_MONTGOMERY)
   mld_poly_pointwise_montgomery_native(c->coeffs, a->coeffs, b->coeffs);
-#else
+#else  /* MLD_USE_NATIVE_POINTWISE_MONTGOMERY */
   unsigned int i;
 
   mld_assert_abs_bound(a->coeffs, MLDSA_N, MLD_NTT_BOUND);

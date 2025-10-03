@@ -150,6 +150,7 @@ source code and documentation.
   - [mldsa/native/x86_64/src/intt.S](mldsa/native/x86_64/src/intt.S)
   - [mldsa/native/x86_64/src/ntt.S](mldsa/native/x86_64/src/ntt.S)
   - [mldsa/native/x86_64/src/nttunpack.S](mldsa/native/x86_64/src/nttunpack.S)
+  - [mldsa/native/x86_64/src/pointwise.S](mldsa/native/x86_64/src/pointwise.S)
   - [mldsa/native/x86_64/src/poly_caddq_avx2.c](mldsa/native/x86_64/src/poly_caddq_avx2.c)
   - [mldsa/native/x86_64/src/poly_chknorm_avx2.c](mldsa/native/x86_64/src/poly_chknorm_avx2.c)
   - [mldsa/native/x86_64/src/poly_decompose_32_avx2.c](mldsa/native/x86_64/src/poly_decompose_32_avx2.c)

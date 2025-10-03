@@ -287,7 +287,7 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
   mld_polyvecl_pointwise_acc_montgomery_native(
       w->coeffs, (const int32_t(*)[MLDSA_N])u->vec,
       (const int32_t(*)[MLDSA_N])v->vec);
-#else
+#else  /* MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY */
   unsigned int i, j;
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
