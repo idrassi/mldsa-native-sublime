@@ -38,15 +38,16 @@
   44 /* Change this for different security strengths */
 #endif
 
-#if MLD_CONFIG_PARAMETER_SET == 44
-#define MLD_NAMESPACETOP MLD_44_ref
-#define MLD_NAMESPACE(s) MLD_44_ref_##s
-#elif MLD_CONFIG_PARAMETER_SET == 65
-#define MLD_NAMESPACETOP MLD_65_ref
-#define MLD_NAMESPACE(s) MLD_65_ref_##s
-#elif MLD_CONFIG_PARAMETER_SET == 87
-#define MLD_NAMESPACETOP MLD_87_ref
-#define MLD_NAMESPACE(s) MLD_87_ref_##s
+/******************************************************************************
+ * Name:        MLD_CONFIG_NAMESPACE_PREFIX
+ *
+ * Description: The prefix to use to namespace global symbols from mldsa/.
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+#if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
+#define MLD_CONFIG_NAMESPACE_PREFIX MLD_DEFAULT_NAMESPACE_PREFIX
 #endif
 
 
@@ -257,6 +258,26 @@ static MLD_INLINE int mld_break_pct(void)
  *****************************************************************************/
 /* #define MLD_CONFIG_NO_ASM_VALUE_BARRIER */
 
+/*************************  Config internals  ********************************/
 
+/* Default namespace
+ *
+ * Don't change this. If you need a different namespace, re-define
+ * MLD_CONFIG_NAMESPACE_PREFIX above instead, and remove the following.
+ *
+ * The default MLDSA namespace is
+ *
+ *   PQCP_MLDSA_NATIVE_MLDSA<LEVEL>_
+ *
+ * e.g., PQCP_MLDSA_NATIVE_MLDSA65_
+ */
+
+#if MLD_CONFIG_PARAMETER_SET == 44
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA44
+#elif MLD_CONFIG_PARAMETER_SET == 65
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA65
+#elif MLD_CONFIG_PARAMETER_SET == 87
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA87
+#endif
 
 #endif /* !MLD_CONFIG_H */
