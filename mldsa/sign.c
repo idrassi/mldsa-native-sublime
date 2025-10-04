@@ -231,15 +231,15 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
   return result;
 }
 
-static void shake256_absorb_with_residual(keccak_state *state,
-                                          const uint8_t *in, size_t inlen,
-                                          uint8_t *residual, size_t *pos)
+static void mld_shake256_absorb_with_residual(mld_shake256ctx *state,
+                                              const uint8_t *in, size_t inlen,
+                                              uint8_t *residual, size_t *pos)
 __contract__(
     requires(0 <= *pos && pos <= 8)
-    requires(memory_no_alias(state, sizeof(uint64_t) * MLD_KECCAK_LANES))
+    requires(memory_no_alias(state, sizeof(mld_shake256ctx)))
     requires(in == NULL || memory_no_alias(in, inlen))
     requires(memory_no_alias(residual, 8))
-    assigns(memory_slice(state, sizeof(uint64_t) * MLD_KECCAK_LANES))
+    assigns(memory_slice(state, sizeof(mld_shake256ctx)))
     assigns(memory_slice(residual, 8))
     assigns(*pos)
 )
@@ -256,14 +256,14 @@ __contract__(
       *pos += nb;
       if (*pos == 8)
       {
-        shake256_absorb(state, residual, 8U);
+        mld_shake256_absorb(state, residual, 8U);
         *pos = 0;
       }
     }
     nb = inlen & ~7UL;
     if (nb)
     {
-      shake256_absorb(state, in, nb);
+      mld_shake256_absorb(state, in, nb);
       in += nb;
       inlen -= nb;
     }
@@ -312,23 +312,22 @@ __contract__(
   assigns(memory_slice(out, outlen))
 )
 {
-  keccak_state state;
+  mld_shake256ctx state;
   uint8_t buf[8];
   size_t pos = 0;
-  shake256_init(&state);
-  shake256_absorb_with_residual(&state, in1, in1len, buf, &pos);
-  shake256_absorb_with_residual(&state, in2, in2len, buf, &pos);
-  shake256_absorb_with_residual(&state, in3, in3len, buf, &pos);
+  mld_shake256_init(&state);
+  mld_shake256_absorb_with_residual(&state, in1, in1len, buf, &pos);
+  mld_shake256_absorb_with_residual(&state, in2, in2len, buf, &pos);
+  mld_shake256_absorb_with_residual(&state, in3, in3len, buf, &pos);
   if (pos)
   {
-    shake256_absorb(&state, buf, pos);
+    mld_shake256_absorb(&state, buf, pos);
   }
   mld_shake256_finalize(&state);
   mld_shake256_squeeze(out, outlen, &state);
   mld_shake256_release(&state);
 
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
-  mld_zeroize(&state, sizeof(state));
   mld_zeroize(&buf, sizeof(buf));
 }
 
