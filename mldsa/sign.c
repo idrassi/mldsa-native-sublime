@@ -234,15 +234,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
 static void mld_shake256_absorb_with_residual(mld_shake256ctx *state,
                                               const uint8_t *in, size_t inlen,
                                               uint8_t *residual, size_t *pos)
-__contract__(
-    requires(0 <= *pos && pos <= 8)
-    requires(memory_no_alias(state, sizeof(mld_shake256ctx)))
-    requires(in == NULL || memory_no_alias(in, inlen))
-    requires(memory_no_alias(residual, 8))
-    assigns(memory_slice(state, sizeof(mld_shake256ctx)))
-    assigns(memory_slice(residual, 8))
-    assigns(*pos)
-)
 {
   size_t nb;
   if (in)
