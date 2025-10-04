@@ -45,12 +45,23 @@
 #error Bad configuration: MLD_CONFIG_USE_NATIVE_BACKEND_ARITH is set, but MLD_CONFIG_ARITH_BACKEND_FILE is not.
 #endif
 
-#if defined(MLD_CONFIG_USE_NATIVE_BACKEND_ARITH)
-#include MLD_CONFIG_ARITH_BACKEND_FILE
-#endif
 
 #define MLD_CONCAT_(x1, x2) x1##x2
 #define MLD_CONCAT(x1, x2) MLD_CONCAT_(x1, x2)
+
+#define MLD_NAMESPACE_PREFIX MLD_CONCAT(MLD_CONFIG_NAMESPACE_PREFIX, _)
+
+/* Functions are prefixed by MLD_CONFIG_NAMESPACE_PREFIX.
+ *
+ * Example: If MLD_CONFIG_NAMESPACE_PREFIX is PQCP_MLDSA_NATIVE_MLDSA44, then
+ * MLD_NAMESPACE(sign) becomes PQCP_MLDSA_NATIVE_MLDSA44_sign.
+ */
+#define MLD_NAMESPACE(s) MLD_CONCAT(MLD_NAMESPACE_PREFIX, s)
+#define MLD_NAMESPACETOP MLD_CONFIG_NAMESPACE_PREFIX
+
+#if defined(MLD_CONFIG_USE_NATIVE_BACKEND_ARITH)
+#include MLD_CONFIG_ARITH_BACKEND_FILE
+#endif
 
 /* On Apple platforms, we need to emit leading underscore
  * in front of assembly symbols. We thus introducee a separate

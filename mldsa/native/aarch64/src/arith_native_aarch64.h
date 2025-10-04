@@ -11,14 +11,12 @@
 #include "../../../common.h"
 
 #define mld_aarch64_ntt_zetas_layer123456 \
-  MLD_NAMESPACE(mld_aarch64_ntt_zetas_layer123456)
-#define mld_aarch64_ntt_zetas_layer78 \
-  MLD_NAMESPACE(mld_aarch64_ntt_zetas_layer78)
+  MLD_NAMESPACE(aarch64_ntt_zetas_layer123456)
+#define mld_aarch64_ntt_zetas_layer78 MLD_NAMESPACE(aarch64_ntt_zetas_layer78)
 
-#define mld_aarch64_intt_zetas_layer78 \
-  MLD_NAMESPACE(mld_aarch64_intt_zetas_layer78)
+#define mld_aarch64_intt_zetas_layer78 MLD_NAMESPACE(aarch64_intt_zetas_layer78)
 #define mld_aarch64_intt_zetas_layer123456 \
-  MLD_NAMESPACE(mld_aarch64_intt_zetas_layer123456)
+  MLD_NAMESPACE(aarch64_intt_zetas_layer123456)
 
 extern const int32_t mld_aarch64_ntt_zetas_layer123456[];
 extern const int32_t mld_aarch64_ntt_zetas_layer78[];
@@ -26,9 +24,9 @@ extern const int32_t mld_aarch64_ntt_zetas_layer78[];
 extern const int32_t mld_aarch64_intt_zetas_layer78[];
 extern const int32_t mld_aarch64_intt_zetas_layer123456[];
 
-#define mld_rej_uniform_table MLD_NAMESPACE(mld_rej_uniform_table)
+#define mld_rej_uniform_table MLD_NAMESPACE(rej_uniform_table)
 extern const uint8_t mld_rej_uniform_table[];
-#define mld_rej_uniform_eta_table MLD_NAMESPACE(mld_rej_uniform_eta_table)
+#define mld_rej_uniform_eta_table MLD_NAMESPACE(rej_uniform_eta_table)
 extern const uint8_t mld_rej_uniform_eta_table[];
 
 

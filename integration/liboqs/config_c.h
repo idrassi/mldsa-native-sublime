@@ -47,15 +47,18 @@
   44 /* Change this for different security strengths */
 #endif
 
-#if MLD_CONFIG_PARAMETER_SET == 44
-#define MLD_NAMESPACETOP PQCP_MLDSA_NATIVE_MLDSA44_C_
-#define MLD_NAMESPACE(s) PQCP_MLDSA_NATIVE_MLDSA44_C_##s
-#elif MLD_CONFIG_PARAMETER_SET == 65
-#define MLD_NAMESPACETOP PQCP_MLDSA_NATIVE_MLDSA65_C_
-#define MLD_NAMESPACE(s) PQCP_MLDSA_NATIVE_MLDSA65_C_##s
-#elif MLD_CONFIG_PARAMETER_SET == 87
-#define MLD_NAMESPACETOP PQCP_MLDSA_NATIVE_MLDSA87_C_
-#define MLD_NAMESPACE(s) PQCP_MLDSA_NATIVE_MLDSA87_C_##s
+/******************************************************************************
+ * Name:        MLD_CONFIG_NAMESPACE_PREFIX
+ *
+ * Description: The prefix to use to namespace global symbols from mldsa/.
+ *              For integration builds, this adds an architecture-specific
+ *              suffix to distinguish different builds.
+ *
+ *              This can also be set using CFLAGS.
+ *
+ *****************************************************************************/
+#if !defined(MLD_CONFIG_NAMESPACE_PREFIX)
+#define MLD_CONFIG_NAMESPACE_PREFIX MLD_DEFAULT_NAMESPACE_PREFIX
 #endif
 
 /******************************************************************************
@@ -273,5 +276,27 @@ static MLD_INLINE void mld_randombytes(uint8_t *ptr, size_t len)
 #include <oqs/common.h>
 #define MLD_CONFIG_EXTERNAL_API_QUALIFIER OQS_API
 #endif /* !__ASSEMBLER__ */
+
+/*************************  Config internals  ********************************/
+
+/* Default namespace
+ *
+ * Don't change this. If you need a different namespace, re-define
+ * MLD_CONFIG_NAMESPACE_PREFIX above instead, and remove the following.
+ *
+ * The default MLDSA namespace for C integration is
+ *
+ *   PQCP_MLDSA_NATIVE_MLDSA<LEVEL>_C_
+ *
+ * e.g., PQCP_MLDSA_NATIVE_MLDSA44_C_
+ */
+
+#if MLD_CONFIG_PARAMETER_SET == 44
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA44_C
+#elif MLD_CONFIG_PARAMETER_SET == 65
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA65_C
+#elif MLD_CONFIG_PARAMETER_SET == 87
+#define MLD_DEFAULT_NAMESPACE_PREFIX PQCP_MLDSA_NATIVE_MLDSA87_C
+#endif
 
 #endif /* !MLD_INTEGRATION_LIBOQS_CONFIG_C_H */
