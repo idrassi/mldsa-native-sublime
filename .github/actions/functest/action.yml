@@ -24,6 +24,9 @@ inputs:
   cflags:
     description: CFLAGS to pass to compilation
     default: ""
+  ldflags:
+    description: LDFLAGS to pass to linking
+    default: ""
   cross_prefix:
     description: Binary prefix for cross compilation
     default: ""
@@ -95,7 +98,7 @@ runs:
         shell: ${{ env.SHELL }}
         run: |
           make clean
-          ./scripts/tests all --exec-wrapper="${{ inputs.exec_wrapper }}" --cross-prefix="${{ inputs.cross_prefix }}" --cflags="${{ inputs.cflags }}" --opt=${{ inputs.opt }} --${{ env.FUNC }} --${{ env.KAT }} --${{ env.ACVP }} --${{ env.EXAMPLES }} --${{ env.STACK }} -v
+          ./scripts/tests all --exec-wrapper="${{ inputs.exec_wrapper }}" --cross-prefix="${{ inputs.cross_prefix }}" --cflags="${{ inputs.cflags }}" --ldflags="${{ inputs.ldflags }}" --opt=${{ inputs.opt }} --${{ env.FUNC }} --${{ env.KAT }} --${{ env.ACVP }} --${{ env.EXAMPLES }} --${{ env.STACK }} -v
       - name: Post ${{ env.MODE }} Tests
         shell: ${{ env.SHELL }}
         if: success() || failure()

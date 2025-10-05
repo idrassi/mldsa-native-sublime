@@ -152,6 +152,7 @@ jobs:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           compile_mode: native
           cflags: "-DMLDSA_DEBUG -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all"
+          ldflags: "-fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all"
   compiler_tests:
     name: Compiler tests  (${{ matrix.compiler.name }}, ${{ matrix.target.name }}, ${{ matrix.cflags }})
     strategy:

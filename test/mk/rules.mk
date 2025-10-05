@@ -5,17 +5,17 @@
 $(BUILD_DIR)/mldsa44/bin/%: $(CONFIG)
 	$(Q)echo "  LD      $@"
 	$(Q)[ -d $(@D) ] || mkdir -p $(@D)
-	$(Q)$(LD) $(CFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
 
 $(BUILD_DIR)/mldsa65/bin/%: $(CONFIG)
 	$(Q)echo "  LD      $@"
 	$(Q)[ -d $(@D) ] || mkdir -p $(@D)
-	$(Q)$(LD) $(CFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
 
 $(BUILD_DIR)/mldsa87/bin/%: $(CONFIG)
 	$(Q)echo "  LD      $@"
 	$(Q)[ -d $(@D) ] || mkdir -p $(@D)
-	$(Q)$(LD) $(CFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(filter %.o,$^) $(LDLIBS)
 
 $(BUILD_DIR)/%.a: $(CONFIG)
 	$(Q)echo "  AR      $@"
