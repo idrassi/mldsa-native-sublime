@@ -200,6 +200,7 @@ class TEST_TYPES(Enum):
     ACVP = 5
     STACK = 6
     SIZE = 7
+    BASIC = 8
 
     def is_benchmark(self):
         return self in [TEST_TYPES.BENCH, TEST_TYPES.BENCH_COMPONENTS]
@@ -209,7 +210,7 @@ class TEST_TYPES(Enum):
 
     @staticmethod
     def examples():
-        return []
+        return [TEST_TYPES.BASIC]
 
     @staticmethod
     def from_string(s):
@@ -238,8 +239,12 @@ class TEST_TYPES(Enum):
             return "Stack Usage Test"
         if self == TEST_TYPES.SIZE:
             return "Measurement Code Size"
+        if self == TEST_TYPES.BASIC:
+            return "Example (mldsa-native as code package)"
 
     def make_dir(self):
+        if self == TEST_TYPES.BASIC:
+            return "examples/basic"
         return ""
 
     def make_target(self):
@@ -257,6 +262,9 @@ class TEST_TYPES(Enum):
             return "stack"
         if self == TEST_TYPES.SIZE:
             return "size"
+        if self == TEST_TYPES.BASIC:
+            return ""
+        return ""
 
     def make_run_target(self, scheme):
         t = self.make_target()
@@ -938,7 +946,7 @@ def cli():
     examples_parser.add_argument(
         "-l",
         help="Explicitly list the examples to run; can be called multiple times",
-        choices=[],
+        choices=["basic"],
         action="append",
     )
 

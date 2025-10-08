@@ -233,6 +233,8 @@ source code and documentation.
   - Daniel J. Bernstein
 * URL: https://cr.yp.to/papers.html#surf
 * Referenced from:
+  - [examples/basic/test_only_rng/notrandombytes.c](examples/basic/test_only_rng/notrandombytes.c)
+  - [examples/basic/test_only_rng/notrandombytes.h](examples/basic/test_only_rng/notrandombytes.h)
   - [test/notrandombytes/notrandombytes.c](test/notrandombytes/notrandombytes.c)
   - [test/notrandombytes/notrandombytes.h](test/notrandombytes/notrandombytes.h)
 
