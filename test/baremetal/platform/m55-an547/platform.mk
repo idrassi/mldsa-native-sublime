@@ -59,3 +59,5 @@ LDFLAGS += \
 # Extra sources to be included in test binaries
 EXTRA_SOURCES = $(wildcard $(M55_AN547_PATH)/*.c)
 EXEC_WRAPPER := $(realpath $(PLATFORM_PATH)/exec_wrapper.py)
+
+CYCLES ?= SYSTICK

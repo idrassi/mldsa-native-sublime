@@ -17,14 +17,18 @@
 #define SHA3_256_HASHBYTES 32
 #define SHA3_512_HASHBYTES 64
 
+#ifndef FIPS202_NAMESPACE
 #define FIPS202_NAMESPACE(s) mldsa_fips202_ref_##s
+#endif
 
+#define mld_shake128ctx FIPS202_NAMESPACE(shake128ctx)
 typedef struct
 {
   uint64_t s[MLD_KECCAK_LANES];
   unsigned int pos;
 } mld_shake128ctx;
 
+#define mld_shake256ctx FIPS202_NAMESPACE(shake256ctx)
 typedef struct
 {
   uint64_t s[MLD_KECCAK_LANES];

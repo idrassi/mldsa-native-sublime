@@ -74,6 +74,10 @@ ifeq ($(CYCLES),MAC)
 	CFLAGS += -DMAC_CYCLES
 endif
 
+ifeq ($(CYCLES),SYSTICK)
+	CFLAGS += -DSYSTICK_CYCLES
+endif
+
 ##############################
 # Include retained variables #
 ##############################

@@ -4,7 +4,7 @@
 
 FIPS202_SRCS = $(wildcard mldsa/fips202/*.c)
 ifeq ($(OPT),1)
-	FIPS202_SRCS += $(wildcard mldsa/fips202/native/aarch64/src/*.S) $(wildcard mldsa/fips202/native/aarch64/src/*.c) $(wildcard mldsa/fips202/native/x86_64/src/*.c)
+	FIPS202_SRCS += $(wildcard mldsa/fips202/native/aarch64/src/*.S) $(wildcard mldsa/fips202/native/aarch64/src/*.c) $(wildcard mldsa/fips202/native/x86_64/src/*.c) $(wildcard mldsa/fips202/native/armv8.1_m/src/*.[csS])
 endif
 
 
@@ -14,7 +14,7 @@ ifeq ($(OPT),1)
 	CFLAGS += -DMLD_CONFIG_USE_NATIVE_BACKEND_ARITH -DMLD_CONFIG_USE_NATIVE_BACKEND_FIPS202
 endif
 
-ALL_TESTS = test_mldsa acvp_mldsa bench_mldsa bench_components_mldsa gen_KAT test_stack
+ALL_TESTS = test_mldsa acvp_mldsa bench_mldsa bench_components_mldsa gen_KAT test_stack test_unit
 
 MLDSA44_DIR = $(BUILD_DIR)/mldsa44
 MLDSA65_DIR = $(BUILD_DIR)/mldsa65

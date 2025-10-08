@@ -39,36 +39,42 @@
 void mld_keccakf1600_extract_bytes(uint64_t *state, unsigned char *data,
                                    unsigned offset, unsigned length)
 {
+#if defined(MLD_USE_FIPS202_X1_XOR_NATIVE)
+  mld_keccakf1600_extract_bytes_native(state, data, offset, length);
+#elif defined(MLD_SYS_LITTLE_ENDIAN)
   unsigned i;
-#if defined(MLD_SYS_LITTLE_ENDIAN)
   uint8_t *state_ptr = (uint8_t *)state + offset;
   for (i = 0; i < length; i++)
   __loop__(invariant(i <= length))
   {
     data[i] = state_ptr[i];
   }
-#else  /* MLD_SYS_LITTLE_ENDIAN */
+#else  /* !MLD_USE_FIPS202_X1_XOR_NATIVE && MLD_SYS_LITTLE_ENDIAN */
+  unsigned i;
   /* Portable version */
   for (i = 0; i < length; i++)
   __loop__(invariant(i <= length))
   {
     data[i] = (state[(offset + i) >> 3] >> (8 * ((offset + i) & 0x07))) & 0xFF;
   }
-#endif /* !MLD_SYS_LITTLE_ENDIAN */
+#endif /* !MLD_USE_FIPS202_X1_XOR_NATIVE && !MLD_SYS_LITTLE_ENDIAN */
 }
 
 void mld_keccakf1600_xor_bytes(uint64_t *state, const unsigned char *data,
                                unsigned offset, unsigned length)
 {
+#if defined(MLD_USE_FIPS202_X1_XOR_NATIVE)
+  mld_keccakf1600_xor_bytes_native(state, data, offset, length);
+#elif defined(MLD_SYS_LITTLE_ENDIAN)
   unsigned i;
-#if defined(MLD_SYS_LITTLE_ENDIAN)
   uint8_t *state_ptr = (uint8_t *)state + offset;
   for (i = 0; i < length; i++)
   __loop__(invariant(i <= length))
   {
     state_ptr[i] ^= data[i];
   }
-#else  /* MLD_SYS_LITTLE_ENDIAN */
+#else  /* !MLD_USE_FIPS202_X1_XOR_NATIVE && MLD_SYS_LITTLE_ENDIAN */
+  unsigned i;
   /* Portable version */
   for (i = 0; i < length; i++)
   __loop__(invariant(i <= length))
@@ -76,7 +82,7 @@ void mld_keccakf1600_xor_bytes(uint64_t *state, const unsigned char *data,
     state[(offset + i) >> 3] ^= (uint64_t)data[i]
                                 << (8 * ((offset + i) & 0x07));
   }
-#endif /* !MLD_SYS_LITTLE_ENDIAN */
+#endif /* !MLD_USE_FIPS202_X1_XOR_NATIVE && !MLD_SYS_LITTLE_ENDIAN */
 }
 
 void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
@@ -84,6 +90,10 @@ void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
                                      unsigned char *data3, unsigned offset,
                                      unsigned length)
 {
+#if defined(MLD_USE_FIPS202_X4_XOR_NATIVE)
+  mld_keccakf1600_extract_bytes_x4_native(state, data0, data1, data2, data3,
+                                          offset, length);
+#else
   mld_keccakf1600_extract_bytes(state + MLD_KECCAK_LANES * 0, data0, offset,
                                 length);
   mld_keccakf1600_extract_bytes(state + MLD_KECCAK_LANES * 1, data1, offset,
@@ -92,6 +102,7 @@ void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
                                 length);
   mld_keccakf1600_extract_bytes(state + MLD_KECCAK_LANES * 3, data3, offset,
                                 length);
+#endif /* !MLD_USE_FIPS202_X4_XOR_NATIVE */
 }
 
 void mld_keccakf1600x4_xor_bytes(uint64_t *state, const unsigned char *data0,
@@ -100,6 +111,10 @@ void mld_keccakf1600x4_xor_bytes(uint64_t *state, const unsigned char *data0,
                                  const unsigned char *data3, unsigned offset,
                                  unsigned length)
 {
+#if defined(MLD_USE_FIPS202_X4_XOR_NATIVE)
+  mld_keccakf1600_xor_bytes_x4_native(state, data0, data1, data2, data3, offset,
+                                      length);
+#else
   mld_keccakf1600_xor_bytes(state + MLD_KECCAK_LANES * 0, data0, offset,
                             length);
   mld_keccakf1600_xor_bytes(state + MLD_KECCAK_LANES * 1, data1, offset,
@@ -108,6 +123,7 @@ void mld_keccakf1600x4_xor_bytes(uint64_t *state, const unsigned char *data0,
                             length);
   mld_keccakf1600_xor_bytes(state + MLD_KECCAK_LANES * 3, data3, offset,
                             length);
+#endif /* !MLD_USE_FIPS202_X4_XOR_NATIVE */
 }
 
 void mld_keccakf1600x4_permute(uint64_t *state)

@@ -35,6 +35,10 @@
 #define MLD_SYS_AARCH64_EB
 #endif
 
+#if defined(__ARM_ARCH_8_1M_MAIN__) || defined(__ARM_FEATURE_MVE)
+#define MLD_SYS_ARMV81M
+#endif
+
 #if defined(__x86_64__)
 #define MLD_SYS_X86_64
 #if defined(__AVX2__)

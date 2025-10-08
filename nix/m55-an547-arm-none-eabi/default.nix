@@ -8,15 +8,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "mldsa-native-m55-an547";
-  version = "main-2025-10-02";
-
+  version = "main-2025-10-13";
 
   # Fetch platform files from pqmx (envs/m55-an547)
   src = fetchFromGitHub {
-    owner = "slothy-optimizer";
+    owner = "bremoran";
     repo = "pqmx";
-    rev = "4ed493d3cf2af62a08fd9fe36c3472a0dc50ad9f";
-    hash = "sha256-jLIqwknjRwcoDeEAETlMhRqZQ5a3QGCDZX9DENelGeQ=";
+    rev = "3b4177cb76a614ed1887bcc2f90e571469d6fe2f";
+    hash = "sha256-27ur5JYtZbwQ0fnrp/0Cj/R60TaZwouimFgOJGPjpMk=";
   };
 
   dontBuild = true;

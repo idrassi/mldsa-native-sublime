@@ -94,6 +94,43 @@ uint64_t get_cyclecounter(void)
   __asm __volatile("mrs    %[retval], pmccntr_el0\n" : [retval] "=r"(retval));
   return retval;
 }
+#elif defined(__ARM_ARCH_8_1M_MAIN__) || defined(__ARM_FEATURE_MVE)
+#include <ARMCM55.h>
+#include <system_ARMCM55.h>
+#include <uart.h>
+#include "pmu_armv8.h"
+
+volatile uint64_t v8m_pmu_cycles;
+void DebugMon_Handler(void)
+{
+  uint32_t ovsclr;
+  ARM_PMU_CNTR_Disable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
+  v8m_pmu_cycles += ARM_PMU_Get_CCNTR();
+  ovsclr = ARM_PMU_Get_CNTR_OVS();
+  ARM_PMU_Set_CNTR_OVS(ovsclr);
+  ARM_PMU_CYCCNT_Reset();
+  ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
+}
+void enable_cyclecounter(void)
+{
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk | CoreDebug_DEMCR_MON_EN_Msk;
+  ARM_PMU_Enable();
+
+  v8m_pmu_cycles = 0;
+  ARM_PMU_CYCCNT_Reset();
+}
+void disable_cyclecounter(void)
+{
+  ARM_PMU_Disable();
+  CoreDebug->DEMCR &=
+      (~CoreDebug_DEMCR_TRCENA_Msk) & (~CoreDebug_DEMCR_MON_EN_Msk);
+}
+uint64_t get_cyclecounter(void)
+{
+  v8m_pmu_cycles += ARM_PMU_Get_CCNTR();
+  ARM_PMU_CYCCNT_Reset();
+  return v8m_pmu_cycles;
+}
 
 #else
 #error PMU_CYCLES option only supported on x86_64 and AArch64
@@ -303,6 +340,64 @@ uint64_t get_cyclecounter(void)
     return 1;
   }
   return g_counters[2];
+}
+
+#elif defined(SYSTICK_CYCLES)
+#include <ARMCM55.h>
+#include <system_ARMCM55.h>
+static volatile uint32_t systick_overflows;
+void SysTick_Handler(void)
+{
+  uint32_t cnt;
+  uint32_t fail;
+  do
+  {
+    __asm__ volatile(
+        "ldrex %[val], [%[guard]]\n"
+        "addw %[val], %[val], #1\n"
+        "strex %[fail], %[val], [%[guard]]\n"
+        : [fail] "=r"(fail), [val] "=&r"(cnt)
+        : [guard] "r"(&systick_overflows)
+        : "memory");
+  } while (fail);
+}
+
+void enable_cyclecounter(void)
+{
+  uint32_t cnt;
+  uint32_t fail;
+  do
+  {
+    __asm__ volatile("ldrex.w %[val], [%[guard]]"
+                     : [val] "=&r"(cnt)
+                     : [guard] "r"(&systick_overflows));
+    cnt = 0;
+    __asm__ volatile("strex.w %[fail], %[val], [%[guard]]"
+                     : [fail] "=r"(fail), [val] "=&r"(cnt)
+                     : [guard] "r"(&systick_overflows)
+                     : "memory");
+  } while (fail);
+  SysTick_Config(0xFFFFFFu);
+}
+
+void disable_cyclecounter(void) { return; }
+
+uint64_t get_cyclecounter(void)
+{
+  uint32_t val;
+  uint32_t cnt;
+  uint32_t fail;
+  do
+  {
+    __asm__ volatile(
+        "ldrex %[cnt], [%[guard]]\n"
+        "ldr %[val], [%[systv]]\n"
+        "strex %[fail], %[cnt], [%[guard]]\n"
+        : [fail] "=r"(fail), [cnt] "=&r"(cnt), [val] "=r"(val)
+        : [guard] "r"(&systick_overflows), [systv] "r"(&(SysTick->VAL))
+        : "memory");
+  } while (fail);
+  return ((uint64_t)cnt + 1) * 16777216llu - val;
 }
 
 #else

@@ -16,11 +16,13 @@
 #include "keccakf1600.h"
 
 /* Context for non-incremental API */
+#define mld_shake128x4ctx FIPS202_NAMESPACE(shake128x4ctx)
 typedef struct
 {
   uint64_t ctx[MLD_KECCAK_LANES * MLD_KECCAK_WAY];
 } mld_shake128x4ctx;
 
+#define mld_shake256x4ctx FIPS202_NAMESPACE(shake256x4ctx)
 typedef struct
 {
   uint64_t ctx[MLD_KECCAK_LANES * MLD_KECCAK_WAY];
