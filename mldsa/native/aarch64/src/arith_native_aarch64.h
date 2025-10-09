@@ -93,4 +93,9 @@ void mld_polyz_unpack_17_asm(int32_t *r, const uint8_t *buf,
 void mld_polyz_unpack_19_asm(int32_t *r, const uint8_t *buf,
                              const uint8_t *indices);
 
+#define mld_poly_pointwise_montgomery_asm \
+  MLD_NAMESPACE(poly_pointwise_montgomery_asm)
+void mld_poly_pointwise_montgomery_asm(int32_t *, const int32_t *,
+                                       const int32_t *);
+
 #endif /* !MLD_NATIVE_AARCH64_SRC_ARITH_NATIVE_AARCH64_H */

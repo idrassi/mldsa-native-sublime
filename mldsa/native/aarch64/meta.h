@@ -21,6 +21,7 @@
 #define MLD_USE_NATIVE_POLY_CHKNORM
 #define MLD_USE_NATIVE_POLYZ_UNPACK_17
 #define MLD_USE_NATIVE_POLYZ_UNPACK_19
+#define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
 
 /* Identifier for this backend so that source and assembly files
  * in the build can be appropriately guarded. */
@@ -145,6 +146,13 @@ static MLD_INLINE void mld_polyz_unpack_19_native(int32_t *r,
                                                   const uint8_t *buf)
 {
   mld_polyz_unpack_19_asm(r, buf, mld_polyz_unpack_19_indices);
+}
+
+static MLD_INLINE void mld_poly_pointwise_montgomery_native(
+    int32_t out[MLDSA_N], const int32_t in0[MLDSA_N],
+    const int32_t in1[MLDSA_N])
+{
+  mld_poly_pointwise_montgomery_asm(out, in0, in1);
 }
 
 #endif /* !__ASSEMBLER__ */
