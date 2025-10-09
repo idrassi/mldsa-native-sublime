@@ -22,6 +22,9 @@
 #define MLD_USE_NATIVE_POLYZ_UNPACK_17
 #define MLD_USE_NATIVE_POLYZ_UNPACK_19
 #define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5
+#define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7
 
 /* Identifier for this backend so that source and assembly files
  * in the build can be appropriately guarded. */
@@ -153,6 +156,30 @@ static MLD_INLINE void mld_poly_pointwise_montgomery_native(
     const int32_t in1[MLDSA_N])
 {
   mld_poly_pointwise_montgomery_asm(out, in0, in1);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l4_native(
+    int32_t w[MLDSA_N], const int32_t u[4][MLDSA_N],
+    const int32_t v[4][MLDSA_N])
+{
+  mld_polyvecl_pointwise_acc_montgomery_l4_asm(w, (const int32_t *)u,
+                                               (const int32_t *)v);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l5_native(
+    int32_t w[MLDSA_N], const int32_t u[5][MLDSA_N],
+    const int32_t v[5][MLDSA_N])
+{
+  mld_polyvecl_pointwise_acc_montgomery_l5_asm(w, (const int32_t *)u,
+                                               (const int32_t *)v);
+}
+
+static MLD_INLINE void mld_polyvecl_pointwise_acc_montgomery_l7_native(
+    int32_t w[MLDSA_N], const int32_t u[7][MLDSA_N],
+    const int32_t v[7][MLDSA_N])
+{
+  mld_polyvecl_pointwise_acc_montgomery_l7_asm(w, (const int32_t *)u,
+                                               (const int32_t *)v);
 }
 
 #endif /* !__ASSEMBLER__ */

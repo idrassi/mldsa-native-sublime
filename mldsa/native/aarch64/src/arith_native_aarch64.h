@@ -98,4 +98,19 @@ void mld_polyz_unpack_19_asm(int32_t *r, const uint8_t *buf,
 void mld_poly_pointwise_montgomery_asm(int32_t *, const int32_t *,
                                        const int32_t *);
 
+#define mld_polyvecl_pointwise_acc_montgomery_l4_asm \
+  MLD_NAMESPACE(polyvecl_pointwise_acc_montgomery_l4_asm)
+void mld_polyvecl_pointwise_acc_montgomery_l4_asm(int32_t *, const int32_t *,
+                                                  const int32_t *);
+
+#define mld_polyvecl_pointwise_acc_montgomery_l5_asm \
+  MLD_NAMESPACE(polyvecl_pointwise_acc_montgomery_l5_asm)
+void mld_polyvecl_pointwise_acc_montgomery_l5_asm(int32_t *, const int32_t *,
+                                                  const int32_t *);
+
+#define mld_polyvecl_pointwise_acc_montgomery_l7_asm \
+  MLD_NAMESPACE(polyvecl_pointwise_acc_montgomery_l7_asm)
+void mld_polyvecl_pointwise_acc_montgomery_l7_asm(int32_t *, const int32_t *,
+                                                  const int32_t *);
+
 #endif /* !MLD_NATIVE_AARCH64_SRC_ARITH_NATIVE_AARCH64_H */
