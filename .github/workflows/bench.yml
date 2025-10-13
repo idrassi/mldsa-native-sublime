@@ -73,7 +73,7 @@ jobs:
           cflags: "-flto"
           ldflags: "-flto"
           bench_extra_args: "-r"
-          nix_shell: ci-bench
+          nix_shell: ci_clang21
           only_no_opt: false
     if: github.repository_owner == 'pq-code-package' && (github.event.label.name == 'benchmark' || github.ref == 'refs/heads/main')
     runs-on: self-hosted-${{ matrix.target.system }}
