@@ -134,7 +134,7 @@ __contract__(
   requires(memory_no_alias(m, mlen))
   requires(memory_no_alias(rnd, MLDSA_RNDBYTES))
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
-  requires((externalmu == 0 && pre != NULL && prelen >= 2 && memory_no_alias(pre, prelen)) ||
+  requires((externalmu == 0 && (prelen == 0 || memory_no_alias(pre, prelen))) ||
            (externalmu == 1 && mlen == MLDSA_CRHBYTES))
   assigns(memory_slice(sig, CRYPTO_BYTES))
   assigns(object_whole(siglen))
@@ -153,7 +153,7 @@ __contract__(
  *              - uint8_t *m:     pointer to message to be signed
  *              - size_t mlen:    length of message
  *              - uint8_t *ctx:   pointer to context string. May be NULL
- *                                iff ctxlen == 0
+ *                                if ctxlen == 0
  *              - size_t ctxlen:  length of context string. Should be <= 255.
  *              - uint8_t *sk:    pointer to bit-packed secret key
  *
@@ -173,7 +173,7 @@ __contract__(
   requires(memory_no_alias(siglen, sizeof(size_t)))
   requires(memory_no_alias(m, mlen))
   requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
-  requires((ctx == NULL && ctxlen == 0) || memory_no_alias(ctx, ctxlen))
+  requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
   assigns(memory_slice(sig, CRYPTO_BYTES))
   assigns(object_whole(siglen))
@@ -281,7 +281,7 @@ __contract__(
   requires(memory_no_alias(sig, siglen))
   requires(memory_no_alias(m, mlen))
   requires(externalmu == 0 || (externalmu == 1 && mlen == MLDSA_CRHBYTES))
-  requires(externalmu == 1 || memory_no_alias(pre, prelen))
+  requires(externalmu == 1 || prelen == 0 || memory_no_alias(pre, prelen))
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
   ensures(return_value == 0 || return_value == -1)
 );
@@ -296,7 +296,7 @@ __contract__(
  *              - const uint8_t *m: pointer to message
  *              - size_t mlen: length of message
  *              - const uint8_t *ctx: pointer to context string
- *                                    May be NULL iff ctxlen == 0
+ *                                    May be NULL if ctxlen == 0
  *              - size_t ctxlen: length of context string
  *              - const uint8_t *pk: pointer to bit-packed public key
  *
@@ -316,7 +316,7 @@ __contract__(
   requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(sig, siglen))
   requires(memory_no_alias(m, mlen))
-  requires((ctx == NULL && ctxlen == 0) || memory_no_alias(ctx, ctxlen))
+  requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
   ensures(return_value == 0 || return_value == -1)
 );

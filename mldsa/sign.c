@@ -245,11 +245,11 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
  *                                    Must NOT be NULL
  *              - size_t in1len: length of input in1 bytes
  *              - const uint8_t *in2: pointer to input block 2
- *                                    May be NULL, in which case
+ *                                    May be NULL if in2len=0, in which case
  *                                    this block is ignored
  *              - size_t in2len: length of input in2 bytes
  *              - const uint8_t *in3: pointer to input block 3
- *                                    May be NULL, in which case
+ *                                    May be NULL if in3len=0, in which case
  *                                    this block is ignored
  *              - size_t in3len: length of input in3 bytes
  **************************************************/
@@ -262,8 +262,8 @@ __contract__(
   requires(in3len <= MLD_MAX_BUFFER_SIZE)
   requires(outlen <= 8 * SHAKE256_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(in1, in1len))
-  requires(in2 == NULL || memory_no_alias(in2, in2len))
-  requires(in3 == NULL || memory_no_alias(in3, in3len))
+  requires(in2len == 0 || memory_no_alias(in2, in2len))
+  requires(in3len == 0 || memory_no_alias(in3, in3len))
   requires(memory_no_alias(out, outlen))
   assigns(memory_slice(out, outlen))
 )
@@ -271,11 +271,11 @@ __contract__(
   mld_shake256ctx state;
   mld_shake256_init(&state);
   mld_shake256_absorb(&state, in1, in1len);
-  if (in2 != NULL)
+  if (in2len != 0)
   {
     mld_shake256_absorb(&state, in2, in2len);
   }
-  if (in3 != NULL)
+  if (in3len != 0)
   {
     mld_shake256_absorb(&state, in3, in3len);
   }
