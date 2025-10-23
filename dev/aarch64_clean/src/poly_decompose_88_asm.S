@@ -5,6 +5,7 @@
 #include "../../../common.h"
 
 #if defined(MLD_ARITH_BACKEND_AARCH64) && !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 // a aliased with a0
 .macro decompose88 a1, a, temp
@@ -98,5 +99,5 @@ poly_decompose_88_loop:
         .unreq q_bound
         .unreq gamma2_2x
         .unreq barrett_const
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

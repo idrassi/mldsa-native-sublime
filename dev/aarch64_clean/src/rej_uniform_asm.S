@@ -7,6 +7,7 @@
  #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_AARCH64) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 // We save the output on the stack first, and copy to the actual
 // output buffer only in the end. This is because the main loop can overwrite
@@ -405,5 +406,5 @@ rej_uniform_return:
 
 /* TODO: autogenerate this in autogen */
 #undef STACK_SIZE
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

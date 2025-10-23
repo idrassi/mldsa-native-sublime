@@ -4,6 +4,7 @@
 
 #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_AARCH64)
+/* simpasm: header-end */
 
 .macro montgomery_reduce_long res, inl, inh
     uzp1   \res\().4s, \inl\().4s, \inh\().4s
@@ -117,4 +118,5 @@ l5_loop_start:
     cbnz count, l5_loop_start
 
     ret
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 */

@@ -6,6 +6,7 @@
 
  #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_AARCH64) && !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 .macro trim_map_19 a
         // Keep only 20 out of 24 bits in each 32-bit lane
@@ -96,5 +97,5 @@ polyz_unpack_19_loop:
         .unreq shifts
         .unreq mask
         .unreq gamma1
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

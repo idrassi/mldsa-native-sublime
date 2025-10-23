@@ -25,6 +25,7 @@
 
 #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_AARCH64)
+/* simpasm: header-end */
 
 .macro mulmodq dst, src, const, idx0, idx1
         sqrdmulh t2.4s,      \src\().4s, \const\().s[\idx1\()]
@@ -302,4 +303,5 @@ layer45678_start:
        pop_stack
        ret
 
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 */

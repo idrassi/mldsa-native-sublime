@@ -7,6 +7,7 @@
 #include "../../../common.h"
 #if defined(MLD_ARITH_BACKEND_AARCH64) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 // We save the output on the stack first, and copy to the actual
 // output buffer only in the end. This is because the main loop can overwrite
@@ -220,7 +221,7 @@ rej_uniform_eta4_loop8:
 
         cmp buflen, #8
         b.hs rej_uniform_eta4_loop8
-rej_uniform_eta4_loop8_end:
+
 rej_uniform_eta4_memory_copy:
     // min = min(count,len)
     cmp  count, len
@@ -304,5 +305,5 @@ rej_uniform_eta4_final_copy:
     .unreq bits
 
 #undef STACK_SIZE
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

@@ -5,6 +5,7 @@
 #include "../../../common.h"
 
 #if defined(MLD_ARITH_BACKEND_AARCH64) && !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 .macro chknorm a
         abs \a\().4s, \a\().4s
@@ -58,5 +59,5 @@ poly_chknorm_loop:
         .unreq count
         .unreq bound
         .unreq flags
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

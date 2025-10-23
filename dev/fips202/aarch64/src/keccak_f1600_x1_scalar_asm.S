@@ -12,6 +12,7 @@
 #include "../../../../common.h"
 #if defined(MLD_FIPS202_AARCH64_NEED_X1_SCALAR) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 /*
  * WARNING: This file is auto-derived from the mlkem-native source file
@@ -316,6 +317,6 @@ keccak_f1600_x1_scalar_loop:
         ldp	x29, x30, [sp, #0x70]
         add	sp, sp, #0x80
         ret
-
+/* simpasm: footer-start */
 #endif /* MLD_FIPS202_AARCH64_NEED_X1_SCALAR && \
           !MLD_CONFIG_MULTILEVEL_NO_SHARED */

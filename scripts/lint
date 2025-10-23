@@ -167,7 +167,9 @@ check-spdx()
   for file in $(git ls-files -- "*.[chsSi]" | grep "^dev/\|^mldsa/"); do
     # TODO: Temporarily exclude AArch64 (i)NTT pending license resolution (see issue #381)
     if [[ $file == "mldsa/native/aarch64/src/ntt.S" ]] ||
-      [[ $file == "mldsa/native/aarch64/src/intt.S" ]]; then
+      [[ $file == "mldsa/native/aarch64/src/intt.S" ]] ||
+      [[ $file == "dev/aarch64_clean/src/ntt.S" ]] ||
+      [[ $file == "dev/aarch64_clean/src/intt.S" ]]; then
       continue
     fi
     # Ignore symlinks

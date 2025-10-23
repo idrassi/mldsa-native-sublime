@@ -5,6 +5,7 @@
 #include "../../../common.h"
 
 #if defined(MLD_ARITH_BACKEND_AARCH64) && !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 .macro caddq inout
         ushr tmp.4s, \inout\().4s, #31
@@ -12,7 +13,7 @@
 .endm
 
 .global MLD_ASM_NAMESPACE(poly_caddq_asm)
-.balign 16
+.balign 4
 MLD_ASM_FN_SYMBOL(poly_caddq_asm)
         // Function signature: void mld_poly_caddq_asm(int32_t *a)
         // x0: pointer to polynomial coefficients
@@ -55,5 +56,5 @@ poly_caddq_loop:
         .unreq count
         .unreq q_reg
         .unreq tmp
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */

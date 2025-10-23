@@ -29,6 +29,7 @@
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
 
 #if defined(__ARM_FEATURE_SHA3)
+/* simpasm: header-end */
 
 /*
  * WARNING: This file is auto-derived from the mlkem-native source file
@@ -204,7 +205,7 @@ keccak_f1600_x2_v84a_loop:
         ldp	d14, d15, [sp, #0x30]
         add	sp, sp, #0x40
         ret
-
+/* simpasm: footer-start */
 #endif /* __ARM_FEATURE_SHA3 */
 
 #endif /* MLD_FIPS202_AARCH64_NEED_X2_V84A && !MLD_CONFIG_MULTILEVEL_NO_SHARED \

@@ -22,6 +22,7 @@
 
 #if defined(MLD_ARITH_BACKEND_X86_64_DEFAULT) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 .macro shuffle8 r0,r1,r2,r3
 vperm2i128	$0x20,%ymm\r1,%ymm\r0,%ymm\r2
@@ -95,6 +96,6 @@ vmovdqa		%ymm11,224(%rdi)
 
 ret
 
-
+/* simpasm: footer-start */
 #endif /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED \
         */

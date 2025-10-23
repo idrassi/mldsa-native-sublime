@@ -12,6 +12,7 @@
 #include "../../../../common.h"
 #if defined(MLD_FIPS202_AARCH64_NEED_X4_V8A_SCALAR_HYBRID) && \
     !defined(MLD_CONFIG_MULTILEVEL_NO_SHARED)
+/* simpasm: header-end */
 
 /*
  * WARNING: This file is auto-derived from the mlkem-native source file
@@ -1000,6 +1001,6 @@ keccak_f1600_x4_scalar_v8a_hybrid_done:
         ldp	x29, x30, [sp, #0x80]
         add	sp, sp, #0xe0
         ret
-
+/* simpasm: footer-start */
 #endif /* MLD_FIPS202_AARCH64_NEED_X4_V8A_SCALAR_HYBRID && \
           !MLD_CONFIG_MULTILEVEL_NO_SHARED */
