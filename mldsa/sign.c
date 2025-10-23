@@ -298,6 +298,69 @@ __contract__(
 /* @[FIPS204, Appendix C].                                        */
 #define NONCE_UB ((UINT16_MAX - MLDSA_L) / MLDSA_L)
 
+
+static void mld_mv_multiply(mld_polyveck *w, const mld_polyvecl mat[MLDSA_K],
+                            const mld_polyvecl *y)
+__contract__(
+  requires(memory_no_alias(w, sizeof(mld_polyveck)))
+  requires(memory_no_alias(mat, MLDSA_K * sizeof(mld_polyvecl)))
+  requires(memory_no_alias(y, sizeof(mld_polyvecl)))
+  requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+                                         array_bound(mat[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+  requires(forall(k2, 0, MLDSA_L, array_abs_bound(y->vec[k2].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  assigns(memory_slice(w, sizeof(mld_polyveck)))
+  ensures(forall(k3, 0, MLDSA_K, array_abs_bound(w->vec[k3].coeffs, 0, MLDSA_N, MLD_INTT_BOUND)))
+)
+{
+  mld_polyvec_matrix_pointwise_montgomery(w, mat, y);
+  mld_polyveck_reduce(w);
+  mld_polyveck_invntt_tomont(w);
+}
+
+
+static void mld_compute_z(mld_polyvecl *z, const mld_poly *cp,
+                          const mld_polyvecl *s1, const mld_polyvecl *y)
+__contract__(
+  requires(memory_no_alias(z, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(cp, sizeof(mld_poly)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(y, sizeof(mld_polyvecl)))
+  assigns(memory_slice(z, sizeof(mld_polyvecl)))
+  requires(array_abs_bound(cp->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
+  requires(forall(k3, 0, MLDSA_L, array_abs_bound(s1->vec[k3].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k0, 0, MLDSA_L,
+    array_bound(y->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
+  ensures(forall(k1, 0, MLDSA_L,
+    array_bound(z->vec[k1].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
+)
+{
+  mld_polyvecl_pointwise_poly_montgomery(z, cp, s1);
+  mld_polyvecl_invntt_tomont(z);
+  mld_polyvecl_add(z, y);
+  mld_polyvecl_reduce(z);
+}
+
+static void mld_compute_w0(mld_polyveck *w0, const mld_poly *cp,
+                           const mld_polyveck *s2)
+__contract__(
+  requires(memory_no_alias(w0, sizeof(mld_polyveck)))
+  requires(memory_no_alias(cp, sizeof(mld_poly)))
+  requires(memory_no_alias(s2, sizeof(mld_polyveck)))
+  requires(array_abs_bound(cp->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
+  requires(forall(k4, 0, MLDSA_K, array_abs_bound(s2->vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  assigns(memory_slice(w0, sizeof(mld_polyveck)))
+  ensures(forall(k1, 0, MLDSA_K,
+    array_bound(w0->vec[k1].coeffs, 0, MLDSA_N, -REDUCE32_RANGE_MAX, REDUCE32_RANGE_MAX)))
+)
+{
+  mld_polyveck tmp1;
+  mld_polyveck_pointwise_poly_montgomery(&tmp1, cp, s2);
+  mld_polyveck_invntt_tomont(&tmp1);
+  mld_polyveck_sub(w0, &tmp1);
+  mld_polyveck_reduce(w0);
+  mld_zeroize(&tmp1, sizeof(tmp1));
+}
+
 /*************************************************
  * Name:        attempt_signature_generation
  *
@@ -344,24 +407,20 @@ __contract__(
 )
 {
   uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
-  unsigned int n;
+  int n;
   mld_polyvecl y, z;
   mld_polyveck w, w1, w0, h;
   mld_poly cp;
-  uint32_t z_invalid, w0_invalid, h_invalid;
+  uint32_t invalid;
   int res;
 
-  /* Sample intermediate vector y */
+  /* Line 11 - Sample intermediate vector y */
   mld_polyvecl_uniform_gamma1(&y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
   z = y;
   mld_polyvecl_ntt(&z);
-  mld_polyvec_matrix_pointwise_montgomery(&w, mat, &z);
-  mld_polyveck_reduce(&w);
-  mld_polyveck_invntt_tomont(&w);
-
-  /* Decompose w and call the random oracle */
+  mld_mv_multiply(&w, mat, &z);
   mld_polyveck_caddq(&w);
   mld_polyveck_decompose(&w1, &w0, &w);
   mld_polyveck_pack_w1(sig, &w1);
@@ -377,19 +436,15 @@ __contract__(
   mld_poly_ntt(&cp);
 
   /* Compute z, reject if it reveals secret */
-  mld_polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
-  mld_polyvecl_invntt_tomont(&z);
-  mld_polyvecl_add(&z, &y);
-  mld_polyvecl_reduce(&z);
-
-  z_invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+  mld_compute_z(&z, &cp, s1, &y);
+  invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
   /* Constant time: It is fine (and prohibitively expensive to avoid)
    * leaking the result of the norm check. In case of rejection it
    * would even be okay to leak which coefficient led to rejection
    * as the candidate signature will be discarded anyway.
    * See Section 5.5 of @[Round3_Spec]. */
-  MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
-  if (z_invalid)
+  MLD_CT_TESTING_DECLASSIFY(&invalid, sizeof(uint32_t));
+  if (invalid)
   {
     res = -1; /* reject */
     goto cleanup;
@@ -402,15 +457,19 @@ __contract__(
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
-  mld_polyveck_pointwise_poly_montgomery(&h, &cp, s2);
-  mld_polyveck_invntt_tomont(&h);
-  mld_polyveck_sub(&w0, &h);
-  mld_polyveck_reduce(&w0);
-
-  w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
-  /* Constant time: w0_invalid may be leaked - see comment for z_invalid. */
-  MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
-  if (w0_invalid)
+  mld_compute_w0(&w0, &cp, s2);
+  //  {
+  //    mld_polyveck tmp1;
+  //    mld_polyveck_pointwise_poly_montgomery(&tmp1, &cp, s2);
+  //    mld_polyveck_invntt_tomont(&tmp1);
+  //    mld_polyveck_sub(&w0, &tmp1);
+  //    mld_polyveck_reduce(&w0);
+  //    mld_zeroize(&tmp1, sizeof(tmp1));
+  //  }
+  invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  /* Constant time: invalid may be leaked - see comment for invalid. */
+  MLD_CT_TESTING_DECLASSIFY(&invalid, sizeof(uint32_t));
+  if (invalid)
   {
     res = -1; /* reject */
     goto cleanup;
@@ -421,10 +480,10 @@ __contract__(
   mld_polyveck_invntt_tomont(&h);
   mld_polyveck_reduce(&h);
 
-  h_invalid = mld_polyveck_chknorm(&h, MLDSA_GAMMA2);
-  /* Constant time: h_invalid may be leaked - see comment for z_invalid. */
-  MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
-  if (h_invalid)
+  invalid = mld_polyveck_chknorm(&h, MLDSA_GAMMA2);
+  /* Constant time: invalid may be leaked - see comment for invalid. */
+  MLD_CT_TESTING_DECLASSIFY(&invalid, sizeof(uint32_t));
+  if (invalid)
   {
     res = -1; /* reject */
     goto cleanup;

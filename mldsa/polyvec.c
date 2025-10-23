@@ -625,10 +625,11 @@ void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
 }
 
 MLD_INTERNAL_API
-unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
-                                    const mld_polyveck *v1)
+int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
+                           const mld_polyveck *v1)
 {
-  unsigned int i, s = 0;
+  unsigned int i;
+  int s = 0;
 
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(

@@ -495,13 +495,14 @@ __contract__(
  * Returns number of 1 bits.
  **************************************************/
 MLD_INTERNAL_API
-unsigned int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
-                                    const mld_polyveck *v1)
+int mld_polyveck_make_hint(mld_polyveck *h, const mld_polyveck *v0,
+                           const mld_polyveck *v1)
 __contract__(
   requires(memory_no_alias(h,  sizeof(mld_polyveck)))
   requires(memory_no_alias(v0, sizeof(mld_polyveck)))
   requires(memory_no_alias(v1, sizeof(mld_polyveck)))
   assigns(object_whole(h))
+  ensures(return_value >= 0)
   ensures(return_value <= MLDSA_N * MLDSA_K)
   ensures(forall(k1, 0, MLDSA_K, array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
 );
