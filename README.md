@@ -85,7 +85,7 @@ By default, mldsa-native uses the "hedged" signing variant as specified in FIPS 
 
 The deterministic variant can be enabled by undefining `MLD_RANDOMIZED_SIGNING`, but FIPS 204 warns that this should not be used on platforms where fault injection attacks and side-channel attacks are a concern, as the lack of fresh randomness makes fault attacks more difficult to mitigate.
 
-### Does mldsa-native support the pre-hash/digest sign/verify mode (external mu)?
+### Does mldsa-native support the external mu mode?
 
 Yes. mldsa-native supports external mu mode, which allows for pre-hashing of messages before signing. This addresses the pre-hashing capability described in the NIST PQC FAQ[^NIST_FAQ] and detailed in NIST's guidance on FIPS 204 Section 6[^NIST_FIPS204_SEC6].
 
@@ -93,7 +93,11 @@ External mu mode enables applications to compute the message digest (mu) externa
 
 ### Does mldsa-native support HashML-DSA?
 
-No. mldsa-native does not currently implement HashML-DSA, the hash-based variant of ML-DSA defined in FIPS 204. The current implementation focuses on the standard ML-DSA signature scheme.
+Yes. mldsa-native supports HashML-DSA, the pre-hashing variant of ML-DSA defined in FIPS 204 Algorithms 4 and 5.
+
+mldsa-native provides two levels of API:
+- `crypto_sign_signature_pre_hash_internal` and `crypto_sign_verify_pre_hash_internal` - Low-level functions that accept a pre-hashed message digest. This function supports all 12 allowed hash functions.
+- `crypto_sign_signature_pre_hash_shake256` and `crypto_sign_verify_pre_hash_shake256` - High-level functions that perform SHAKE256 pre-hashing internally for convenience. Currently, only SHAKE256 is supported. If you require another hash function, use the `*_pre_hash_internal` functions or open an issue.
 
 ### Will I be able to bring my own backend?
 

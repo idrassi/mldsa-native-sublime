@@ -31,9 +31,9 @@ implementations:
   sources: integration/liboqs/config_c.h integration/liboqs/fips202_glue.h integration/liboqs/fips202x4_glue.h
     mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
     mldsa/ntt.c mldsa/ntt.h mldsa/packing.c mldsa/packing.h mldsa/params.h mldsa/poly.c
-    mldsa/poly.h mldsa/poly_kl.c mldsa/polyvec.c mldsa/polyvec.h mldsa/randombytes.h
-    mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h
-    mldsa/zetas.inc
+    mldsa/poly.h mldsa/poly_kl.c mldsa/polyvec.c mldsa/polyvec.h mldsa/prehash.c mldsa/prehash.h
+    mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c mldsa/sign.h
+    mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
 - name: x86_64
   version: FIPS204
   folder_name: .
@@ -46,8 +46,9 @@ implementations:
     mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
     mldsa/native/api.h mldsa/native/meta.h mldsa/ntt.c mldsa/ntt.h mldsa/packing.c
     mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/poly_kl.c mldsa/polyvec.c
-    mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c
-    mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc mldsa/native/x86_64
+    mldsa/polyvec.h mldsa/prehash.c mldsa/prehash.h mldsa/randombytes.h mldsa/reduce.h
+    mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
+    mldsa/native/x86_64
   supported_platforms:
   - architecture: x86_64
     operating_systems:
@@ -69,8 +70,9 @@ implementations:
     mldsa/cbmc.h mldsa/common.h mldsa/ct.c mldsa/ct.h mldsa/debug.c mldsa/debug.h
     mldsa/native/api.h mldsa/native/meta.h mldsa/ntt.c mldsa/ntt.h mldsa/packing.c
     mldsa/packing.h mldsa/params.h mldsa/poly.c mldsa/poly.h mldsa/poly_kl.c mldsa/polyvec.c
-    mldsa/polyvec.h mldsa/randombytes.h mldsa/reduce.h mldsa/rounding.h mldsa/sign.c
-    mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc mldsa/native/aarch64
+    mldsa/polyvec.h mldsa/prehash.c mldsa/prehash.h mldsa/randombytes.h mldsa/reduce.h
+    mldsa/rounding.h mldsa/sign.c mldsa/sign.h mldsa/symmetric.h mldsa/sys.h mldsa/zetas.inc
+    mldsa/native/aarch64
   supported_platforms:
   - architecture: arm_8
     operating_systems:
