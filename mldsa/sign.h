@@ -172,7 +172,9 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_signature
  *
- * Description: Computes signature.
+ * Description: Computes signature. This function implements the randomized
+ *              variant of ML-DSA. If you require the deterministic variant,
+ *              use crypto_sign_signature_internal directly.
  *
  * Arguments:   - uint8_t *sig:   pointer to output signature (of length
  *                                CRYPTO_BYTES)
@@ -186,7 +188,7 @@ __contract__(
  *
  * Returns 0 (success) or -1 (context string too long OR nonce exhaustion)
  *
- * Specification: Implements @[FIPS204 Algorithm 2 (ML-DSA.Sign)]
+ * Specification: Implements @[FIPS204 Algorithm 2 (ML-DSA.Sign)].
  *
  **************************************************/
 MLD_MUST_CHECK_RETURN_VALUE
@@ -211,7 +213,9 @@ __contract__(
 /*************************************************
  * Name:        crypto_sign_signature_extmu
  *
- * Description: Computes signature.
+ * Description: Computes signature. This function implements the randomized
+ *              variant of ML-DSA. If you require the deterministic variant,
+ *              use crypto_sign_signature_internal directly.
  *
  * Arguments:   - uint8_t *sig:   pointer to output signature (of length
  *                                CRYPTO_BYTES)

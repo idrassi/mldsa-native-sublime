@@ -54,7 +54,7 @@ timing side channels through suitable barriers and constant-time patterns.
 mldsa-native is split into a _frontend_ and two _backends_ for arithmetic and FIPS202 / SHA3. The frontend is
 fixed, written in C, and covers all routines that are not critical to performance. The backends are flexible, take care of
 performance-sensitive routines, and can be implemented in C or native code (assembly/intrinsics); see
-[mldsa/native/api.h](mldsa/native/api.h) for the arithmetic backend and 
+[mldsa/native/api.h](mldsa/native/api.h) for the arithmetic backend and
 [mldsa/fips202/native/api.h](mldsa/fips202/native/api.h) for the FIPS-202 backend. mldsa-native currently
 offers backends for C, AArch64, and x86_64 - if you'd like contribute new backends, please reach out or just open a PR.
 
@@ -81,9 +81,11 @@ Yes. mldsa-native supports all three ML-DSA security levels (ML-DSA-44, ML-DSA-6
 
 ### Does mldsa-native use hedged or deterministic signing?
 
-By default, mldsa-native uses the "hedged" signing variant as specified in FIPS 204 Section 3.4, with `MLD_RANDOMIZED_SIGNING` enabled in [mldsa/config.h](mldsa/config.h). The hedged variant uses both fresh randomness at signing time and precomputed randomness from the private key. This helps mitigate fault injection attacks and side-channel attacks while protecting against potential flaws in the random number generator.
+By default, mldsa-native uses the randomized "hedged" signing variant as specified in FIPS 204 Section 3.4. The hedged variant uses both fresh randomness at signing time and precomputed randomness from the private key. This helps mitigate fault injection attacks and side-channel attacks while protecting against potential flaws in the random number generator.
 
-The deterministic variant can be enabled by undefining `MLD_RANDOMIZED_SIGNING`, but FIPS 204 warns that this should not be used on platforms where fault injection attacks and side-channel attacks are a concern, as the lack of fresh randomness makes fault attacks more difficult to mitigate.
+If you need the deterministic variant of ML-DSA, you can call `crypto_sign_signature_internal`
+directly with an all-zero `rnd` argument.
+However, note that FIPS 204 warns that this should not be used on platforms where fault injection attacks and side-channel attacks are a concern, as the lack of fresh randomness makes fault attacks more difficult to mitigate.
 
 ### Does mldsa-native support the external mu mode?
 
@@ -106,7 +108,7 @@ Yes, you will be able to add custom backends for ML-DSA native arithmetic and/or
 ## Have a Question?
 
 If you think you have found a security bug in mldsa-native, please report the vulnerability through
-Github's [private vulnerability reporting](https://github.com/pq-code-package/mldsa-native/security). 
+Github's [private vulnerability reporting](https://github.com/pq-code-package/mldsa-native/security).
 Please do **not** create a public GitHub issue.
 
 If you have any other question / non-security related issue / feature request, please open a GitHub issue.

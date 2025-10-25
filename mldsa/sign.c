@@ -600,13 +600,10 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
     pre[2 + i] = ctx[i];
   }
 
-#ifdef MLD_RANDOMIZED_SIGNING
+  /* Randomized variant of ML-DSA. If you need the deterministic variant,
+   * call crypto_sign_signature_internal directly with all-zero rnd. */
   mld_randombytes(rnd, MLDSA_RNDBYTES);
   MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
-#else
-  mld_memset(rnd, 0, MLDSA_RNDBYTES);
-#endif
-
 
   result = crypto_sign_signature_internal(sig, siglen, m, mlen, pre, 2 + ctxlen,
                                           rnd, sk, 0);
@@ -627,12 +624,10 @@ int crypto_sign_signature_extmu(uint8_t *sig, size_t *siglen,
   uint8_t rnd[MLDSA_RNDBYTES];
   int result;
 
-#ifdef MLD_RANDOMIZED_SIGNING
+  /* Randomized variant of ML-DSA. If you need the deterministic variant,
+   * call crypto_sign_signature_internal directly with all-zero rnd. */
   mld_randombytes(rnd, MLDSA_RNDBYTES);
   MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
-#else
-  mld_memset(rnd, 0, MLDSA_RNDBYTES);
-#endif
 
   result = crypto_sign_signature_internal(sig, siglen, mu, MLDSA_CRHBYTES, NULL,
                                           0, rnd, sk, 1);

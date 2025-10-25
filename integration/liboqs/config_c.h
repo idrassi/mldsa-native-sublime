@@ -24,8 +24,6 @@
 #endif
 #endif /* !__ASSEMBLER__ */
 
-#define MLD_RANDOMIZED_SIGNING
-
 /* Use OQS's FIPS202 via glue headers */
 #define MLD_CONFIG_FIPS202_CUSTOM_HEADER "../integration/liboqs/fips202_glue.h"
 #define MLD_CONFIG_FIPS202X4_CUSTOM_HEADER \

@@ -20,8 +20,6 @@
 #ifndef MLD_CONFIG_H
 #define MLD_CONFIG_H
 
-#define MLD_RANDOMIZED_SIGNING
-
 /******************************************************************************
  * Name:        MLD_CONFIG_PARAMETER_SET
  *
