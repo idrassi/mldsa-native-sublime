@@ -167,31 +167,35 @@ def run_sigGen_test(tg, tc):
 
     assert tg["testType"] == "AFT"
 
-    # TODO: probably we want to handle handle the deterministic case differently
-    if tg["deterministic"] is True:
-        tc["rnd"] = "0" * 64
+    is_deterministic = tg["deterministic"] is True
 
     if tg["preHash"] == "preHash":
         assert len(tc["context"]) <= 2 * 255
 
         # Use specialized SHAKE256 function that computes hash internally
         if tc["hashAlg"] == "SHAKE-256":
+            target = (
+                "sigGenPreHashShake256Deterministic"
+                if is_deterministic
+                else "sigGenPreHashShake256"
+            )
             acvp_call = exec_prefix + [
                 acvp_bin,
-                "sigGenPreHashShake256",
+                target,
                 f"message={tc['message']}",
                 f"context={tc['context']}",
-                f"rnd={tc['rnd']}",
                 f"sk={tc['sk']}",
             ]
         else:
             ph = compute_hash(tc["message"], tc["hashAlg"])
+            target = (
+                "sigGenPreHashDeterministic" if is_deterministic else "sigGenPreHash"
+            )
             acvp_call = exec_prefix + [
                 acvp_bin,
-                "sigGenPreHash",
+                target,
                 f"ph={ph}",
                 f"context={tc['context']}",
-                f"rng={tc['rnd']}",
                 f"sk={tc['sk']}",
                 f"hashAlg={tc['hashAlg']}",
             ]
@@ -200,11 +204,11 @@ def run_sigGen_test(tg, tc):
         assert len(tc["context"]) <= 2 * 255
         assert len(tc["message"]) <= 2 * 65536
 
+        target = "sigGenDeterministic" if is_deterministic else "sigGen"
         acvp_call = exec_prefix + [
             acvp_bin,
-            "sigGen",
+            target,
             f"message={tc['message']}",
-            f"rnd={tc['rnd']}",
             f"sk={tc['sk']}",
             f"context={tc['context']}",
         ]
@@ -219,14 +223,18 @@ def run_sigGen_test(tg, tc):
             assert len(tc["message"]) <= 2 * 65536
             msg = tc["message"]
 
+        target = "sigGenInternalDeterministic" if is_deterministic else "sigGenInternal"
         acvp_call = exec_prefix + [
             acvp_bin,
-            "sigGenInternal",
+            target,
             f"message={msg}",
-            f"rnd={tc['rnd']}",
             f"sk={tc['sk']}",
             f"externalMu={externalMu}",
         ]
+
+    # Append rnd argument for randomized (non-deterministic) variant
+    if not is_deterministic:
+        acvp_call.append(f"rnd={tc['rnd']}")
 
     result = subprocess.run(acvp_call, encoding="utf-8", capture_output=True)
     if result.returncode != 0:

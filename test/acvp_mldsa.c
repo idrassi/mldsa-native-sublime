@@ -13,23 +13,34 @@
 #define USAGE "acvp_mldsa{lvl} [keyGen|sigGen|sigVer] {test specific arguments}"
 #define KEYGEN_USAGE "acvp_mldsa{lvl} keyGen seed=HEX"
 #define SIGGEN_USAGE \
-  "acvp_mldsa{lvl} sigGen message=HEX rng=HEX sk=HEX context=HEX"
+  "acvp_mldsa{lvl} sigGen message=HEX sk=HEX context=HEX rnd=HEX"
 #define SIGGEN_INTERNAL_USAGE \
-  "acvp_mldsa{lvl} sigGenInternal message=HEX rng=HEX sk=HEX externalMu=0/1"
+  "acvp_mldsa{lvl} sigGenInternal message=HEX sk=HEX externalMu=0/1 rnd=HEX"
+#define SIGGEN_DETERMINISTIC_USAGE \
+  "acvp_mldsa{lvl} sigGenDeterministic message=HEX sk=HEX context=HEX"
+#define SIGGEN_INTERNAL_DETERMINISTIC_USAGE                         \
+  "acvp_mldsa{lvl} sigGenInternalDeterministic message=HEX sk=HEX " \
+  "externalMu=0/1"
+#define SIGGEN_PREHASH_DETERMINISTIC_USAGE                                \
+  "acvp_mldsa{lvl} sigGenPreHashDeterministic ph=HEX context=HEX sk=HEX " \
+  "hashAlg=STRING"
+#define SIGGEN_PREHASH_SHAKE256_DETERMINISTIC_USAGE                 \
+  "acvp_mldsa{lvl} sigGenPreHashShake256Deterministic message=HEX " \
+  "context=HEX sk=HEX"
 #define SIGVER_USAGE \
   "acvp_mldsa{lvl} sigVer message=HEX context=HEX signature=HEX pk=HEX"
 #define SIGVER_INTERNAL_USAGE                                        \
   "acvp_mldsa{lvl} sigVerInternal message=HEX signature=HEX pk=HEX " \
   "externalMu=0/1"
-#define SIGGEN_PREHASH_USAGE                                         \
-  "acvp_mldsa{lvl} sigGenPreHash ph=HEX context=HEX rng=HEX sk=HEX " \
-  "hashAlg=STRING"
+#define SIGGEN_PREHASH_USAGE                                 \
+  "acvp_mldsa{lvl} sigGenPreHash ph=HEX context=HEX sk=HEX " \
+  "hashAlg=STRING rnd=HEX"
 #define SIGVER_PREHASH_USAGE                                               \
   "acvp_mldsa{lvl} sigVerPreHash ph=HEX context=HEX signature=HEX pk=HEX " \
   "hashAlg=STRING"
-#define SIGGEN_PREHASH_SHAKE256_USAGE                                      \
-  "acvp_mldsa{lvl} sigGenPreHashShake256 message=HEX context=HEX rnd=HEX " \
-  "sk=HEX"
+#define SIGGEN_PREHASH_SHAKE256_USAGE                              \
+  "acvp_mldsa{lvl} sigGenPreHashShake256 message=HEX context=HEX " \
+  "sk=HEX rnd=HEX"
 #define SIGVER_PREHASH_SHAKE256_USAGE                              \
   "acvp_mldsa{lvl} sigVerPreHashShake256 message=HEX context=HEX " \
   "signature=HEX pk=HEX"
@@ -57,6 +68,10 @@ typedef enum
   keyGen,
   sigGen,
   sigGenInternal,
+  sigGenDeterministic,
+  sigGenInternalDeterministic,
+  sigGenPreHashDeterministic,
+  sigGenPreHashShake256Deterministic,
   sigVer,
   sigVerInternal,
   sigGenPreHash,
@@ -275,6 +290,43 @@ static void acvp_mldsa_sigGenInternal_AFT(
   print_hex("signature", sig, sizeof(sig));
 }
 
+/* Deterministic signing functions - use all-zero rnd for deterministic mode */
+
+static void acvp_mldsa_sigGenDeterministic_AFT(
+    const unsigned char *message, size_t mlen,
+    const unsigned char sk[CRYPTO_SECRETKEYBYTES], const unsigned char *context,
+    size_t ctxlen)
+{
+  unsigned char sig[CRYPTO_BYTES];
+  size_t siglen;
+  unsigned char rnd[MLDSA_SEEDBYTES] = {0}; /* Zero rnd for deterministic */
+
+  unsigned char pre[MAX_CTX_LENGTH + 2];
+
+  CHECK(ctxlen <= 255);
+  pre[0] = 0;
+  /* Safety: Truncation is safe due to the check above. */
+  pre[1] = (uint8_t)ctxlen;
+  memcpy(pre + 2, context, ctxlen);
+
+  CHECK(crypto_sign_signature_internal(sig, &siglen, message, mlen, pre,
+                                       ctxlen + 2, rnd, sk, 0) == 0);
+  print_hex("signature", sig, sizeof(sig));
+}
+
+static void acvp_mldsa_sigGenInternalDeterministic_AFT(
+    const unsigned char *message, size_t mlen,
+    const unsigned char sk[CRYPTO_SECRETKEYBYTES], int externalMu)
+{
+  unsigned char sig[CRYPTO_BYTES];
+  size_t siglen;
+  unsigned char rnd[MLDSA_SEEDBYTES] = {0}; /* Zero rnd for deterministic */
+
+  CHECK(crypto_sign_signature_internal(sig, &siglen, message, mlen, NULL, 0,
+                                       rnd, sk, externalMu) == 0);
+  print_hex("signature", sig, sizeof(sig));
+}
+
 
 static int acvp_mldsa_sigVer_AFT(const unsigned char *message, size_t mlen,
                                  const unsigned char *context, size_t ctxlen,
@@ -413,6 +465,45 @@ static int acvp_mldsa_sigVerPreHashShake256_AFT(
                                               mlen, context, ctxlen, pk);
 }
 
+/* Deterministic prehash signing functions */
+static int acvp_mldsa_sigGenPreHashDeterministic_AFT(
+    const unsigned char *ph, size_t phlen, const unsigned char *context,
+    size_t ctxlen, const unsigned char sk[CRYPTO_SECRETKEYBYTES],
+    const char *hashAlg)
+{
+  unsigned char signature[CRYPTO_BYTES];
+  size_t siglen;
+  unsigned char rnd[MLDSA_RNDBYTES] = {0}; /* Zero rnd for deterministic */
+
+  if (crypto_sign_signature_pre_hash_internal(signature, &siglen, ph, phlen,
+                                              context, ctxlen, rnd, sk,
+                                              str_to_hash_alg(hashAlg)) != 0)
+  {
+    return 1;
+  }
+
+  print_hex("signature", signature, siglen);
+  return 0;
+}
+
+static int acvp_mldsa_sigGenPreHashShake256Deterministic_AFT(
+    const unsigned char *message, size_t mlen, const unsigned char *context,
+    size_t ctxlen, const unsigned char sk[CRYPTO_SECRETKEYBYTES])
+{
+  unsigned char signature[CRYPTO_BYTES];
+  size_t siglen;
+  unsigned char rnd[MLDSA_RNDBYTES] = {0}; /* Zero rnd for deterministic */
+
+  if (crypto_sign_signature_pre_hash_shake256(signature, &siglen, message, mlen,
+                                              context, ctxlen, rnd, sk) != 0)
+  {
+    return 1;
+  }
+
+  print_hex("signature", signature, siglen);
+  return 0;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -440,6 +531,22 @@ int main(int argc, char *argv[])
   else if (strcmp(*argv, "sigGenInternal") == 0)
   {
     mode = sigGenInternal;
+  }
+  else if (strcmp(*argv, "sigGenDeterministic") == 0)
+  {
+    mode = sigGenDeterministic;
+  }
+  else if (strcmp(*argv, "sigGenInternalDeterministic") == 0)
+  {
+    mode = sigGenInternalDeterministic;
+  }
+  else if (strcmp(*argv, "sigGenPreHashDeterministic") == 0)
+  {
+    mode = sigGenPreHashDeterministic;
+  }
+  else if (strcmp(*argv, "sigGenPreHashShake256Deterministic") == 0)
+  {
+    mode = sigGenPreHashShake256Deterministic;
   }
   else if (strcmp(*argv, "sigVer") == 0)
   {
@@ -509,13 +616,6 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
-      /* Parse rnd */
-      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
-      {
-        goto siggen_usage;
-      }
-      argc--, argv++;
-
       /* Parse sk */
       if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
       {
@@ -531,6 +631,13 @@ int main(int argc, char *argv[])
       ctxlen = (strlen(*argv) - strlen("context=")) / 2;
       if (mlen > MAX_MSG_LENGTH ||
           decode_hex("context", context, ctxlen, *argv) != 0)
+      {
+        goto siggen_usage;
+      }
+      argc--, argv++;
+
+      /* Parse rnd */
+      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
       {
         goto siggen_usage;
       }
@@ -561,13 +668,6 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
-      /* Parse rnd */
-      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
-      {
-        goto siggen_internal_usage;
-      }
-      argc--, argv++;
-
       /* Parse sk */
       if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
       {
@@ -584,9 +684,102 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
+      /* Parse rnd */
+      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
+      {
+        goto siggen_internal_usage;
+      }
+      argc--, argv++;
+
 
       /* Call function under test */
       acvp_mldsa_sigGenInternal_AFT(message, mlen, rnd, sk, externalMu);
+      break;
+    }
+
+    case sigGenDeterministic:
+    {
+      unsigned char message[MAX_MSG_LENGTH];
+      unsigned char context[MAX_CTX_LENGTH];
+      unsigned char sk[CRYPTO_SECRETKEYBYTES];
+      size_t mlen, ctxlen;
+
+      /* Parse message */
+      if (argc == 0)
+      {
+        goto siggen_deterministic_usage;
+      }
+      mlen = (strlen(*argv) - strlen("message=")) / 2;
+      if (mlen > MAX_MSG_LENGTH ||
+          decode_hex("message", message, mlen, *argv) != 0)
+      {
+        goto siggen_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      {
+        goto siggen_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse context */
+      if (argc == 0)
+      {
+        goto siggen_deterministic_usage;
+      }
+      ctxlen = (strlen(*argv) - strlen("context=")) / 2;
+      if (mlen > MAX_MSG_LENGTH ||
+          decode_hex("context", context, ctxlen, *argv) != 0)
+      {
+        goto siggen_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Call function under test */
+      acvp_mldsa_sigGenDeterministic_AFT(message, mlen, sk, context, ctxlen);
+      break;
+    }
+
+    case sigGenInternalDeterministic:
+    {
+      unsigned char message[MAX_MSG_LENGTH + MAX_CTX_LENGTH + 2];
+      unsigned char sk[CRYPTO_SECRETKEYBYTES];
+      int externalMu;
+      size_t mlen;
+
+      /* Parse message */
+      if (argc == 0)
+      {
+        goto siggen_internal_deterministic_usage;
+      }
+      mlen = (strlen(*argv) - strlen("message=")) / 2;
+      if (mlen > sizeof(message) ||
+          decode_hex("message", message, mlen, *argv) != 0)
+      {
+        goto siggen_internal_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      {
+        goto siggen_internal_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse externalMu */
+      if (argc == 0 ||
+          decode_keyed_int("externalMu", &externalMu, *argv) != 0 ||
+          externalMu > 1 || externalMu < 0)
+      {
+        goto siggen_internal_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Call function under test */
+      acvp_mldsa_sigGenInternalDeterministic_AFT(message, mlen, sk, externalMu);
       break;
     }
 
@@ -704,7 +897,7 @@ int main(int argc, char *argv[])
     {
       unsigned char ph[64];
       unsigned char context[MAX_CTX_LENGTH];
-      unsigned char rng[MLDSA_RNDBYTES];
+      unsigned char rnd[MLDSA_RNDBYTES];
       unsigned char sk[CRYPTO_SECRETKEYBYTES];
       char hashAlg[100];
       size_t phlen;
@@ -735,13 +928,6 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
-      /* Parse rng */
-      if (argc == 0 || decode_hex("rng", rng, sizeof(rng), *argv) != 0)
-      {
-        goto siggen_prehash_usage;
-      }
-      argc--, argv++;
-
       /* Parse sk */
       if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
       {
@@ -757,8 +943,15 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
+      /* Parse rnd */
+      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
+      {
+        goto siggen_prehash_usage;
+      }
+      argc--, argv++;
+
       /* Call function under test */
-      return acvp_mldsa_sigGenPreHash_AFT(ph, phlen, context, ctxlen, rng, sk,
+      return acvp_mldsa_sigGenPreHash_AFT(ph, phlen, context, ctxlen, rnd, sk,
                                           hashAlg);
     }
 
@@ -863,15 +1056,15 @@ int main(int argc, char *argv[])
       }
       argc--, argv++;
 
-      /* Parse rnd */
-      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
       {
         goto siggen_prehash_shake256_usage;
       }
       argc--, argv++;
 
-      /* Parse sk */
-      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      /* Parse rnd */
+      if (argc == 0 || decode_hex("rnd", rnd, sizeof(rnd), *argv) != 0)
       {
         goto siggen_prehash_shake256_usage;
       }
@@ -880,6 +1073,106 @@ int main(int argc, char *argv[])
       /* Call function under test */
       return acvp_mldsa_sigGenPreHashShake256_AFT(message, mlen, context,
                                                   ctxlen, rnd, sk);
+    }
+
+    case sigGenPreHashDeterministic:
+    {
+      unsigned char ph[64];
+      unsigned char context[MAX_CTX_LENGTH];
+      unsigned char sk[CRYPTO_SECRETKEYBYTES];
+      char hashAlg[100];
+      size_t phlen;
+      size_t ctxlen;
+
+      /* Parse ph */
+      if (argc == 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      phlen = (strlen(*argv) - strlen("ph=")) / 2;
+      if (phlen > 64 || decode_hex("ph", ph, phlen, *argv) != 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse context */
+      if (argc == 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      ctxlen = (strlen(*argv) - strlen("context=")) / 2;
+      if (ctxlen > MAX_CTX_LENGTH ||
+          decode_hex("context", context, ctxlen, *argv) != 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse hashAlg */
+      if (argc == 0 ||
+          parse_str("hashAlg", hashAlg, sizeof(hashAlg), *argv) != 0)
+      {
+        goto siggen_prehash_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Call function under test */
+      return acvp_mldsa_sigGenPreHashDeterministic_AFT(ph, phlen, context,
+                                                       ctxlen, sk, hashAlg);
+    }
+
+    case sigGenPreHashShake256Deterministic:
+    {
+      unsigned char message[MAX_MSG_LENGTH];
+      unsigned char context[MAX_CTX_LENGTH];
+      unsigned char sk[CRYPTO_SECRETKEYBYTES];
+      size_t mlen;
+      size_t ctxlen;
+
+      /* Parse message */
+      if (argc == 0)
+      {
+        goto siggen_prehash_shake256_deterministic_usage;
+      }
+      mlen = (strlen(*argv) - strlen("message=")) / 2;
+      if (mlen > MAX_MSG_LENGTH ||
+          decode_hex("message", message, mlen, *argv) != 0)
+      {
+        goto siggen_prehash_shake256_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse context */
+      if (argc == 0)
+      {
+        goto siggen_prehash_shake256_deterministic_usage;
+      }
+      ctxlen = (strlen(*argv) - strlen("context=")) / 2;
+      if (ctxlen > MAX_CTX_LENGTH ||
+          decode_hex("context", context, ctxlen, *argv) != 0)
+      {
+        goto siggen_prehash_shake256_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Parse sk */
+      if (argc == 0 || decode_hex("sk", sk, sizeof(sk), *argv) != 0)
+      {
+        goto siggen_prehash_shake256_deterministic_usage;
+      }
+      argc--, argv++;
+
+      /* Call function under test */
+      return acvp_mldsa_sigGenPreHashShake256Deterministic_AFT(
+          message, mlen, context, ctxlen, sk);
     }
 
     case sigVerPreHashShake256:
@@ -954,6 +1247,22 @@ siggen_usage:
 
 siggen_internal_usage:
   fprintf(stderr, SIGGEN_INTERNAL_USAGE "\n");
+  return (1);
+
+siggen_deterministic_usage:
+  fprintf(stderr, SIGGEN_DETERMINISTIC_USAGE "\n");
+  return (1);
+
+siggen_internal_deterministic_usage:
+  fprintf(stderr, SIGGEN_INTERNAL_DETERMINISTIC_USAGE "\n");
+  return (1);
+
+siggen_prehash_deterministic_usage:
+  fprintf(stderr, SIGGEN_PREHASH_DETERMINISTIC_USAGE "\n");
+  return (1);
+
+siggen_prehash_shake256_deterministic_usage:
+  fprintf(stderr, SIGGEN_PREHASH_SHAKE256_DETERMINISTIC_USAGE "\n");
   return (1);
 
 sigver_usage:
