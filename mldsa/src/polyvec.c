@@ -76,20 +76,12 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
    * of the same parent object.
    */
 
-  MLD_ALIGN uint8_t seed_ext[4][MLD_ALIGN_UP(MLDSA_SEEDBYTES + 2)];
-
-  for (j = 0; j < 4; j++)
-  __loop__(
-    assigns(j, object_whole(seed_ext))
-    invariant(j <= 4)
-  )
-  {
-    mld_memcpy(seed_ext[j], rho, MLDSA_SEEDBYTES);
-  }
+  MLD_ALIGN uint8_t single_seed[MLD_ALIGN_UP(MLDSA_SEEDBYTES + 2)];
+  MLD_ALIGN uint8_t batched_seeds[4][MLD_ALIGN_UP(MLDSA_SEEDBYTES + 2)];
   /* Sample 4 matrix entries a time. */
   for (i = 0; i < (MLDSA_K * MLDSA_L / 4) * 4; i += 4)
   __loop__(
-    assigns(i, j, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
+    assigns(i, j, object_whole(batched_seeds), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
     invariant(i <= (MLDSA_K * MLDSA_L / 4) * 4 && i % 4 == 0)
     /* vectors 0 .. i / MLDSA_L are completely sampled */
     invariant(forall(k1, 0, i / MLDSA_L, forall(l1, 0, MLDSA_L,
@@ -101,28 +93,31 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
   {
     for (j = 0; j < 4; j++)
     __loop__(
-      assigns(j, object_whole(seed_ext))
+      assigns(j, object_whole(batched_seeds))
       invariant(j <= 4)
     )
     {
       uint8_t x = (uint8_t)((i + j) / MLDSA_L);
       uint8_t y = (uint8_t)((i + j) % MLDSA_L);
 
-      seed_ext[j][MLDSA_SEEDBYTES + 0] = y;
-      seed_ext[j][MLDSA_SEEDBYTES + 1] = x;
+      mld_memcpy(batched_seeds[j], rho, MLDSA_SEEDBYTES);
+      batched_seeds[j][MLDSA_SEEDBYTES + 0] = y;
+      batched_seeds[j][MLDSA_SEEDBYTES + 1] = x;
     }
 
     mld_poly_uniform_4x(&mat[i / MLDSA_L].vec[i % MLDSA_L],
                         &mat[(i + 1) / MLDSA_L].vec[(i + 1) % MLDSA_L],
                         &mat[(i + 2) / MLDSA_L].vec[(i + 2) % MLDSA_L],
                         &mat[(i + 3) / MLDSA_L].vec[(i + 3) % MLDSA_L],
-                        seed_ext);
+                        batched_seeds);
   }
+
+  mld_memcpy(single_seed, rho, MLDSA_SEEDBYTES);
 
   /* For MLDSA_K=6, MLDSA_L=5, process the last two entries individually */
   while (i < MLDSA_K * MLDSA_L)
   __loop__(
-    assigns(i, object_whole(seed_ext), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
+    assigns(i, object_whole(single_seed), memory_slice(mat, MLDSA_K * sizeof(mld_polyvecl)))
     invariant(i <= MLDSA_K * MLDSA_L)
     /* vectors 0 .. i / MLDSA_L are completely sampled */
     invariant(forall(k1, 0, i / MLDSA_L, forall(l1, 0, MLDSA_L,
@@ -136,17 +131,17 @@ void mld_polyvec_matrix_expand(mld_polyvecl mat[MLDSA_K],
     uint8_t y = (uint8_t)(i % MLDSA_L);
     mld_poly *this_poly = &mat[i / MLDSA_L].vec[i % MLDSA_L];
 
-    seed_ext[0][MLDSA_SEEDBYTES + 0] = y;
-    seed_ext[0][MLDSA_SEEDBYTES + 1] = x;
+    single_seed[MLDSA_SEEDBYTES + 0] = y;
+    single_seed[MLDSA_SEEDBYTES + 1] = x;
 
-    mld_poly_uniform(this_poly, seed_ext[0]);
+    mld_poly_uniform(this_poly, single_seed);
     i++;
   }
 
   mld_matrix_permute_bitrev_to_custom(mat);
 
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
-  mld_zeroize(seed_ext, sizeof(seed_ext));
+  mld_zeroize(single_seed, sizeof(single_seed));
 }
 
 MLD_INTERNAL_API
@@ -240,7 +235,6 @@ void mld_polyvecl_add(mld_polyvecl *u, const mld_polyvecl *v)
     invariant(i <= MLDSA_L)
     invariant(forall(k0, i, MLDSA_L,
               forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1])))
-    invariant(forall(k4, 0, i, forall(k5, 0, MLDSA_N, u->vec[k4].coeffs[k5] == loop_entry(*u).vec[k4].coeffs[k5] + v->vec[k4].coeffs[k5])))
     invariant(forall(k6, 0, i, array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
   )
   {
@@ -308,12 +302,13 @@ void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
   mld_assert_abs_bound_2d(r->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
 }
 
+#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4) && \
+    MLD_CONFIG_PARAMETER_SET == 44
+
 MLD_INTERNAL_API
 void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
                                            const mld_polyvecl *v)
 {
-#if defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4) && \
-    MLD_CONFIG_PARAMETER_SET == 44
   /* TODO: proof */
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
@@ -321,8 +316,14 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
       w->coeffs, (const int32_t(*)[MLDSA_N])u->vec,
       (const int32_t(*)[MLDSA_N])v->vec);
   mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
+}
+
 #elif defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5) && \
     MLD_CONFIG_PARAMETER_SET == 65
+
+void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
+                                           const mld_polyvecl *v)
+{
   /* TODO: proof */
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
@@ -330,8 +331,13 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
       w->coeffs, (const int32_t(*)[MLDSA_N])u->vec,
       (const int32_t(*)[MLDSA_N])v->vec);
   mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
+}
+
 #elif defined(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7) && \
     MLD_CONFIG_PARAMETER_SET == 87
+void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
+                                           const mld_polyvecl *v)
+{
   /* TODO: proof */
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
   mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
@@ -339,17 +345,34 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
       w->coeffs, (const int32_t(*)[MLDSA_N])u->vec,
       (const int32_t(*)[MLDSA_N])v->vec);
   mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
-#else  /* !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4 && \
-          MLD_CONFIG_PARAMETER_SET == 44) &&                       \
-          !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5 && \
-          MLD_CONFIG_PARAMETER_SET == 65) &&                       \
-          MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7 &&   \
-          MLD_CONFIG_PARAMETER_SET == 87 */
-  unsigned int i, j;
-  mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
-  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
-  /* The first input is bounded by [0, Q-1] inclusive
-   * The second input is bounded by [-9Q+1, 9Q-1] inclusive . Hence, we can
+}
+
+#else /* !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4 && \
+         MLD_CONFIG_PARAMETER_SET == 44) &&                       \
+         !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5 && \
+         MLD_CONFIG_PARAMETER_SET == 65) &&                       \
+         MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7 &&   \
+         MLD_CONFIG_PARAMETER_SET == 87 */
+
+#define mld_pointwise_sum_of_products \
+  MLD_NAMESPACE_KL(mld_pointwise_sum_of_products)
+static int64_t mld_pointwise_sum_of_products(const mld_polyvecl *u,
+                                             const mld_polyvecl *v,
+                                             unsigned int i)
+__contract__(
+  requires(memory_no_alias(u, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(v, sizeof(mld_polyvecl)))
+  requires(i < MLDSA_N)
+  requires(forall(l0, 0, MLDSA_L,
+                  array_bound(u->vec[l0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
+  requires(forall(l1, 0, MLDSA_L,
+    array_abs_bound(v->vec[l1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  ensures(return_value >= -(int64_t) MLDSA_L*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
+  ensures(return_value <=  (int64_t) MLDSA_L*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
+)
+{
+  /* Input vector u is bounded by [0, Q-1] inclusive
+   * Input vector v is bounded by [-9Q+1, 9Q-1] inclusive . Hence, we can
    * safely accumulate in 64-bits without intermediate reductions as
    * MLDSA_L * (MLD_NTT_BOUND-1) * (Q-1) < INT64_MAX
    *
@@ -357,38 +380,53 @@ void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
    * (and likewise for negative values)
    */
 
+  int64_t t = 0;
+  unsigned int j;
+  for (j = 0; j < MLDSA_L; j++)
+  __loop__(
+    assigns(j, t)
+    invariant(j <= MLDSA_L)
+    invariant(t >= -(int64_t)j*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
+    invariant(t <= (int64_t)j*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
+  )
+  {
+    const int64_t u64 = (int64_t)u->vec[j].coeffs[i];
+    const int64_t v64 = (int64_t)v->vec[j].coeffs[i];
+    /* Helper assertions for proof efficiency. Do not remove */
+    mld_assert(u64 >= 0 && u64 < MLDSA_Q);
+    mld_assert(v64 > -MLD_NTT_BOUND && v64 < MLD_NTT_BOUND);
+    t += (u64 * v64);
+  }
+  return t;
+}
+
+void mld_polyvecl_pointwise_acc_montgomery(mld_poly *w, const mld_polyvecl *u,
+                                           const mld_polyvecl *v)
+{
+  unsigned int i;
+
+  mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, 0, MLDSA_Q);
+  mld_assert_abs_bound_2d(v->vec, MLDSA_L, MLDSA_N, MLD_NTT_BOUND);
   for (i = 0; i < MLDSA_N; i++)
   __loop__(
-    assigns(i, j, object_whole(w))
+    assigns(i, object_whole(w))
     invariant(i <= MLDSA_N)
     invariant(array_abs_bound(w->coeffs, 0, i, MLDSA_Q))
   )
   {
-    int64_t t = 0;
-    int32_t r;
-    for (j = 0; j < MLDSA_L; j++)
-    __loop__(
-      assigns(j, t)
-      invariant(j <= MLDSA_L)
-      invariant(t >= -(int64_t)j*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
-      invariant(t <= (int64_t)j*(MLDSA_Q - 1)*(MLD_NTT_BOUND - 1))
-    )
-    {
-      t += (int64_t)u->vec[j].coeffs[i] * v->vec[j].coeffs[i];
-    }
-
-    r = mld_montgomery_reduce(t);
-    w->coeffs[i] = r;
+    w->coeffs[i] =
+        mld_montgomery_reduce(mld_pointwise_sum_of_products(u, v, i));
   }
 
   mld_assert_abs_bound(w->coeffs, MLDSA_N, MLDSA_Q);
+}
+
 #endif /* !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L4 && \
           MLD_CONFIG_PARAMETER_SET == 44) &&                       \
           !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L5 && \
           MLD_CONFIG_PARAMETER_SET == 65) &&                       \
           !(MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7 && \
           MLD_CONFIG_PARAMETER_SET == 87) */
-}
 
 MLD_INTERNAL_API
 uint32_t mld_polyvecl_chknorm(const mld_polyvecl *v, int32_t bound)

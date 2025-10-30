@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = polyvecl_pointwise_acc_montgomery_harness
+HARNESS_FILE = pointwise_sum_of_products_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = polyvecl_pointwise_acc_montgomery
+PROOF_UID = pointwise_sum_of_products
 
 DEFINES +=
 INCLUDES +=
@@ -19,8 +19,8 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/src/polyvec.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyvecl_pointwise_acc_montgomery
-USE_FUNCTION_CONTRACTS=mld_montgomery_reduce $(MLD_NAMESPACE)mld_pointwise_sum_of_products
+CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)mld_pointwise_sum_of_products
+USE_FUNCTION_CONTRACTS=
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
@@ -28,7 +28,7 @@ USE_DYNAMIC_FRAMES=1
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--smt2 --slice-formula
 
-FUNCTION_NAME = polyvecl_pointwise_acc_montgomery
+FUNCTION_NAME = pointwise_sum_of_products
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will
@@ -44,7 +44,7 @@ CBMC_OBJECT_BITS = 12
 # ("mldsa/poly.c") in PROJECT_SOURCES).
 # REWRITTEN_SOURCES = $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i
 # include ../Makefile.common
-# $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_SOURCE = $(SRCDIR)/mldsa/src/poly.c
+# $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_SOURCE = $(SRCDIR)/mldsa/poly.c
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_FUNCTIONS = foo bar
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_OBJECTS = baz
 # Care is required with variables on the left-hand side: REWRITTEN_SOURCES must
