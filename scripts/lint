@@ -165,13 +165,6 @@ check-spdx()
   done
   # For source files in dev/* and mldsa/*, we enforce `Apache-2.0 OR ISC OR MIT`
   for file in $(git ls-files -- "*.[chsSi]" | grep "^dev/\|^mldsa/"); do
-    # TODO: Temporarily exclude AArch64 (i)NTT pending license resolution (see issue #381)
-    if [[ $file == "mldsa/native/aarch64/src/ntt.S" ]] ||
-      [[ $file == "mldsa/native/aarch64/src/intt.S" ]] ||
-      [[ $file == "dev/aarch64_clean/src/ntt.S" ]] ||
-      [[ $file == "dev/aarch64_clean/src/intt.S" ]]; then
-      continue
-    fi
     # Ignore symlinks
     if [[ ! -L $file && $(grep "SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT" $file | wc -l) == 0 ]]; then
       gh_error "$file" "${line:-1}" "Missing license header error" "$file is not licensed under 'Apache-2.0 OR ISC OR MIT'"
