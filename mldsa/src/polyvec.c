@@ -509,7 +509,6 @@ void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
     invariant(i <= MLDSA_K)
     invariant(forall(k0, i, MLDSA_K,
               forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1])))
-    invariant(forall(k4, 0, i, forall(k5, 0, MLDSA_N, u->vec[k4].coeffs[k5] == loop_entry(*u).vec[k4].coeffs[k5] + v->vec[k4].coeffs[k5])))
     invariant(forall(k6, 0, i, array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
   )
   {
@@ -517,6 +516,28 @@ void mld_polyveck_add(mld_polyveck *u, const mld_polyveck *v)
   }
   mld_assert_bound_2d(u->vec, MLDSA_L, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX);
 }
+
+/* Reference: We use destructive version (output=first input) to avoid
+ *            reasoning about aliasing in the CBMC specification */
+MLD_INTERNAL_API
+void mld_polyveck_add_error(mld_polyveck *u, const mld_polyveck *v)
+{
+  unsigned int i;
+
+  for (i = 0; i < MLDSA_K; ++i)
+  __loop__(
+    assigns(i, memory_slice(u, sizeof(mld_polyveck)))
+    invariant(i <= MLDSA_K)
+    invariant(forall(k0, i, MLDSA_K,
+              forall(k1, 0, MLDSA_N, u->vec[k0].coeffs[k1] == loop_entry(*u).vec[k0].coeffs[k1])))
+    invariant(forall(k6, 0, i, array_abs_bound(u->vec[k6].coeffs, 0, MLDSA_N, MLDSA_Q)))
+  )
+  {
+    mld_poly_add(&u->vec[i], &v->vec[i]);
+  }
+  mld_assert_abs_bound_2d(u->vec, MLDSA_L, MLDSA_N, MLDSA_Q);
+}
+
 
 MLD_INTERNAL_API
 void mld_polyveck_sub(mld_polyveck *u, const mld_polyveck *v)

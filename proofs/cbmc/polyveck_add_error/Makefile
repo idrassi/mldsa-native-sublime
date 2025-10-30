@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = crypto_sign_keypair_internal_harness
+HARNESS_FILE = polyveck_add_error_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = crypto_sign_keypair_internal
+PROOF_UID = polyveck_add_error
 
 DEFINES +=
 INCLUDES +=
@@ -17,33 +17,18 @@ REMOVE_FUNCTION_BODY +=
 UNWINDSET +=
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
-PROJECT_SOURCES += $(SRCDIR)/mldsa/src/sign.c
+PROJECT_SOURCES += $(SRCDIR)/mldsa/src/polyvec.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)keypair_internal
-USE_FUNCTION_CONTRACTS=$(FIPS202_NAMESPACE)shake256
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_expand
-USE_FUNCTION_CONTRACTS+=mld_sample_s1_s2
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvecl_ntt
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_pointwise_montgomery
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_reduce
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_invntt_tomont
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_add_error
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_caddq
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyveck_power2round
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)pack_pk
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)pack_sk
-USE_FUNCTION_CONTRACTS+=mld_zeroize
-USE_FUNCTION_CONTRACTS+=mld_check_pct
-
+CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyveck_add_error
+USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)poly_add
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
 # Disable any setting of EXTERNAL_SAT_SOLVER, and choose SMT backend instead
 EXTERNAL_SAT_SOLVER=
-CBMCFLAGS=--smt2
-CBMCFLAGS += --slice-formula
+CBMCFLAGS=--smt2 --arrays-uf-always --slice-formula
 
-FUNCTION_NAME = crypto_sign_keypair_internal
+FUNCTION_NAME = polyveck_add_error
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will
@@ -52,14 +37,14 @@ FUNCTION_NAME = crypto_sign_keypair_internal
 # EXPENSIVE = true
 
 # This function is large enough to need...
-CBMC_OBJECT_BITS = 9
+CBMC_OBJECT_BITS = 8
 
 # If you require access to a file-local ("static") function or object to conduct
 # your proof, set the following (and do not include the original source file
 # ("mldsa/poly.c") in PROJECT_SOURCES).
 # REWRITTEN_SOURCES = $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i
 # include ../Makefile.common
-# $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_SOURCE = $(SRCDIR)/mldsa/src/poly.c
+# $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_SOURCE = $(SRCDIR)/mldsa/poly.c
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_FUNCTIONS = foo bar
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_OBJECTS = baz
 # Care is required with variables on the left-hand side: REWRITTEN_SOURCES must

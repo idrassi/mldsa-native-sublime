@@ -257,6 +257,7 @@
 #undef mld_polyvec_matrix_pointwise_montgomery
 #undef mld_polyveck
 #undef mld_polyveck_add
+#undef mld_polyveck_add_error
 #undef mld_polyveck_caddq
 #undef mld_polyveck_chknorm
 #undef mld_polyveck_decompose

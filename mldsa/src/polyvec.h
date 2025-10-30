@@ -290,9 +290,29 @@ __contract__(
   requires(forall(k0, 0, MLDSA_K, forall(k1, 0, MLDSA_N, (int64_t) u->vec[k0].coeffs[k1] + v->vec[k0].coeffs[k1] < REDUCE32_DOMAIN_MAX)))
   requires(forall(k2, 0, MLDSA_K, forall(k3, 0, MLDSA_N, (int64_t) u->vec[k2].coeffs[k3] + v->vec[k2].coeffs[k3] >= INT32_MIN)))
   assigns(object_whole(u))
-  ensures(forall(k4, 0, MLDSA_K, forall(k5, 0, MLDSA_N, u->vec[k4].coeffs[k5] == old(*u).vec[k4].coeffs[k5] + v->vec[k4].coeffs[k5])))
-  ensures(forall(k6, 0, MLDSA_L,
-                array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
+  ensures(forall(k6, 0, MLDSA_K, array_bound(u->vec[k6].coeffs, 0, MLDSA_N, INT32_MIN, REDUCE32_DOMAIN_MAX)))
+);
+
+#define mld_polyveck_add_error MLD_NAMESPACE_KL(polyveck_add_error)
+/*************************************************
+ * Name:        mld_polyveck_add_error
+ *
+ * Description: As mld_polyveck_add(), but special
+ *              case (and stronger contracts) when
+ *              input vector v is an error term
+ *              where all coefficients are bounded
+ *              in absolute value by MLDSA_ETA.
+ **************************************************/
+MLD_INTERNAL_API
+void mld_polyveck_add_error(mld_polyveck *u, const mld_polyveck *v)
+__contract__(
+  requires(memory_no_alias(u, sizeof(mld_polyveck)))
+  requires(memory_no_alias(v, sizeof(mld_polyveck)))
+  requires(forall(k0, 0, MLDSA_K, forall(k1, 0, MLDSA_N, (int64_t) u->vec[k0].coeffs[k1] + v->vec[k0].coeffs[k1] < MLDSA_Q)))
+  requires(forall(k2, 0, MLDSA_K, forall(k3, 0, MLDSA_N, (int64_t) u->vec[k2].coeffs[k3] + v->vec[k2].coeffs[k3] > -MLDSA_Q)))
+  requires(forall(k4, 0, MLDSA_K, array_abs_bound(v->vec[k4].coeffs, 0, MLDSA_N, MLDSA_ETA + 1)))
+  assigns(object_whole(u))
+  ensures(forall(k6, 0, MLDSA_K, array_abs_bound(u->vec[k6].coeffs, 0, MLDSA_N, MLDSA_Q)))
 );
 
 #define mld_polyveck_sub MLD_NAMESPACE_KL(polyveck_sub)

@@ -195,7 +195,7 @@ int crypto_sign_keypair_internal(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   mld_polyveck_invntt_tomont(&t1);
 
   /* Add error vector s2 */
-  mld_polyveck_add(&t1, &s2);
+  mld_polyveck_add_error(&t1, &s2);
 
   /* Extract t1 and write public key */
   mld_polyveck_caddq(&t1);
