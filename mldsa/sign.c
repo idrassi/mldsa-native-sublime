@@ -383,18 +383,13 @@ __contract__(
   mld_polyvecl_add(&z, &y);
   mld_polyvecl_reduce(&z);
 
-  z_invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
+  z_invalid = mld_value_barrier_u32(mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA));
   /* Constant time: It is fine (and prohibitively expensive to avoid)
    * leaking the result of the norm check. In case of rejection it
    * would even be okay to leak which coefficient led to rejection
    * as the candidate signature will be discarded anyway.
    * See Section 5.5 of @[Round3_Spec]. */
   MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
-  if (z_invalid)
-  {
-    res = -1; /* reject */
-    goto cleanup;
-  }
 
   /* If z is valid, then its coefficients are bounded by  */
   /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
@@ -408,10 +403,10 @@ __contract__(
   mld_polyveck_sub(&w0, &h);
   mld_polyveck_reduce(&w0);
 
-  w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  w0_invalid = mld_value_barrier_u32(mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA));
   /* Constant time: w0_invalid may be leaked - see comment for z_invalid. */
   MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
-  if (w0_invalid)
+  if (mld_value_barrier_u32(z_invalid | w0_invalid))
   {
     res = -1; /* reject */
     goto cleanup;
