@@ -110,7 +110,7 @@ Lintt_layer5678_start:
         trn2	v11.2d, v26.2d, v28.2d
         trn1	v8.2d, v25.2d, v27.2d
         trn1	v9.2d, v26.2d, v28.2d
-        ldr	q1, [x2], #0x18
+        ldr	d1, [x2], #0x20
         ldur	q0, [x2, #-0x10]
         sub	v24.4s, v8.4s, v9.4s
         add	v8.4s, v8.4s, v9.4s

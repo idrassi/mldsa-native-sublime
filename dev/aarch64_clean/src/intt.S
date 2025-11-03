@@ -74,7 +74,7 @@
 .endm
 
 .macro load_next_roots_56
-        ldr q_root1, [r123456_ptr], #24
+        ldr d_root1, [r123456_ptr], #32
         ldr q_root0, [r123456_ptr, #-16]
 .endm
 
@@ -194,6 +194,7 @@
         q_root2_tw .req q6
         q_root3_tw .req q7
 
+        d_root1    .req d1
 
         tmp .req v24
         t0  .req v25
@@ -424,6 +425,7 @@ intt_layer1234_start:
     .unreq q_root1_tw
     .unreq q_root2_tw
     .unreq q_root3_tw
+    .unreq d_root1
     .unreq tmp
     .unreq t0
     .unreq t1
