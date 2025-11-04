@@ -12,7 +12,7 @@ needs "common/mlkem_mldsa.ml";;
 
 (*** print_literal_from_elf "x86/mldsa/mldsa_ntt.o";;
  ***)
-let mldsa_ntt_mc = define_assert_from_elf "mldsa_ntt_mc" "x86/mldsa/mldsa_ntt.o"
+let mldsa_ntt_mc = define_assert_from_elf "mldsa_ntt_mc" "mldsa/mldsa_ntt.o"
 [
   0xf3; 0x0f; 0x1e; 0xfa;  (* ENDBR64 *)
   0xc5; 0xfd; 0x6f; 0x06;  (* VMOVDQA (%_% ymm0) (Memop Word256 (%% (rsi,0))) *)
