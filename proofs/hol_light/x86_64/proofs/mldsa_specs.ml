@@ -9,6 +9,9 @@
 
 needs "Library/words.ml";;
 needs "Library/isum.ml";;
+needs "common/misc.ml";;
+needs "common/bignum.ml";;
+needs "common/relational.ml";;
 
 (* ------------------------------------------------------------------------- *)
 (* The pure forms of forward and inverse NTT with no reordering.             *)
