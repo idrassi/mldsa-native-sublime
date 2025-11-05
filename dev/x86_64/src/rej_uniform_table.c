@@ -152,10 +152,8 @@ MLD_ALIGN const uint8_t mld_rej_uniform_table[256][8] = {
     {1, 2, 3, 4, 5, 6, 7, 0}, {0, 1, 2, 3, 4, 5, 6, 7},
 };
 
-#else /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED \
-       */
+#else
 
 MLD_EMPTY_CU(avx2_rej_uniform_table)
 
-#endif /* !(MLD_ARITH_BACKEND_X86_64_DEFAULT && \
-          !MLD_CONFIG_MULTILEVEL_NO_SHARED) */
+#endif

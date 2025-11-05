@@ -240,7 +240,7 @@ static MLD_INLINE void mld_zeroize_native(void *ptr, size_t len)
 {
   explicit_bzero(ptr, len);
 }
-#endif /* !__ASSEMBLER__ */
+#endif
 
 
 /******************************************************************************

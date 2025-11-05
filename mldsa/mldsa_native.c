@@ -81,7 +81,7 @@
 #include "src/native/aarch64/src/polyz_unpack_table.c"
 #include "src/native/aarch64/src/rej_uniform_eta_table.c"
 #include "src/native/aarch64/src/rej_uniform_table.c"
-#endif /* MLD_SYS_AARCH64 */
+#endif
 #if defined(MLD_SYS_X86_64)
 #include "src/native/x86_64/src/consts.c"
 #include "src/native/x86_64/src/poly_caddq_avx2.c"
@@ -96,8 +96,8 @@
 #include "src/native/x86_64/src/rej_uniform_eta2_avx2.c"
 #include "src/native/x86_64/src/rej_uniform_eta4_avx2.c"
 #include "src/native/x86_64/src/rej_uniform_table.c"
-#endif /* MLD_SYS_X86_64 */
-#endif /* MLD_CONFIG_USE_NATIVE_BACKEND_ARITH */
+#endif
+#endif
 
 #if defined(MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202)
 #if defined(MLD_SYS_AARCH64)
@@ -106,7 +106,7 @@
 #if defined(MLD_SYS_X86_64)
 #include "src/fips202/native/x86_64/src/KeccakP_1600_times4_SIMD256.c"
 #endif
-#endif /* MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202 */
+#endif
 
 /* Macro #undef's
  *
@@ -473,7 +473,7 @@
 #undef mld_keccakf1600x4_extract_bytes
 #undef mld_keccakf1600x4_permute
 #undef mld_keccakf1600x4_xor_bytes
-#endif /* !MLD_CONFIG_FIPS202_CUSTOM_HEADER */
+#endif
 
 #if defined(MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202)
 /* mldsa/src/fips202/native/api.h */
@@ -514,7 +514,7 @@
 #undef MLD_FIPS202_AARCH64_NEED_X4_V8A_V84A_SCALAR_HYBRID
 #undef MLD_FIPS202_NATIVE_AARCH64_X4_V8A_V84A_SCALAR_H
 #undef MLD_USE_FIPS202_X4_NATIVE
-#endif /* MLD_SYS_AARCH64 */
+#endif
 #if defined(MLD_SYS_X86_64)
 /*
  * Undefine macros from native code (FIPS202, x86_64)
@@ -526,8 +526,8 @@
 #undef MLD_FIPS202_NATIVE_X86_64_XKCP_H
 #undef MLD_FIPS202_X86_64_XKCP
 #undef MLD_USE_FIPS202_X4_NATIVE
-#endif /* MLD_SYS_X86_64 */
-#endif /* MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202 */
+#endif
+#endif
 #if defined(MLD_CONFIG_USE_NATIVE_BACKEND_ARITH)
 /* mldsa/src/native/api.h */
 #undef MLD_NATIVE_API_H
@@ -586,7 +586,7 @@
 #undef mld_rej_uniform_eta4_asm
 #undef mld_rej_uniform_eta_table
 #undef mld_rej_uniform_table
-#endif /* MLD_SYS_AARCH64 */
+#endif
 #if defined(MLD_SYS_X86_64)
 /*
  * Undefine macros from native code (Arith, X86_64)
@@ -648,6 +648,6 @@
 #undef MLD_AVX2_BACKEND_DATA_OFFSET_ZETAS_QINV
 #undef MLD_NATIVE_X86_64_SRC_CONSTS_H
 #undef mld_qdata
-#endif /* MLD_SYS_X86_64 */
-#endif /* MLD_CONFIG_USE_NATIVE_BACKEND_ARITH */
-#endif /* !MLD_CONFIG_MONOBUILD_KEEP_SHARED_HEADERS */
+#endif
+#endif
+#endif

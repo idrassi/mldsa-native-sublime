@@ -353,7 +353,7 @@ static MLD_INLINE int mld_break_pct(void)
   const char *val = getenv("MLD_BREAK_PCT");
   return val != NULL && strcmp(val, "1") == 0;
 }
-#endif /* !__ASSEMBLER__ */
+#endif
 
 
 /******************************************************************************

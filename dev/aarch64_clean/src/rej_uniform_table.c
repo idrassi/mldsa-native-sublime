@@ -56,8 +56,8 @@ MLD_ALIGN const uint8_t mld_rej_uniform_table[] = {
     8,   9,   10,  11,  12,  13,  14,  15 /* 15 */,
 };
 
-#else /* MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED */
+#else
 
 MLD_EMPTY_CU(aarch64_rej_uniform_table)
 
-#endif /* !(MLD_ARITH_BACKEND_AARCH64 && !MLD_CONFIG_MULTILEVEL_NO_SHARED) */
+#endif

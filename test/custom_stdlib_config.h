@@ -300,7 +300,7 @@ static MLD_INLINE void *mld_memset(void *s, int c, size_t n)
   }
   return s;
 }
-#endif /* !__ASSEMBLER__ */
+#endif
 
 
 /******************************************************************************
