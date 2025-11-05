@@ -9,9 +9,6 @@
 
 needs "Library/words.ml";;
 needs "Library/isum.ml";;
-needs "common/misc.ml";;
-needs "common/bignum.ml";;
-needs "common/relational.ml";;
 
 (* ------------------------------------------------------------------------- *)
 (* The pure forms of forward and inverse NTT with no reordering.             *)
@@ -598,22 +595,3 @@ let GEN_CONGBOUND_RULE aboths =
   rule;;
 
 let CONGBOUND_RULE = GEN_CONGBOUND_RULE [];;
-
-(* ------------------------------------------------------------------------- *)
-(* Simplify SIMD cruft and fold abbreviations when encountered.              *)
-(* ------------------------------------------------------------------------- *)
-
-let SIMD_SIMPLIFY_CONV unfold_defs =
-  TOP_DEPTH_CONV
-   (REWR_CONV WORD_SUBWORD_AND ORELSEC WORD_SIMPLE_SUBWORD_CONV) THENC
-  DEPTH_CONV WORD_NUM_RED_CONV THENC
-  REWRITE_CONV (map GSYM unfold_defs);;
-
-let SIMD_SIMPLIFY_TAC unfold_defs =
-  let arm_simdable = can (term_match [] `read X (s:armstate):int128 = whatever`) in
-  let x86_simdable = can (term_match [] `read X (s:x86state):int256 = whatever`) in
-  let simdable tm = arm_simdable tm || x86_simdable tm in
-  TRY(FIRST_X_ASSUM
-   (ASSUME_TAC o
-    CONV_RULE(RAND_CONV (SIMD_SIMPLIFY_CONV unfold_defs)) o
-    check (simdable o concl)));;
