@@ -26,12 +26,12 @@
 // Microsoft x64 ABI:   RCX = a, RDX = zetas
 // ----------------------------------------------------------------------------
 
-#include "_internal_s2n_bignum_x86.h"
+//#include "_internal_s2n_bignum_x86.h"
 
         .intel_syntax noprefix
-        S2N_BN_SYM_VISIBILITY_DIRECTIVE(mldsa_ntt)
-        S2N_BN_FUNCTION_TYPE_DIRECTIVE(mldsa_ntt)
-        S2N_BN_SYM_PRIVACY_DIRECTIVE(mldsa_ntt)
+//        S2N_BN_SYM_VISIBILITY_DIRECTIVE(mldsa_ntt)
+//        S2N_BN_FUNCTION_TYPE_DIRECTIVE(mldsa_ntt)
+//        S2N_BN_SYM_PRIVACY_DIRECTIVE(mldsa_ntt)
         .text
 
 #define a rdi
@@ -237,26 +237,14 @@ vmovdqa		[rdi+192+256*\off],ymm3
 vmovdqa		[rdi+224+256*\off],ymm11
 .endm
 
-S2N_BN_SYMBOL(mldsa_ntt):
-        CFI_START
-        _CET_ENDBR
-
-#if WINDOWS_ABI
-        CFI_DEC_RSP(176)
-        CFI_STACKSAVEU(xmm6,0)
-        CFI_STACKSAVEU(xmm7,16)
-        CFI_STACKSAVEU(xmm8,32)
-        CFI_STACKSAVEU(xmm9,48)
-        CFI_STACKSAVEU(xmm10,64)
-        CFI_STACKSAVEU(xmm11,80)
-        CFI_STACKSAVEU(xmm12,96)
-        CFI_STACKSAVEU(xmm13,112)
-        CFI_STACKSAVEU(xmm14,128)
-        CFI_STACKSAVEU(xmm15,144)
-        CFI_STACKSAVE(rdi,160)
-        mov     rdi, rcx
-        mov     rsi, rdx
+#ifdef __APPLE__
+.global _mldsa_ntt
+_mldsa_ntt:
+#else
+.global mldsa_ntt
+mldsa_ntt:
 #endif
+        .cfi_startproc
 
         vmovdqa ymm0,[rsi+MLD_AVX2_BACKEND_DATA_OFFSET_8XQ*4]
 
@@ -270,23 +258,8 @@ S2N_BN_SYMBOL(mldsa_ntt):
         levels2t7 2
         levels2t7 3
 
-#if WINDOWS_ABI
-        CFI_STACKLOADU(xmm6,0)
-        CFI_STACKLOADU(xmm7,16)
-        CFI_STACKLOADU(xmm8,32)
-        CFI_STACKLOADU(xmm9,48)
-        CFI_STACKLOADU(xmm10,64)
-        CFI_STACKLOADU(xmm11,80)
-        CFI_STACKLOADU(xmm12,96)
-        CFI_STACKLOADU(xmm13,112)
-        CFI_STACKLOADU(xmm14,128)
-        CFI_STACKLOADU(xmm15,144)
-        CFI_STACKLOAD(rdi,160)
-        CFI_INC_RSP(176)
-#endif
-        CFI_RET
-
-S2N_BN_SIZE_DIRECTIVE(mldsa_ntt)
+        ret
+        .cfi_endproc
 
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

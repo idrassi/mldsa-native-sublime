@@ -55,7 +55,7 @@ echo "Generating a template .ml that loads the file...: ${template_ml}"
 inlined_prefix="$(mktemp)"
 inlined_ml="${inlined_prefix}.ml"
 inlined_cmx="${inlined_prefix}.cmx"
-(cd "${S2N_BIGNUM_DIR}" && HOLLIGHT_LOAD_PATH=${ROOT} ocaml ${HOLLIGHT_DIR}/inline_load.ml "${template_ml}" "${inlined_ml}")
+(cd "${S2N_BIGNUM_DIR}" && HOLLIGHT_LOAD_PATH="${S2N_BIGNUM_DIR}:${ROOT}" ocaml ${HOLLIGHT_DIR}/inline_load.ml "${template_ml}" "${inlined_ml}")
 
 # Give a large stack size.
 OCAMLRUNPARAM=l=2000000000 \
