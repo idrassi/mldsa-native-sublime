@@ -20,13 +20,13 @@ MLD_INTERNAL_API
 void mld_pack_pk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                  const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyveck *t1)
 {
-  unsigned int i;
+  int i;
 
   mld_memcpy(pk, rho, MLDSA_SEEDBYTES);
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     assigns(i, memory_slice(pk, CRYPTO_PUBLICKEYBYTES))
-    invariant(i <= MLDSA_K)
+    invariant(i >= 0 && i <= MLDSA_K)
   )
   {
     mld_polyt1_pack(pk + MLDSA_SEEDBYTES + i * MLDSA_POLYT1_PACKEDBYTES,
@@ -38,7 +38,7 @@ MLD_INTERNAL_API
 void mld_unpack_pk(uint8_t rho[MLDSA_SEEDBYTES], mld_polyveck *t1,
                    const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 {
-  unsigned int i;
+  int i;
 
   mld_memcpy(rho, pk, MLDSA_SEEDBYTES);
   pk += MLDSA_SEEDBYTES;
@@ -101,9 +101,9 @@ void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
 MLD_INTERNAL_API
 void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
                   const mld_polyvecl *z, const mld_polyveck *h,
-                  const unsigned int number_of_hints)
+                  const int number_of_hints)
 {
-  unsigned int i, j, k;
+  int i, j, k;
 
   mld_memcpy(sig, c, MLDSA_CTILDEBYTES);
   sig += MLDSA_CTILDEBYTES;
@@ -133,8 +133,8 @@ void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
     assigns(i, j, k, memory_slice(sig, MLDSA_POLYVECH_PACKEDBYTES))
-    invariant(i <= MLDSA_K)
-    invariant(k <= number_of_hints)
+    invariant(i >= 0 && i <= MLDSA_K)
+    invariant(k >= 0 && k <= number_of_hints)
     invariant(number_of_hints <= MLDSA_OMEGA)
   )
   {
@@ -143,10 +143,10 @@ void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
     for (j = 0; j < MLDSA_N; ++j)
     __loop__(
       assigns(j, k, memory_slice(sig, MLDSA_POLYVECH_PACKEDBYTES))
-      invariant(i <= MLDSA_K)
-      invariant(j <= MLDSA_N)
-      invariant(k <= number_of_hints)
-      invariant(number_of_hints <= MLDSA_OMEGA)
+      invariant(i >= 0 && i <= MLDSA_K)
+      invariant(j >= 0 && j <= MLDSA_N)
+      invariant(k >= 0 && k <= number_of_hints)
+      invariant(number_of_hints >= 0 && number_of_hints <= MLDSA_OMEGA)
     )
     {
       /* The reference implementation implicitly relies on the total */
@@ -192,8 +192,8 @@ __contract__(
   ensures(return_value >= 0 && return_value <= 1)
 )
 {
-  unsigned int i, j;
-  unsigned int old_hint_count;
+  int i;
+  unsigned int j, old_hint_count;
 
   /* Set all coefficients of all polynomials to 0.    */
   /* Only those that are actually non-zero hints will */
@@ -203,7 +203,7 @@ __contract__(
   old_hint_count = 0;
   for (i = 0; i < MLDSA_K; ++i)
   __loop__(
-    invariant(i <= MLDSA_K)
+    invariant(i >= 0 && i <= MLDSA_K)
     /* Maintain the post-condition */
     invariant(forall(k1, 0, MLDSA_K, array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
   )

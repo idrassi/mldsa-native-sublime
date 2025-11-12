@@ -71,10 +71,10 @@ __contract__(
 
 /* Reference: Embedded in `ntt()` in the reference implementation @[REF]. */
 static void mld_ntt_butterfly_block(int32_t r[MLDSA_N], const int32_t zeta,
-                                    const unsigned start, const unsigned len,
-                                    const unsigned bound)
+                                    const int start, const int len,
+                                    const int bound)
 __contract__(
-  requires(start < MLDSA_N)
+  requires(start >= 0 && start < MLDSA_N)
   requires(1 <= len && len <= MLDSA_N / 2 && start + 2 * len <= MLDSA_N)
   requires(0 <= bound && bound < INT32_MAX - MLDSA_Q)
   requires(-MLDSA_Q_HALF < zeta && zeta < MLDSA_Q_HALF)
@@ -86,7 +86,7 @@ __contract__(
   ensures(array_abs_bound(r, start + 2 * len, MLDSA_N, bound)))
 {
   /* `bound` is a ghost variable only needed in the CBMC specification */
-  unsigned j;
+  int j;
   ((void)bound);
   for (j = start; j < start + len; j++)
   __loop__(
@@ -117,7 +117,7 @@ __contract__(
  */
 
 /* Reference: Embedded in `ntt()` in the reference implementation @[REF]. */
-static void mld_ntt_layer(int32_t r[MLDSA_N], const unsigned layer)
+static void mld_ntt_layer(int32_t r[MLDSA_N], int layer)
 __contract__(
   requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
   requires(1 <= layer && layer <= 8)
@@ -125,14 +125,14 @@ __contract__(
   assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
   ensures(array_abs_bound(r, 0, MLDSA_N, (layer + 1) * MLDSA_Q)))
 {
-  unsigned start, k, len;
+  int start, k, len;
   /* Twiddle factors for layer n are at indices 2^(n-1)..2^n-1. */
-  k = 1u << (layer - 1);
-  len = (unsigned)MLDSA_N >> layer;
+  k = 1 << (layer - 1);
+  len = MLDSA_N >> layer;
   for (start = 0; start < MLDSA_N; start += 2 * len)
   __loop__(
-    invariant(start < MLDSA_N + 2 * len)
-    invariant(k <= MLDSA_N)
+    invariant(start >= 0 && start < MLDSA_N + 2 * len)
+    invariant(k >= 1 && k <= MLDSA_N)
     invariant(2 * len * k == start + MLDSA_N)
     invariant(array_abs_bound(r, 0, start, layer * MLDSA_Q + MLDSA_Q))
     invariant(array_abs_bound(r, start, MLDSA_N, layer * MLDSA_Q)))
@@ -145,7 +145,7 @@ __contract__(
 MLD_INTERNAL_API
 void mld_ntt(int32_t a[MLDSA_N])
 {
-  unsigned int layer;
+  int layer;
 
   for (layer = 1; layer < 9; layer++)
   __loop__(
@@ -187,7 +187,7 @@ __contract__(
 
 /* Reference: Embedded into `invntt_tomont()` in the reference implementation
  * @[REF] */
-static void mld_invntt_layer(int32_t r[MLDSA_N], unsigned layer)
+static void mld_invntt_layer(int32_t r[MLDSA_N], int layer)
 __contract__(
   requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
   requires(1 <= layer && layer <= 8)
@@ -195,22 +195,25 @@ __contract__(
   assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
   ensures(array_abs_bound(r, 0, MLDSA_N, (MLDSA_N >> (layer - 1)) * MLDSA_Q)))
 {
-  unsigned start, k, len;
-  len = (unsigned)MLDSA_N >> layer;
-  k = (1u << layer) - 1;
+  int start, k, len;
+  len = MLDSA_N >> layer;
+  k = (1 << layer) - 1;
   for (start = 0; start < MLDSA_N; start += 2 * len)
   __loop__(
-    invariant(start <= MLDSA_N && k <= 255)
+    invariant(start >= 0 && start <= MLDSA_N)
+    invariant(k >= 0 && k <= 255)
+    invariant(len >= 1 && len <= 128)
     invariant(2 * len * k + start == 2 * MLDSA_N - 2 * len)
     invariant(array_abs_bound(r, 0, start, (MLDSA_N >> (layer - 1)) * MLDSA_Q))
     invariant(array_abs_bound(r, start, MLDSA_N, (MLDSA_N >> layer) * MLDSA_Q)))
   {
-    unsigned j;
+    int j;
     int32_t zeta = -mld_zetas[k--];
 
     for (j = start; j < start + len; j++)
     __loop__(
       invariant(start <= j && j <= start + len)
+      invariant(k >= 0 && len >= 1)
       invariant(array_abs_bound(r, 0, start, (MLDSA_N >> (layer - 1)) * MLDSA_Q))
       invariant(array_abs_bound(r, start, j, (MLDSA_N >> (layer - 1)) * MLDSA_Q))
       invariant(array_abs_bound(r, j, start + len, (MLDSA_N >> layer) * MLDSA_Q))
@@ -227,11 +230,11 @@ __contract__(
 MLD_INTERNAL_API
 void mld_invntt_tomont(int32_t a[MLDSA_N])
 {
-  unsigned int layer, j;
+  int layer, j;
 
   for (layer = 8; layer >= 1; layer--)
   __loop__(
-    invariant(layer <= 8)
+    invariant(layer >= 0 && layer <= 8)
     /* Absolute bounds increase from 1Q before layer 8 */
     /* up to 256Q after layer 1                        */
     invariant(array_abs_bound(a, 0, MLDSA_N, (MLDSA_N >> layer) * MLDSA_Q)))
@@ -247,7 +250,7 @@ void mld_invntt_tomont(int32_t a[MLDSA_N])
    * value.*/
   for (j = 0; j < MLDSA_N; ++j)
   __loop__(
-    invariant(j <= MLDSA_N)
+    invariant(j >= 0 && j <= MLDSA_N)
     invariant(array_abs_bound(a, 0, j, MLD_INTT_BOUND))
     invariant(array_abs_bound(a, j, MLDSA_N, MLDSA_N * MLDSA_Q))
   )

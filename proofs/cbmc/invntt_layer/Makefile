@@ -26,7 +26,8 @@ USE_DYNAMIC_FRAMES=1
 
 # Disable any setting of EXTERNAL_SAT_SOLVER, and choose SMT backend instead
 EXTERNAL_SAT_SOLVER=
-CBMCFLAGS=--smt2
+# Bitwuzla has been found to be more efficient on this function
+CBMCFLAGS=--bitwuzla --slice-formula
 
 FUNCTION_NAME = mld_invntt_layer
 

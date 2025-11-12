@@ -36,7 +36,7 @@
  *            conditionals. We move the conditionals to the frontend.
  */
 
-unsigned int mld_rej_uniform_eta4_avx2(
+int32_t mld_rej_uniform_eta4_avx2(
     int32_t *MLD_RESTRICT r,
     const uint8_t buf[MLD_AVX2_REJ_UNIFORM_ETA4_BUFLEN])
 {
@@ -123,7 +123,7 @@ unsigned int mld_rej_uniform_eta4_avx2(
     }
   }
 
-  return ctr;
+  return (int32_t)ctr;
 }
 
 #else /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED \

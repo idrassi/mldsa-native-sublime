@@ -22,7 +22,7 @@
 
 #define mld_keccakf1600_extract_bytes MLD_NAMESPACE(keccakf1600_extract_bytes)
 void mld_keccakf1600_extract_bytes(uint64_t *state, unsigned char *data,
-                                   unsigned offset, unsigned length)
+                                   int offset, int length)
 __contract__(
     requires(0 <= offset && offset <= MLD_KECCAK_LANES * sizeof(uint64_t) &&
 	     0 <= length && length <= MLD_KECCAK_LANES * sizeof(uint64_t) - offset)
@@ -33,7 +33,7 @@ __contract__(
 
 #define mld_keccakf1600_xor_bytes MLD_NAMESPACE(keccakf1600_xor_bytes)
 void mld_keccakf1600_xor_bytes(uint64_t *state, const unsigned char *data,
-                               unsigned offset, unsigned length)
+                               int offset, int length)
 __contract__(
     requires(0 <= offset && offset <= MLD_KECCAK_LANES * sizeof(uint64_t) &&
 	     0 <= length && length <= MLD_KECCAK_LANES * sizeof(uint64_t) - offset)
@@ -46,8 +46,8 @@ __contract__(
   MLD_NAMESPACE(keccakf1600x4_extract_bytes)
 void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
                                      unsigned char *data1, unsigned char *data2,
-                                     unsigned char *data3, unsigned offset,
-                                     unsigned length)
+                                     unsigned char *data3, int offset,
+                                     int length)
 __contract__(
     requires(0 <= offset && offset <= MLD_KECCAK_LANES * sizeof(uint64_t) &&
 	     0 <= length && length <= MLD_KECCAK_LANES * sizeof(uint64_t) - offset)
@@ -66,8 +66,8 @@ __contract__(
 void mld_keccakf1600x4_xor_bytes(uint64_t *state, const unsigned char *data0,
                                  const unsigned char *data1,
                                  const unsigned char *data2,
-                                 const unsigned char *data3, unsigned offset,
-                                 unsigned length)
+                                 const unsigned char *data3, int offset,
+                                 int length)
 __contract__(
     requires(0 <= offset && offset <= MLD_KECCAK_LANES * sizeof(uint64_t) &&
 	     0 <= length && length <= MLD_KECCAK_LANES * sizeof(uint64_t) - offset)

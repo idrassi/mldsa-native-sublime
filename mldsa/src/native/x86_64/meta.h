@@ -31,6 +31,7 @@
 #define MLD_USE_NATIVE_POLYVECL_POINTWISE_ACC_MONTGOMERY_L7
 
 #if !defined(__ASSEMBLER__)
+#include <stddef.h>
 #include <string.h>
 #include "../../common.h"
 #include "../api.h"
@@ -64,9 +65,8 @@ static MLD_INLINE int mld_intt_native(int32_t data[MLDSA_N])
   return MLD_NATIVE_FUNC_SUCCESS;
 }
 
-static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
-                                             const uint8_t *buf,
-                                             unsigned buflen)
+static MLD_INLINE int mld_rej_uniform_native(int32_t *r, int len,
+                                             const uint8_t *buf, int buflen)
 {
   /* AVX2 implementation assumes specific buffer lengths */
   if (!mld_sys_check_capability(MLD_SYS_CAP_AVX2) || len != MLDSA_N ||
@@ -79,11 +79,11 @@ static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
   return (int)mld_rej_uniform_avx2(r, buf);
 }
 
-static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen)
+                                                  int buflen)
 {
-  unsigned int outlen;
+  int32_t outlen;
   /* AVX2 implementation assumes specific buffer lengths */
   if (!mld_sys_check_capability(MLD_SYS_CAP_AVX2) || len != MLDSA_N ||
       buflen != MLD_AVX2_REJ_UNIFORM_ETA2_BUFLEN)
@@ -100,16 +100,16 @@ static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
    */
   MLD_CT_TESTING_DECLASSIFY(buf, buflen);
   outlen = mld_rej_uniform_eta2_avx2(r, buf);
-  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
+  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * (size_t)outlen);
   /* Safety: outlen is at most MLDSA_N and, hence, this cast is safe. */
   return (int)outlen;
 }
 
-static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen)
+                                                  int buflen)
 {
-  unsigned int outlen;
+  int32_t outlen;
   /* AVX2 implementation assumes specific buffer lengths */
   if (!mld_sys_check_capability(MLD_SYS_CAP_AVX2) || len != MLDSA_N ||
       buflen != MLD_AVX2_REJ_UNIFORM_ETA4_BUFLEN)
@@ -126,7 +126,7 @@ static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
    */
   MLD_CT_TESTING_DECLASSIFY(buf, buflen);
   outlen = mld_rej_uniform_eta4_avx2(r, buf);
-  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
+  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * (size_t)outlen);
   /* Safety: outlen is at most MLDSA_N and, hence, this cast is safe. */
   return (int)outlen;
 }

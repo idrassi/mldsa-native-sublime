@@ -9,8 +9,8 @@ void harness(void)
 {
   uint64_t *state;
   const unsigned char *data0, *data1, *data2, *data3;
-  unsigned offset;
-  unsigned length;
+  int offset;
+  int length;
   mld_keccakf1600x4_xor_bytes(state, data0, data1, data2, data3, offset,
                               length);
 }

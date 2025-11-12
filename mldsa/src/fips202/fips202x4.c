@@ -22,21 +22,21 @@
 #include "fips202x4.h"
 #include "keccakf1600.h"
 
-static void mld_keccak_absorb_once_x4(uint64_t *s, uint32_t r,
-                                      const uint8_t *in0, const uint8_t *in1,
-                                      const uint8_t *in2, const uint8_t *in3,
-                                      size_t inlen, uint8_t p)
+static void mld_keccak_absorb_once_x4(uint64_t *s, int r, const uint8_t *in0,
+                                      const uint8_t *in1, const uint8_t *in2,
+                                      const uint8_t *in3, size_t inlen,
+                                      uint8_t p)
 __contract__(
   requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
-  requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
+  requires(r >= 0 && r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires(memory_no_alias(in0, inlen))
   requires(memory_no_alias(in1, inlen))
   requires(memory_no_alias(in2, inlen))
   requires(memory_no_alias(in3, inlen))
   assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY)))
 {
-  while (inlen >= r)
+  while (inlen >= (size_t)r)
   __loop__(
     assigns(inlen, in0, in1, in2, in3, memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
     invariant(inlen <= loop_entry(inlen))
@@ -52,24 +52,24 @@ __contract__(
     in1 += r;
     in2 += r;
     in3 += r;
-    inlen -= r;
+    inlen -= (size_t)r;
   }
 
   /* Safety: At this point, inlen < r, so the truncations to unsigned are safe
    * below. */
   if (inlen > 0)
   {
-    mld_keccakf1600x4_xor_bytes(s, in0, in1, in2, in3, 0, (unsigned)inlen);
+    mld_keccakf1600x4_xor_bytes(s, in0, in1, in2, in3, 0, (int)inlen);
   }
 
-  if (inlen == r - 1)
+  if (inlen == (size_t)r - 1)
   {
     p |= 128;
-    mld_keccakf1600x4_xor_bytes(s, &p, &p, &p, &p, (unsigned)inlen, 1);
+    mld_keccakf1600x4_xor_bytes(s, &p, &p, &p, &p, (int)inlen, 1);
   }
   else
   {
-    mld_keccakf1600x4_xor_bytes(s, &p, &p, &p, &p, (unsigned)inlen, 1);
+    mld_keccakf1600x4_xor_bytes(s, &p, &p, &p, &p, (int)inlen, 1);
     p = 128;
     mld_keccakf1600x4_xor_bytes(s, &p, &p, &p, &p, r - 1, 1);
   }
@@ -77,9 +77,9 @@ __contract__(
 
 static void mld_keccak_squeezeblocks_x4(uint8_t *out0, uint8_t *out1,
                                         uint8_t *out2, uint8_t *out3,
-                                        size_t nblocks, uint64_t *s, uint32_t r)
+                                        size_t nblocks, uint64_t *s, int r)
 __contract__(
-    requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
+    requires(r >= 0 && r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
     requires(nblocks <= 8 /* somewhat arbitrary bound */)
     requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
     requires(memory_no_alias(out0, nblocks * r))
@@ -107,7 +107,7 @@ __contract__(
       out3 == loop_entry(out3) + r * (loop_entry(nblocks) - nblocks)))
   {
     mld_keccakf1600x4_permute(s);
-    mld_keccakf1600x4_extract_bytes(s, out0, out1, out2, out3, 0, r);
+    mld_keccakf1600x4_extract_bytes(s, out0, out1, out2, out3, 0, (int)r);
 
     out0 += r;
     out1 += r;

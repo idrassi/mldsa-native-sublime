@@ -37,20 +37,20 @@
 #define MLD_KECCAK_ROL(a, offset) ((a << offset) ^ (a >> (64 - offset)))
 
 void mld_keccakf1600_extract_bytes(uint64_t *state, unsigned char *data,
-                                   unsigned offset, unsigned length)
+                                   int offset, int length)
 {
-  unsigned i;
+  int i;
 #if defined(MLD_SYS_LITTLE_ENDIAN)
   uint8_t *state_ptr = (uint8_t *)state + offset;
   for (i = 0; i < length; i++)
-  __loop__(invariant(i <= length))
+  __loop__(invariant(i >= 0 && i <= length))
   {
     data[i] = state_ptr[i];
   }
 #else  /* MLD_SYS_LITTLE_ENDIAN */
   /* Portable version */
   for (i = 0; i < length; i++)
-  __loop__(invariant(i <= length))
+  __loop__(invariant(i >= 0 && i <= length))
   {
     data[i] = (state[(offset + i) >> 3] >> (8 * ((offset + i) & 0x07))) & 0xFF;
   }
@@ -58,20 +58,20 @@ void mld_keccakf1600_extract_bytes(uint64_t *state, unsigned char *data,
 }
 
 void mld_keccakf1600_xor_bytes(uint64_t *state, const unsigned char *data,
-                               unsigned offset, unsigned length)
+                               int offset, int length)
 {
-  unsigned i;
+  int i;
 #if defined(MLD_SYS_LITTLE_ENDIAN)
   uint8_t *state_ptr = (uint8_t *)state + offset;
   for (i = 0; i < length; i++)
-  __loop__(invariant(i <= length))
+  __loop__(invariant(i >= 0 && i <= length))
   {
     state_ptr[i] ^= data[i];
   }
 #else  /* MLD_SYS_LITTLE_ENDIAN */
   /* Portable version */
   for (i = 0; i < length; i++)
-  __loop__(invariant(i <= length))
+  __loop__(invariant(i >= 0 && i <= length))
   {
     state[(offset + i) >> 3] ^= (uint64_t)data[i]
                                 << (8 * ((offset + i) & 0x07));
@@ -81,8 +81,8 @@ void mld_keccakf1600_xor_bytes(uint64_t *state, const unsigned char *data,
 
 void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
                                      unsigned char *data1, unsigned char *data2,
-                                     unsigned char *data3, unsigned offset,
-                                     unsigned length)
+                                     unsigned char *data3, int offset,
+                                     int length)
 {
   mld_keccakf1600_extract_bytes(state + MLD_KECCAK_LANES * 0, data0, offset,
                                 length);
@@ -97,8 +97,8 @@ void mld_keccakf1600x4_extract_bytes(uint64_t *state, unsigned char *data0,
 void mld_keccakf1600x4_xor_bytes(uint64_t *state, const unsigned char *data0,
                                  const unsigned char *data1,
                                  const unsigned char *data2,
-                                 const unsigned char *data3, unsigned offset,
-                                 unsigned length)
+                                 const unsigned char *data3, int offset,
+                                 int length)
 {
   mld_keccakf1600_xor_bytes(state + MLD_KECCAK_LANES * 0, data0, offset,
                             length);
@@ -140,7 +140,7 @@ static const uint64_t mld_KeccakF_RoundConstants[MLD_KECCAK_NROUNDS] = {
 
 static void mld_keccakf1600_permute_c(uint64_t *state)
 {
-  unsigned round;
+  int round;
 
   uint64_t Aba, Abe, Abi, Abo, Abu;
   uint64_t Aga, Age, Agi, Ago, Agu;
@@ -183,7 +183,7 @@ static void mld_keccakf1600_permute_c(uint64_t *state)
   Asu = state[24];
 
   for (round = 0; round < MLD_KECCAK_NROUNDS; round += 2)
-  __loop__(invariant(round <= MLD_KECCAK_NROUNDS && round % 2 == 0))
+  __loop__(invariant(round >= 0 && round <= MLD_KECCAK_NROUNDS && round % 2 == 0))
   {
     /* prepareTheta */
     BCa = Aba ^ Aga ^ Aka ^ Ama ^ Asa;

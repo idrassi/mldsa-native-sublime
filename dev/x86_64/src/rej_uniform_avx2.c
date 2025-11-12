@@ -36,8 +36,8 @@
  *            frontend to perform the unintuitive padding.
  */
 
-unsigned int mld_rej_uniform_avx2(
-    int32_t *MLD_RESTRICT r, const uint8_t buf[MLD_AVX2_REJ_UNIFORM_BUFLEN])
+int32_t mld_rej_uniform_avx2(int32_t *MLD_RESTRICT r,
+                             const uint8_t buf[MLD_AVX2_REJ_UNIFORM_BUFLEN])
 {
   unsigned int ctr, pos;
   uint32_t good;
@@ -116,7 +116,7 @@ unsigned int mld_rej_uniform_avx2(
     }
   }
 
-  return ctr;
+  return (int32_t)ctr;
 }
 
 #else /* MLD_ARITH_BACKEND_X86_64_DEFAULT && !MLD_CONFIG_MULTILEVEL_NO_SHARED \

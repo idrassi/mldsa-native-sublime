@@ -157,7 +157,7 @@ __contract__(
  *
  * Returns 1 if overflow, 0 otherwise
  **************************************************/
-static MLD_INLINE unsigned int mld_make_hint(int32_t a0, int32_t a1)
+static MLD_INLINE int mld_make_hint(int32_t a0, int32_t a1)
 __contract__(
   ensures(return_value >= 0 && return_value <= 1)
 )

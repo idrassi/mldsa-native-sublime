@@ -22,13 +22,13 @@
 typedef struct
 {
   uint64_t s[MLD_KECCAK_LANES];
-  unsigned int pos;
+  int pos;
 } mld_shake128ctx;
 
 typedef struct
 {
   uint64_t s[MLD_KECCAK_LANES];
-  unsigned int pos;
+  int pos;
 } mld_shake256ctx;
 
 #define mld_shake128_init MLD_NAMESPACE(shake128_init)
@@ -63,9 +63,9 @@ __contract__(
   requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(mld_shake128ctx)))
   requires(memory_no_alias(in, inlen))
-  requires(state->pos <= SHAKE128_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE128_RATE)
   assigns(memory_slice(state, sizeof(mld_shake128ctx)))
-  ensures(state->pos <= SHAKE128_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE128_RATE)
 );
 
 #define mld_shake128_finalize MLD_NAMESPACE(shake128_finalize)
@@ -79,9 +79,9 @@ __contract__(
 void mld_shake128_finalize(mld_shake128ctx *state)
 __contract__(
   requires(memory_no_alias(state, sizeof(mld_shake128ctx)))
-  requires(state->pos <= SHAKE128_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE128_RATE)
   assigns(memory_slice(state, sizeof(mld_shake128ctx)))
-  ensures(state->pos <= SHAKE128_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE128_RATE)
 );
 
 #define mld_shake128_squeeze MLD_NAMESPACE(shake128_squeeze)
@@ -101,10 +101,10 @@ __contract__(
   requires(outlen <= 8 * SHAKE128_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(state, sizeof(mld_shake128ctx)))
   requires(memory_no_alias(out, outlen))
-  requires(state->pos <= SHAKE128_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE128_RATE)
   assigns(memory_slice(state, sizeof(mld_shake128ctx)))
   assigns(memory_slice(out, outlen))
-  ensures(state->pos <= SHAKE128_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE128_RATE)
 );
 
 #define mld_shake128_release MLD_NAMESPACE(shake128_release)
@@ -153,9 +153,9 @@ __contract__(
   requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(memory_no_alias(state, sizeof(mld_shake256ctx)))
   requires(memory_no_alias(in, inlen))
-  requires(state->pos <= SHAKE256_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE256_RATE)
   assigns(memory_slice(state, sizeof(mld_shake256ctx)))
-  ensures(state->pos <= SHAKE256_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE256_RATE)
 );
 
 #define mld_shake256_finalize MLD_NAMESPACE(shake256_finalize)
@@ -169,9 +169,9 @@ __contract__(
 void mld_shake256_finalize(mld_shake256ctx *state)
 __contract__(
   requires(memory_no_alias(state, sizeof(mld_shake256ctx)))
-  requires(state->pos <= SHAKE256_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE256_RATE)
   assigns(memory_slice(state, sizeof(mld_shake256ctx)))
-  ensures(state->pos <= SHAKE256_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE256_RATE)
 );
 
 #define mld_shake256_squeeze MLD_NAMESPACE(shake256_squeeze)
@@ -191,10 +191,10 @@ __contract__(
   requires(outlen <= 8 * SHAKE256_RATE /* somewhat arbitrary bound */)
   requires(memory_no_alias(state, sizeof(mld_shake256ctx)))
   requires(memory_no_alias(out, outlen))
-  requires(state->pos <= SHAKE256_RATE)
+  requires(state->pos >= 0 && state->pos <= SHAKE256_RATE)
   assigns(memory_slice(state, sizeof(mld_shake256ctx)))
   assigns(memory_slice(out, outlen))
-  ensures(state->pos <= SHAKE256_RATE)
+  ensures(state->pos >= 0 && state->pos <= SHAKE256_RATE)
 );
 
 #define mld_shake256_release MLD_NAMESPACE(shake256_release)

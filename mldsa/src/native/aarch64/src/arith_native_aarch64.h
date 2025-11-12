@@ -56,16 +56,16 @@ void mld_ntt_asm(int32_t *, const int32_t *, const int32_t *);
 void mld_intt_asm(int32_t *, const int32_t *, const int32_t *);
 
 #define mld_rej_uniform_asm MLD_NAMESPACE(rej_uniform_asm)
-uint64_t mld_rej_uniform_asm(int32_t *r, const uint8_t *buf, unsigned buflen,
+uint64_t mld_rej_uniform_asm(int32_t *r, const uint8_t *buf, int32_t buflen,
                              const uint8_t *table);
 
 #define mld_rej_uniform_eta2_asm MLD_NAMESPACE(rej_uniform_eta2_asm)
-unsigned mld_rej_uniform_eta2_asm(int32_t *r, const uint8_t *buf,
-                                  unsigned buflen, const uint8_t *table);
+int32_t mld_rej_uniform_eta2_asm(int32_t *r, const uint8_t *buf, int32_t buflen,
+                                 const uint8_t *table);
 
 #define mld_rej_uniform_eta4_asm MLD_NAMESPACE(rej_uniform_eta4_asm)
-unsigned mld_rej_uniform_eta4_asm(int32_t *r, const uint8_t *buf,
-                                  unsigned buflen, const uint8_t *table);
+int32_t mld_rej_uniform_eta4_asm(int32_t *r, const uint8_t *buf, int32_t buflen,
+                                 const uint8_t *table);
 
 #define mld_poly_decompose_32_asm MLD_NAMESPACE(poly_decompose_32_asm)
 void mld_poly_decompose_32_asm(int32_t *a1, int32_t *a0, const int32_t *a);

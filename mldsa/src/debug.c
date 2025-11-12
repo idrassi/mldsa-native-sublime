@@ -30,11 +30,11 @@ void mld_debug_check_assert(const char *file, int line, const int val)
 }
 
 void mld_debug_check_bounds(const char *file, int line, const int32_t *ptr,
-                            unsigned len, int64_t lower_bound_exclusive,
+                            int len, int64_t lower_bound_exclusive,
                             int64_t upper_bound_exclusive)
 {
   int err = 0;
-  unsigned i;
+  int i;
   for (i = 0; i < len; i++)
   {
     int32_t val = ptr[i];

@@ -55,14 +55,13 @@ __contract__(
  * Returns number of 1 bits.
  **************************************************/
 MLD_INTERNAL_API
-unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
-                                const mld_poly *a1)
+int mld_poly_make_hint(mld_poly *h, const mld_poly *a0, const mld_poly *a1)
 __contract__(
   requires(memory_no_alias(h,  sizeof(mld_poly)))
   requires(memory_no_alias(a0, sizeof(mld_poly)))
   requires(memory_no_alias(a1, sizeof(mld_poly)))
   assigns(memory_slice(h, sizeof(mld_poly)))
-  ensures(return_value <= MLDSA_N)
+  ensures(return_value >= 0 && return_value <= MLDSA_N)
   ensures(array_bound(h->coeffs, 0, MLDSA_N, 0, 2))
 );
 

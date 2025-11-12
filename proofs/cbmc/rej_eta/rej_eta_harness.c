@@ -3,17 +3,14 @@
 
 #include "poly.h"
 
-static unsigned int mld_rej_eta(int32_t *a, unsigned int target,
-                                unsigned int offset, const uint8_t *buf,
-                                unsigned int buflen);
+static int mld_rej_eta(int32_t *a, int target, int offset, const uint8_t *buf,
+                       int buflen);
 
 void harness(void)
 {
   int32_t *a;
-  unsigned int target;
-  unsigned int offset;
+  int target, offset, buflen, r;
   const uint8_t *buf;
-  unsigned int buflen;
 
-  mld_rej_eta(a, target, offset, buf, buflen);
+  r = mld_rej_eta(a, target, offset, buf, buflen);
 }

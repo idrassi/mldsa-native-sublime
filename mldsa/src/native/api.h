@@ -122,19 +122,18 @@ static MLD_INLINE int mld_intt_native(int32_t p[MLDSA_N]);
  *              uniform random integers in [0, MLDSA_Q-1]
  *
  * Arguments:   - int32_t *r:          pointer to output buffer
- *              - unsigned len:        requested number of 32-bit integers
+ *              - int len:             requested number of 32-bit integers
  *                                     (uniform mod q).
  *              - const uint8_t *buf:  pointer to input buffer
  *                                     (assumed to be uniform random bytes)
- *              - unsigned buflen:     length of input buffer in bytes.
+ *              - int buflen:          length of input buffer in bytes.
  *
  * Return -1 if the native implementation does not support the input
  * lengths. Otherwise, returns non-negative number of sampled 32-bit integers
  * (at most len).
  **************************************************/
-static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
-                                             const uint8_t *buf,
-                                             unsigned buflen);
+static MLD_INLINE int mld_rej_uniform_native(int32_t *r, int len,
+                                             const uint8_t *buf, int buflen);
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM */
 
 #if defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA2)
@@ -145,19 +144,19 @@ static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
  *              uniform random integers in [-2,+2].
  *
  * Arguments:   - int32_t *r:          pointer to output buffer
- *              - unsigned len:        requested number of 32-bit integers
+ *              - int len:             requested number of 32-bit integers
  *                                     (uniform in [-2, +2]).
  *              - const uint8_t *buf:  pointer to input buffer
  *                                     (assumed to be uniform random bytes)
- *              - unsigned buflen:     length of input buffer in bytes.
+ *              - int buflen:          length of input buffer in bytes.
  *
  * Return -1 if the native implementation does not support the input
  *lengths. Otherwise, returns non-negative number of sampled 32-bit integers
  *(at most len).
  **************************************************/
-static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen);
+                                                  int buflen);
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM_ETA2 */
 
 #if defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA4)
@@ -168,19 +167,19 @@ static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
  *              uniform random integers in [-4,+4].
  *
  * Arguments:   - int32_t *r:          pointer to output buffer
- *              - unsigned len:        requested number of 32-bit integers
+ *              - int len:             requested number of 32-bit integers
  *                                     (uniform in [-4, +4]).
  *              - const uint8_t *buf:  pointer to input buffer
  *                                     (assumed to be uniform random bytes)
- *              - unsigned buflen:     length of input buffer in bytes.
+ *              - int buflen:          length of input buffer in bytes.
  *
  * Return -1 if the native implementation does not support the input
  *lengths. Otherwise, returns non-negative number of sampled 32-bit integers
  *(at most len).
  **************************************************/
-static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen);
+                                                  int buflen);
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM_ETA4 */
 
 #if defined(MLD_USE_NATIVE_POLY_DECOMPOSE_32)

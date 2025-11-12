@@ -445,7 +445,7 @@ __contract__(
 )
 {
   MLD_ALIGN uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
-  unsigned int n;
+  int n;
   mld_polyvecl y, z;
   mld_polyveck w, w1, w0, h;
   mld_poly cp;
@@ -782,7 +782,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
                                 const uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                                 int externalmu)
 {
-  unsigned int i;
+  int i;
   int res;
   MLD_ALIGN uint8_t buf[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES];
   MLD_ALIGN uint8_t rho[MLDSA_SEEDBYTES];
@@ -864,7 +864,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   MLD_CT_TESTING_DECLASSIFY(c2, sizeof(c2));
   for (i = 0; i < MLDSA_CTILDEBYTES; ++i)
   __loop__(
-    invariant(i <= MLDSA_CTILDEBYTES)
+    invariant(i >= 0 && i <= MLDSA_CTILDEBYTES)
   )
   {
     if (c[i] != c2[i])

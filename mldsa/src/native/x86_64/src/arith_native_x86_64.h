@@ -43,15 +43,15 @@ void mld_invntt_avx2(__m256i *r, const __m256i *mld_qdata);
 void mld_nttunpack_avx2(__m256i *r);
 
 #define mld_rej_uniform_avx2 MLD_NAMESPACE(mld_rej_uniform_avx2)
-unsigned mld_rej_uniform_avx2(int32_t *r,
-                              const uint8_t buf[MLD_AVX2_REJ_UNIFORM_BUFLEN]);
+int32_t mld_rej_uniform_avx2(int32_t *r,
+                             const uint8_t buf[MLD_AVX2_REJ_UNIFORM_BUFLEN]);
 
 #define mld_rej_uniform_eta2_avx2 MLD_NAMESPACE(mld_rej_uniform_eta2_avx2)
-unsigned mld_rej_uniform_eta2_avx2(
+int32_t mld_rej_uniform_eta2_avx2(
     int32_t *r, const uint8_t buf[MLD_AVX2_REJ_UNIFORM_ETA2_BUFLEN]);
 
 #define mld_rej_uniform_eta4_avx2 MLD_NAMESPACE(mld_rej_uniform_eta4_avx2)
-unsigned mld_rej_uniform_eta4_avx2(
+int32_t mld_rej_uniform_eta4_avx2(
     int32_t *r, const uint8_t buf[MLD_AVX2_REJ_UNIFORM_ETA4_BUFLEN]);
 
 #define mld_poly_decompose_32_avx2 MLD_NAMESPACE(mld_poly_decompose_32_avx2)

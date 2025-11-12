@@ -80,8 +80,7 @@ __contract__(
  *                                   MLDSA_SEEDBYTES
  *              - const mld_polyvecl *z: pointer to vector z
  *              - const mld_polyveck *h: pointer to hint vector h
- *              - const unsigned int number_of_hints: total
- *                                   hints in *h
+ *              - const int number_of_hints: total hints in *h
  *
  * Note that the number_of_hints argument is not present
  * in the reference implementation. It is added here to ease
@@ -90,7 +89,7 @@ __contract__(
 MLD_INTERNAL_API
 void mld_pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[MLDSA_CTILDEBYTES],
                   const mld_polyvecl *z, const mld_polyveck *h,
-                  const unsigned int number_of_hints)
+                  const int number_of_hints)
 __contract__(
   requires(memory_no_alias(sig, CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
@@ -100,7 +99,7 @@ __contract__(
     array_bound(z->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
   requires(forall(k1, 0, MLDSA_K,
     array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))
-  requires(number_of_hints <= MLDSA_OMEGA)
+  requires(number_of_hints >= 0 && number_of_hints <= MLDSA_OMEGA)
   assigns(memory_slice(sig, CRYPTO_BYTES))
 );
 

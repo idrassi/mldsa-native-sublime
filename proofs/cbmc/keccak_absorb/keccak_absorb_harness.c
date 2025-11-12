@@ -3,18 +3,16 @@
 
 #include "fips202/fips202.h"
 
-extern unsigned int keccak_absorb(uint64_t s[MLD_KECCAK_LANES],
-                                  unsigned int pos, unsigned int r,
-                                  const uint8_t *in, size_t inlen);
+extern int keccak_absorb(uint64_t s[MLD_KECCAK_LANES], int pos, int r,
+                         const uint8_t *in, size_t inlen);
 
 void harness(void)
 {
   uint64_t *s;
-  unsigned int pos;
-  const unsigned int r;
+  int pos, r, r2;
   const uint8_t *in;
   size_t inlen;
   uint8_t p;
 
-  keccak_absorb(s, pos, r, in, inlen);
+  r2 = keccak_absorb(s, pos, r, in, inlen);
 }

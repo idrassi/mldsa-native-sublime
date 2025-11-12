@@ -9,7 +9,7 @@ void harness(void)
 {
   uint64_t *state;
   unsigned char *data;
-  unsigned offset;
-  unsigned length;
+  int offset;
+  int length;
   mld_keccakf1600_extract_bytes(state, data, offset, length);
 }
