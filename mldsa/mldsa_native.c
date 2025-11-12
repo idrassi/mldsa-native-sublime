@@ -204,6 +204,7 @@
 /* mldsa/src/packing.h */
 #undef MLD_PACKING_H
 #undef mld_pack_pk
+#undef mld_pack_pk_from_sk
 #undef mld_pack_sig
 #undef mld_pack_sk
 #undef mld_unpack_pk
