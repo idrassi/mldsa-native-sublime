@@ -8,6 +8,7 @@
 #include "packing.h"
 #include "poly.h"
 #include "polyvec.h"
+#include "symmetric.h"
 
 /* Parameter set namespacing
  * This is to facilitate building multiple instances
@@ -284,7 +285,7 @@ int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
  *              - const uint8_t sk[]: byte array containing bit-packed secret
  *key
  *
- * Returns 0 on success (when computed t0 matches stored t0), -1 on failure
+ * Returns 0 on success, -1 on failure
  **************************************************/
 MLD_INTERNAL_API
 int mld_pack_pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
@@ -293,6 +294,7 @@ int mld_pack_pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   MLD_ALIGN uint8_t rho[MLDSA_SEEDBYTES];
   MLD_ALIGN uint8_t tr[MLDSA_TRBYTES];
   MLD_ALIGN uint8_t key[MLDSA_SEEDBYTES];
+  MLD_ALIGN uint8_t tr_computed[MLDSA_TRBYTES];
   mld_polyvecl mat[MLDSA_K];
   mld_polyvecl s1, s1_ntt;
   mld_polyveck s2, t0, t1, t, t0_computed;
@@ -319,24 +321,23 @@ int mld_pack_pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   /* Add error vector: t = t + s2 */
   mld_polyveck_add(&t, &s2);
 
-  /* Apply additional reduction for safety (as OpenSSL does) */
+  /* Apply additional reduction */
   mld_polyveck_reduce(&t);
 
   /* Extract t1 and t0 from t */
   mld_polyveck_caddq(&t);
   mld_polyveck_power2round(&t1, &t0_computed, &t);
 
-  /* Validate: compare computed t0 with t0 from secret key */
-  if (memcmp(&t0, &t0_computed, sizeof(mld_polyveck)) != 0)
-  {
-    /* Validation failed - zeroize sensitive data and return error */
-    mld_zeroize(&s1_ntt, sizeof(s1_ntt));
-    mld_zeroize(&s1, sizeof(s1));
-    mld_zeroize(&s2, sizeof(s2));
-    mld_zeroize(&t0, sizeof(t0));
-    mld_zeroize(key, sizeof(key));
-    return -1;
-  }
+  /* TODO: Add constant time comparison to compare
+   * t0_computed and t0
+   */
+
+  /* Compute shake256(tr) and check if equal to pk */
+  mld_shake256(tr_computed, MLDSA_TRBYTES, pk, CRYPTO_PUBLICKEYBYTES);
+
+  /* TODO: Add constant time comparison to compare
+   * tr_computed and pk
+   */
 
   /* Pack public key: pk = (rho, t1) */
   mld_pack_pk(pk, rho, &t1);
