@@ -201,28 +201,4 @@ __contract__(
   ensures(return_value >= 0 && return_value <= 1)
 );
 
-#define mld_pack_pk_from_sk MLD_NAMESPACE_KL(pack_pk_from_sk)
-/*************************************************
- * Name:        mld_pack_pk_from_sk
- *
- * Description: Takes a private key and constructs the corresponding public key.
- *              Validates the reconstruction by comparing the computed t0 with
- *              the t0 stored in the secret key.
- *              Based on OpenSSL's public_from_private implementation.
- *
- * Arguments:   - uint8_t pk[]: output byte array for public key
- *              - const uint8_t sk[]: byte array containing bit-packed secret
- *key
- *
- * Returns 0 on success (when computed t0 matches stored t0), -1 on failure
- **************************************************/
-MLD_INTERNAL_API
-int mld_pack_pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
-                        const uint8_t sk[CRYPTO_SECRETKEYBYTES])
-__contract__(
-  requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
-  requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
-  assigns(memory_slice(pk, CRYPTO_PUBLICKEYBYTES))
-  ensures(return_value == 0 || return_value == -1)
-);
 #endif /* !MLD_PACKING_H */

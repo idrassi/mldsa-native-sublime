@@ -204,7 +204,6 @@
 /* mldsa/src/packing.h */
 #undef MLD_PACKING_H
 #undef mld_pack_pk
-#undef mld_pack_pk_from_sk
 #undef mld_pack_sig
 #undef mld_pack_sk
 #undef mld_unpack_pk
@@ -326,6 +325,7 @@
 #undef crypto_sign_verify_internal
 #undef crypto_sign_verify_pre_hash_internal
 #undef crypto_sign_verify_pre_hash_shake256
+#undef pk_from_sk
 
 #if !defined(MLD_CONFIG_MONOBUILD_KEEP_SHARED_HEADERS)
 /*

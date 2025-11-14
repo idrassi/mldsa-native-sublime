@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "cbmc.h"
+#include "ct.h"
 #include "debug.h"
 #include "packing.h"
 #include "poly.h"
@@ -47,6 +48,8 @@
 #define mld_H MLD_ADD_PARAM_SET(mld_H)
 #define mld_attempt_signature_generation \
   MLD_ADD_PARAM_SET(mld_attempt_signature_generation)
+#define mld_compute_t0_t1_tr_from_sk_components \
+  MLD_ADD_PARAM_SET(mld_compute_t0_t1_tr_from_sk_components)
 /* End of parameter set namespacing */
 
 
@@ -173,6 +176,69 @@ __contract__(
 #endif /* !MLD_CONFIG_SERIAL_FIPS202_ONLY */
 }
 
+/*************************************************
+ * Name:        mld_compute_t0_t1_tr_from_sk_components
+ *
+ * Description: Computes t0, t1, and tr from secret key components
+ *              rho, s1, s2. This is the shared computation used by
+ *              both keygen and generating the public key from the
+ *              secret key.
+ *
+ * Arguments:   - mld_polyveck *t0: output t0
+ *              - mld_polyveck *t1: output t1
+ *              - uint8_t tr[MLDSA_TRBYTES]: output tr
+ *              - const uint8_t rho[MLDSA_SEEDBYTES]: input rho
+ *              - const mld_polyvecl *s1: input s1
+ *              - const mld_polyveck *s2: input s2
+ **************************************************/
+static void mld_compute_t0_t1_tr_from_sk_components(
+    mld_polyveck *t0, mld_polyveck *t1, uint8_t tr[MLDSA_TRBYTES],
+    const uint8_t rho[MLDSA_SEEDBYTES], const mld_polyvecl *s1,
+    const mld_polyveck *s2)
+{
+  mld_polyvecl mat[MLDSA_K], s1hat;
+  mld_polyveck t;
+  uint8_t pk_tmp[CRYPTO_PUBLICKEYBYTES];
+
+  /* Expand matrix */
+  mld_polyvec_matrix_expand(mat, rho);
+
+  /* Matrix-vector multiplication */
+  s1hat = *s1;
+  mld_polyvecl_ntt(&s1hat);
+  mld_polyvec_matrix_pointwise_montgomery(&t, mat, &s1hat);
+  mld_polyveck_reduce(&t);
+  mld_polyveck_invntt_tomont(&t);
+
+  /* Add error vector s2 */
+  mld_polyveck_add(&t, s2);
+
+  /* Reference: The following reduction is not present in the reference
+   *            implementation. Omitting this reduction requires the output of
+   *            the invntt to be small enough such that the addition of s2 does
+   *            not result in absolute values >= MLDSA_Q. While our C, x86_64,
+   *            and AArch64 invntt implementations produce small enough
+   *            values for this to work out, it complicates the bounds
+   *            reasoning. We instead add an additional reduction, and can
+   *            consequently, relax the bounds requirements for the invntt.
+   */
+  mld_polyveck_reduce(&t);
+
+  /* Decompose to get t1, t0 */
+  mld_polyveck_caddq(&t);
+  mld_polyveck_power2round(t1, t0, &t);
+
+  /* Pack temporary public key and compute tr */
+  mld_pack_pk(pk_tmp, rho, t1);
+  mld_shake256(tr, MLDSA_TRBYTES, pk_tmp, CRYPTO_PUBLICKEYBYTES);
+
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  mld_zeroize(mat, sizeof(mat));
+  mld_zeroize(&s1hat, sizeof(s1hat));
+  mld_zeroize(&t, sizeof(t));
+  mld_zeroize(pk_tmp, sizeof(pk_tmp));
+}
+
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
 int crypto_sign_keypair_internal(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
@@ -183,9 +249,8 @@ int crypto_sign_keypair_internal(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
   MLD_ALIGN uint8_t inbuf[MLDSA_SEEDBYTES + 2];
   MLD_ALIGN uint8_t tr[MLDSA_TRBYTES];
   const uint8_t *rho, *rhoprime, *key;
-  mld_polyvecl mat[MLDSA_K];
-  mld_polyvecl s1, s1hat;
-  mld_polyveck s2, t2, t1, t0;
+  mld_polyvecl s1;
+  mld_polyveck s2, t1, t0;
 
   /* Get randomness for rho, rhoprime and key */
   mld_memcpy(inbuf, seed, MLDSA_SEEDBYTES);
@@ -199,50 +264,24 @@ int crypto_sign_keypair_internal(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
 
   /* Constant time: rho is part of the public key and, hence, public. */
   MLD_CT_TESTING_DECLASSIFY(rho, MLDSA_SEEDBYTES);
-  /* Expand matrix */
-  mld_polyvec_matrix_expand(mat, rho);
+
+  /* Sample s1 and s2 */
   mld_sample_s1_s2(&s1, &s2, rhoprime);
 
-  /* Matrix-vector multiplication */
-  s1hat = s1;
-  mld_polyvecl_ntt(&s1hat);
-  mld_polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
-  mld_polyveck_reduce(&t1);
-  mld_polyveck_invntt_tomont(&t1);
+  /* Compute t0, t1, tr from rho, s1, s2 */
+  mld_compute_t0_t1_tr_from_sk_components(&t0, &t1, tr, rho, &s1, &s2);
 
-  /* Add error vector s2 */
-  mld_polyveck_add(&t1, &s2);
-
-  /* Reference: The following reduction is not present in the reference
-   *            implementation. Omitting this reduction requires the output of
-   *            the invntt to be small enough such that the addition of s2 does
-   *            not result in absolute values >= MLDSA_Q. While our C, x86_64,
-   *            and AArch64 invntt implementations produce small enough
-   *            values for this to work out, it complicates the bounds
-   *            reasoning. We instead add an additional reduction, and can
-   *            consequently, relax the bounds requirements for the invntt.
-   */
-  mld_polyveck_reduce(&t1);
-
-  /* Extract t1 and write public key */
-  mld_polyveck_caddq(&t1);
-  mld_polyveck_power2round(&t2, &t0, &t1);
-  mld_pack_pk(pk, rho, &t2);
-
-  /* Compute H(rho, t1) and write secret key */
-  mld_shake256(tr, MLDSA_TRBYTES, pk, CRYPTO_PUBLICKEYBYTES);
+  /* Pack public and secret keys */
+  mld_pack_pk(pk, rho, &t1);
   mld_pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(seedbuf, sizeof(seedbuf));
   mld_zeroize(inbuf, sizeof(inbuf));
   mld_zeroize(tr, sizeof(tr));
-  mld_zeroize(mat, sizeof(mat));
   mld_zeroize(&s1, sizeof(s1));
-  mld_zeroize(&s1hat, sizeof(s1hat));
   mld_zeroize(&s2, sizeof(s2));
   mld_zeroize(&t1, sizeof(t1));
-  mld_zeroize(&t2, sizeof(t2));
   mld_zeroize(&t0, sizeof(t0));
 
   /* Constant time: pk is the public key, inherently public data */
@@ -1027,10 +1066,82 @@ int crypto_sign_verify_pre_hash_shake256(
   return result;
 }
 
+/*************************************************
+ * Name:        pk_from_sk
+ *
+ * Description: Derives public key from secret key with validation.
+ *              Checks that t0 and tr stored in sk match recomputed values.
+ *              Based on mlkem-native's crypto_kem_check_sk pattern.
+ *
+ * Arguments:   - uint8_t pk[CRYPTO_PUBLICKEYBYTES]: output public key
+ *              - const uint8_t sk[CRYPTO_SECRETKEYBYTES]: input secret key
+ *
+ * Returns 0 on success, -1 if validation fails (corrupted secret key)
+ **************************************************/
+MLD_INTERNAL_API
+int pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
+               const uint8_t sk[CRYPTO_SECRETKEYBYTES])
+{
+  MLD_ALIGN uint8_t rho[MLDSA_SEEDBYTES];
+  MLD_ALIGN uint8_t tr[MLDSA_TRBYTES];
+  MLD_ALIGN uint8_t tr_computed[MLDSA_TRBYTES];
+  MLD_ALIGN uint8_t key[MLDSA_SEEDBYTES];
+  mld_polyvecl s1;
+  mld_polyveck s2, t0, t0_computed, t1;
+  int res;
+
+  /* Unpack secret key */
+  mld_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+
+  /* The parts being validated (tr) are public, so no secret info
+   * is leaked through the runtime or return value */
+  MLD_CT_TESTING_DECLASSIFY(tr, MLDSA_TRBYTES);
+
+  /* Recompute t0, t1, tr from rho, s1, s2 */
+  mld_compute_t0_t1_tr_from_sk_components(&t0_computed, &t1, tr_computed, rho,
+                                          &s1, &s2);
+
+  /* Validate t0 using constant-time comparison */
+  res = mld_ct_memcmp(&t0, &t0_computed, sizeof(mld_polyveck));
+  if (res != 0)
+  {
+    res = -1;
+    goto cleanup;
+  }
+
+  /* Validate tr using constant-time comparison */
+  res = mld_ct_memcmp(tr, tr_computed, MLDSA_TRBYTES);
+  if (res != 0)
+  {
+    res = -1;
+    goto cleanup;
+  }
+
+  /* Pack public key */
+  mld_pack_pk(pk, rho, &t1);
+
+  /* Declassify public key */
+  MLD_CT_TESTING_DECLASSIFY(pk, CRYPTO_PUBLICKEYBYTES);
+
+  res = 0;
+
+cleanup:
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  mld_zeroize(&s1, sizeof(s1));
+  mld_zeroize(&s2, sizeof(s2));
+  mld_zeroize(&t0, sizeof(t0));
+  mld_zeroize(&t0_computed, sizeof(t0_computed));
+  mld_zeroize(key, sizeof(key));
+  mld_zeroize(tr_computed, sizeof(tr_computed));
+
+  return res;
+}
+
 /* To facilitate single-compilation-unit (SCU) builds, undefine all macros.
  * Don't modify by hand -- this is auto-generated by scripts/autogen. */
 #undef mld_check_pct
 #undef mld_sample_s1_s2
 #undef mld_H
 #undef mld_attempt_signature_generation
+#undef mld_compute_t0_t1_tr_from_sk_components
 #undef NONCE_UB

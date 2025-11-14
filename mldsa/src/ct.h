@@ -241,6 +241,41 @@ __contract__(
 #include <string.h>
 
 /*************************************************
+ * Name:        mld_ct_memcmp
+ *
+ * Description: Compare two arrays for equality in constant time.
+ *
+ * Arguments:   const void *a: pointer to first byte array
+ *              const void *b: pointer to second byte array
+ *              size_t len:    length of the byte arrays
+ *
+ * Returns 0 if the byte arrays are equal, a non-zero value otherwise
+ **************************************************/
+static MLD_INLINE uint8_t mld_ct_memcmp(const void *a, const void *b,
+                                        const size_t len)
+__contract__(
+  requires(len <= MLD_MAX_BUFFER_SIZE)
+  requires(memory_no_alias(a, len))
+  requires(memory_no_alias(b, len))
+)
+{
+  const uint8_t *a_bytes = (const uint8_t *)a;
+  const uint8_t *b_bytes = (const uint8_t *)b;
+  uint8_t r = 0, s = 0;
+  size_t i;
+
+  for (i = 0; i < len; i++)
+  {
+    r |= a_bytes[i] ^ b_bytes[i];
+    /* s is useless, but prevents the loop from being aborted once r=0xff. */
+    s ^= a_bytes[i] ^ b_bytes[i];
+  }
+
+  /* Convert r into a mask and XOR with s */
+  return ((uint8_t)mld_value_barrier_u32((uint32_t)r) ^ s) ^ s;
+}
+
+/*************************************************
  * Name:        mld_zeroize
  *
  * Description: Force-zeroize a buffer.

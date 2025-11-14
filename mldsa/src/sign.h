@@ -46,6 +46,7 @@
 
 #define crypto_sign_keypair_internal MLD_NAMESPACE_KL(keypair_internal)
 #define crypto_sign_keypair MLD_NAMESPACE_KL(keypair)
+#define pk_from_sk MLD_NAMESPACE_KL(pk_from_sk)
 #define crypto_sign_signature_internal MLD_NAMESPACE_KL(signature_internal)
 #define crypto_sign_signature MLD_NAMESPACE_KL(signature)
 #define crypto_sign_signature_extmu MLD_NAMESPACE_KL(signature_extmu)
@@ -622,6 +623,28 @@ __contract__(
   requires(memory_no_alias(m, mlen))
   requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
   requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
+  ensures(return_value == 0 || return_value == -1)
+);
+
+/*************************************************
+ * Name:        pk_from_sk
+ *
+ * Description: Derives public key from secret key with validation.
+ *              Checks that t0 and tr stored in sk match recomputed values.
+ *
+ * Arguments:   - uint8_t pk[CRYPTO_PUBLICKEYBYTES]: output public key
+ *              - const uint8_t sk[CRYPTO_SECRETKEYBYTES]: input secret key
+ *
+ * Returns 0 on success, -1 if validation fails (corrupted secret key)
+ **************************************************/
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_INTERNAL_API
+int pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
+               const uint8_t sk[CRYPTO_SECRETKEYBYTES])
+__contract__(
+  requires(memory_no_alias(pk, CRYPTO_PUBLICKEYBYTES))
+  requires(memory_no_alias(sk, CRYPTO_SECRETKEYBYTES))
+  assigns(memory_slice(pk, CRYPTO_PUBLICKEYBYTES))
   ensures(return_value == 0 || return_value == -1)
 );
 
