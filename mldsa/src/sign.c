@@ -1066,18 +1066,6 @@ int crypto_sign_verify_pre_hash_shake256(
   return result;
 }
 
-/*************************************************
- * Name:        pk_from_sk
- *
- * Description: Derives public key from secret key with validation.
- *              Checks that t0 and tr stored in sk match recomputed values.
- *              Based on mlkem-native's crypto_kem_check_sk pattern.
- *
- * Arguments:   - uint8_t pk[CRYPTO_PUBLICKEYBYTES]: output public key
- *              - const uint8_t sk[CRYPTO_SECRETKEYBYTES]: input secret key
- *
- * Returns 0 on success, -1 if validation fails (corrupted secret key)
- **************************************************/
 MLD_INTERNAL_API
 int pk_from_sk(uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                const uint8_t sk[CRYPTO_SECRETKEYBYTES])
