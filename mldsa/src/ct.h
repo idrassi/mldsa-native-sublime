@@ -228,14 +228,22 @@ __contract__(
  * Arguments:   int32_t x: Input value
  *
  **************************************************/
+#ifdef CBMC
+#pragma CPROVER check push
+#pragma CPROVER check disable "unsigned-overflow"
+#endif
 static MLD_INLINE int32_t mld_ct_abs_i32(int32_t x)
 __contract__(
   requires(x >= -INT32_MAX)
   ensures(return_value == ((x < 0) ? -x : x))
 )
 {
-  return mld_ct_sel_int32(-x, x, mld_ct_cmask_neg_i32(x));
+  uint32_t mask = mld_ct_cmask_neg_i32(x);
+  return mld_cast_uint32_to_int32((mld_cast_int32_to_uint32(x) ^ mask) - mask);
 }
+#ifdef CBMC
+#pragma CPROVER check pop
+#endif
 
 #if !defined(__ASSEMBLER__)
 #include <string.h>
