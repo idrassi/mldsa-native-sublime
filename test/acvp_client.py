@@ -158,9 +158,9 @@ def compute_hash(msg, alg):
     elif alg == "SHA2-512":
         return hashlib.sha512(msg_bytes).hexdigest()
     elif alg == "SHA2-512/224":
-        return hashlib.new("sha512_224", msg_bytes).hexdigest()
+        return hashlib.sha512(msg_bytes).digest()[:28].hex()
     elif alg == "SHA2-512/256":
-        return hashlib.new("sha512_256", msg_bytes).hexdigest()
+        return hashlib.sha512(msg_bytes).digest()[:32].hex()
     elif alg == "SHA3-224":
         return hashlib.sha3_224(msg_bytes).hexdigest()
     elif alg == "SHA3-256":
