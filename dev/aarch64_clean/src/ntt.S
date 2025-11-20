@@ -113,6 +113,15 @@
         trn1 \data1\().2d, t1.2d, t3.2d
 .endm
 
+// w_scalar load optimization: load 128-bit vector using two 64-bit scalar loads
+// This allows better interleaving
+.macro ldr_vo_scalar vec, base, offset
+        ldr x10, [\base, #\offset]
+        ldr x11, [\base, #(\offset + 8)]
+        ins \vec\().d[0], x10
+        ins \vec\().d[1], x11
+.endm
+
 .macro save_vregs
         sub sp, sp, #(16*4)
         stp  d8,  d9, [sp, #16*0]
@@ -145,6 +154,11 @@
         inp     .req x3
         count   .req x4
         wtmp    .req w5
+        in2     .req x6
+
+        // Scalar temporaries for w_scalar load optimization
+        xtmp0   .req x10
+        xtmp1   .req x11
 
         data0  .req v8
         data1  .req v9
@@ -208,14 +222,14 @@ MLD_ASM_FN_SYMBOL(ntt_asm)
 
 ntt_layer123_start:
 
-        ldr q_data0, [in, #0]
-        ldr q_data1, [in, #(1*(1024/8))]
-        ldr q_data2, [in, #(2*(1024/8))]
-        ldr q_data3, [in, #(3*(1024/8))]
-        ldr q_data4, [in, #(4*(1024/8))]
-        ldr q_data5, [in, #(5*(1024/8))]
-        ldr q_data6, [in, #(6*(1024/8))]
-        ldr q_data7, [in, #(7*(1024/8))]
+        ldr_vo_scalar data0, in, 0
+        ldr_vo_scalar data1, in, (1*(1024/8))
+        ldr_vo_scalar data2, in, (2*(1024/8))
+        ldr_vo_scalar data3, in, (3*(1024/8))
+        ldr_vo_scalar data4, in, (4*(1024/8))
+        ldr_vo_scalar data5, in, (5*(1024/8))
+        ldr_vo_scalar data6, in, (6*(1024/8))
+        ldr_vo_scalar data7, in, (7*(1024/8))
 
         ct_butterfly data0, data4, root0, 0, 1
         ct_butterfly data1, data5, root0, 0, 1
@@ -248,19 +262,22 @@ ntt_layer123_start:
         cbnz count, ntt_layer123_start
 
         mov in, inp
+        add in2, in, #64       // in2 points 64 bytes ahead for data4-7
         mov count, #8
 
         .p2align 2
 ntt_layer45678_start:
 
-        ldr q_data0, [in, #(16*0)]
-        ldr q_data1, [in, #(16*1)]
-        ldr q_data2, [in, #(16*2)]
-        ldr q_data3, [in, #(16*3)]
-        ldr q_data4, [in, #(16*4)]
-        ldr q_data5, [in, #(16*5)]
-        ldr q_data6, [in, #(16*6)]
-        ldr q_data7, [in, #(16*7)]
+        // Load data0-3 from in (bytes 0-63)
+        ldr_vo_scalar data0, in, (16*0)
+        ldr_vo_scalar data1, in, (16*1)
+        ldr_vo_scalar data2, in, (16*2)
+        ldr_vo_scalar data3, in, (16*3)
+        // Load data4-7 from in2 (bytes 64-127)
+        ldr_vo_scalar data4, in2, (16*0)
+        ldr_vo_scalar data5, in2, (16*1)
+        ldr_vo_scalar data6, in2, (16*2)
+        ldr_vo_scalar data7, in2, (16*3)
 
         load_next_roots_456
 
@@ -300,17 +317,10 @@ ntt_layer45678_start:
         ct_butterfly_v data6, data7, root2, root2_tw
         // Bounds: |data{i}| < 9q
 
-        transpose4 data0, data1, data2, data3
-        transpose4 data4, data5, data6, data7
-
-        str q_data0, [in], #(16*8)
-        str q_data1, [in, #(-16*7)]
-        str q_data2, [in, #(-16*6)]
-        str q_data3, [in, #(-16*5)]
-        str q_data4, [in, #(-16*4)]
-        str q_data5, [in, #(-16*3)]
-        str q_data6, [in, #(-16*2)]
-        str q_data7, [in, #(-16*1)]
+        st4 {data0.4S, data1.4S, data2.4S, data3.4S}, [in], #64
+        st4 {data4.4S, data5.4S, data6.4S, data7.4S}, [in2], #64
+        add in, in, #64
+        add in2, in2, #64
 
         subs count, count, #1
         cbnz count, ntt_layer45678_start
@@ -325,6 +335,7 @@ ntt_layer45678_start:
     .unreq inp
     .unreq count
     .unreq wtmp
+    .unreq in2
     .unreq data0
     .unreq data1
     .unreq data2

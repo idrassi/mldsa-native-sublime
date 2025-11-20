@@ -63,7 +63,7 @@ all: ntt.S \
 ntt.S: ../../aarch64_clean/src/ntt.S
 	# optimize first loop in one go and write to temp file
 	$(eval TMPFILE := $(shell mktemp))
-	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $(TMPFILE) -l ntt_layer123_start $(SLOTHY_FLAGS) $(RESERVE_X_ONLY_FLAG)
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $(TMPFILE) -l ntt_layer123_start $(SLOTHY_FLAGS) -c reserved_regs="[x1,x2,x3,x18--x30,sp]"
 	# optimize second loop using split heuristic
 	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $(TMPFILE) -o $@ -l ntt_layer45678_start $(SLOTHY_FLAGS_SPLIT) $(RESERVE_X_ONLY_FLAG)
 
