@@ -32,12 +32,6 @@ endif
 
 W := $(EXEC_WRAPPER)
 
-# Detect available SHA256 command
-SHA256SUM := $(shell command -v shasum >/dev/null 2>&1 && echo "shasum -a 256" || (command -v sha256sum >/dev/null 2>&1 && echo "sha256sum" || echo ""))
-ifeq ($(SHA256SUM),)
-$(error Neither 'shasum' nor 'sha256sum' found. Please install one of these tools.)
-endif
-
 include test/mk/config.mk
 include test/mk/compiler.mk
 include test/mk/auto.mk
@@ -51,6 +45,12 @@ build: func kat acvp
 
 test: run_kat run_func run_acvp
 	$(Q)echo "  Everything checks fine!"
+
+# Detect available SHA256 command
+SHA256SUM := $(shell command -v shasum >/dev/null 2>&1 && echo "shasum -a 256" || (command -v sha256sum >/dev/null 2>&1 && echo "sha256sum" || echo ""))
+ifeq ($(SHA256SUM),)
+$(error Neither 'shasum' nor 'sha256sum' found. Please install one of these tools.)
+endif
 
 run_kat_44: kat_44
 	set -o pipefail; $(W) $(MLDSA44_DIR)/bin/gen_KAT44 | $(SHA256SUM) | cut -d " " -f 1 | xargs ./META.sh ML-DSA-44 kat-sha256
@@ -218,8 +218,10 @@ clean:
 	-$(RM) -rf *.gcno *.gcda *.lcov *.o *.so
 	-$(RM) -rf $(BUILD_DIR)
 	-make clean -C examples/bring_your_own_fips202 >/dev/null
+	-make clean -C examples/bring_your_own_fips202_static >/dev/null
 	-make clean -C examples/basic >/dev/null
+	-make clean -C examples/basic_deterministic >/dev/null
 	-make clean -C examples/monolithic_build >/dev/null
-	-make clean -C examples/monolithic_build_multilevel >/dev/null
 	-make clean -C examples/monolithic_build_native >/dev/null
+	-make clean -C examples/monolithic_build_multilevel >/dev/null
 	-make clean -C examples/monolithic_build_multilevel_native >/dev/null

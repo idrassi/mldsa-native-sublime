@@ -1,7 +1,7 @@
 # Copyright (c) The mlkem-native project authors
 # Copyright (c) The mldsa-native project authors
 # SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
-
+#
 # Automatically detect system architecture and set preprocessor flags accordingly
 # This file detects host CPU capabilities and combines them with compiler support
 # to enable optimal compilation flags.
