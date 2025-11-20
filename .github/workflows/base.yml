@@ -153,11 +153,17 @@ jobs:
     runs-on: ${{ matrix.target.runner }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: make quickcheck
+      - name: make quickcheck (CFLAGS as environment variable)
         run: |
-          OPT=0 CFLAGS=-std=c90 make quickcheck
+          OPT=0 CFLAGS="-std=c90" make quickcheck
           make clean >/dev/null
-          OPT=1 CFLAGS=-std=c90 make quickcheck
+          OPT=1 CFLAGS="-std=c90" make quickcheck
+      - name: make quickcheck (CFLAGS as make argument)
+        run: |
+          make clean >/dev/null
+          OPT=0 make quickcheck CFLAGS="-std=c90"
+          make clean >/dev/null
+          OPT=1 make quickcheck CFLAGS="-std=c90"
       - uses: ./.github/actions/setup-apt
       - name: tests func
         run: |
