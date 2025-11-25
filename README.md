@@ -151,6 +151,15 @@ contracts and loop invariants from the code; they will be ignored unless `CBMC` 
 
 Yes. mldsa-native supports all three ML-DSA security levels (ML-DSA-44, ML-DSA-65, ML-DSA-87) as defined in FIPS 204. The security level is a compile-time parameter configured by setting `MLD_CONFIG_PARAMETER_SET=44/65/87` in [config.h](mldsa/src/config.h).
 
+### Can I reduce RAM usage for embedded systems?
+
+Yes. mldsa-native provides a compile-time option `MLD_CONFIG_REDUCE_RAM` that reduces RAM usage by generating matrix rows on-demand rather than storing the entire matrix in memory. This trades memory for performance:
+
+- **Memory savings**: 12 KB (ML-DSA-44), 25 KB (ML-DSA-65), 49 KB (ML-DSA-87)
+- **Performance cost**: Matrix generation is no longer batched, resulting in slower signing and verification
+
+To enable this mode, define `MLD_CONFIG_REDUCE_RAM` in [config.h](mldsa/src/config.h) or pass `-DMLD_CONFIG_REDUCE_RAM` as a compiler flag.
+
 ### Does mldsa-native use hedged or deterministic signing?
 
 By default, mldsa-native uses the randomized "hedged" signing variant as specified in FIPS 204 Section 3.4. The hedged variant uses both fresh randomness at signing time and precomputed randomness from the private key. This helps mitigate fault injection attacks and side-channel attacks while protecting against potential flaws in the random number generator.

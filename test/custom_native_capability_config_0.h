@@ -627,6 +627,24 @@ static MLD_INLINE int mld_sys_check_capability(mld_sys_cap cap)
  *****************************************************************************/
 /* #define MLD_CONFIG_SERIAL_FIPS202_ONLY */
 
+/******************************************************************************
+ * Name:        MLD_CONFIG_REDUCE_RAM
+ *
+ * Description: Set this to reduce RAM usage by generating matrix rows
+ *              on-demand rather than storing the entire matrix in memory.
+ *
+ *              This trades memory for performance:
+ *              - Memory savings: 12 KB (ML-DSA-44), 25 KB (ML-DSA-65),
+ *                49 KB (ML-DSA-87)
+ *              - Performance cost: Matrix generation is no longer batched,
+ *                resulting in slower signing and verification
+ *
+ *              This option is useful for embedded systems with tight RAM
+ *              constraints but relaxed performance requirements.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_REDUCE_RAM */
+
 /*************************  Config internals  ********************************/
 
 #endif /* MLD_BUILD_INTERNAL */
