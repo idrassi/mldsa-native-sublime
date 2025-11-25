@@ -644,7 +644,7 @@ static MLD_INLINE void *mld_memcpy(void *dest, const void *src, size_t n)
  *              constraints but relaxed performance requirements.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

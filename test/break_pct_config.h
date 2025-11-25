@@ -641,7 +641,7 @@ static MLD_INLINE int mld_break_pct(void)
  *              constraints but relaxed performance requirements.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

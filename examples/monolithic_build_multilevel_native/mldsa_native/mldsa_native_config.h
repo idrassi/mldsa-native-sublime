@@ -644,7 +644,7 @@ static MLD_INLINE void mld_randombytes(uint8_t *ptr, size_t len)
  *              constraints but relaxed performance requirements.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

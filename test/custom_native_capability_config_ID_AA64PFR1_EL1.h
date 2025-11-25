@@ -661,7 +661,7 @@ static MLD_INLINE int mld_sys_check_capability(mld_sys_cap cap)
  *              constraints but relaxed performance requirements.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

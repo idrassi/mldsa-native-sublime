@@ -559,7 +559,7 @@
  *              constraints but relaxed performance requirements.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 
