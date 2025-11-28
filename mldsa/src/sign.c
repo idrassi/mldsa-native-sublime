@@ -782,7 +782,6 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
                                 const uint8_t pk[CRYPTO_PUBLICKEYBYTES],
                                 int externalmu)
 {
-  unsigned int i;
   int res;
   MLD_ALIGN uint8_t buf[MLDSA_K * MLDSA_POLYW1_PACKEDBYTES];
   MLD_ALIGN uint8_t rho[MLDSA_SEEDBYTES];
@@ -853,28 +852,8 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   mld_H(c2, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, buf,
         MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
 
-  /* Constant time: All data in verification is usually considered public.
-   * However, in our constant-time tests we do not declassify the message and
-   * context string.
-   * The following conditional is the only place in verification whose run-time
-   * depends on the message. As all that can be leakaged here is the output of
-   * a hash call (that should behave like a random oracle), it is safe to
-   * declassify here even with a secret message.
-   */
-  MLD_CT_TESTING_DECLASSIFY(c2, sizeof(c2));
-  for (i = 0; i < MLDSA_CTILDEBYTES; ++i)
-  __loop__(
-    invariant(i <= MLDSA_CTILDEBYTES)
-  )
-  {
-    if (c[i] != c2[i])
-    {
-      res = -1;
-      goto cleanup;
-    }
-  }
-
-  res = 0;
+  /* Return 0 if c == c2, -1 otherwise */
+  res = mld_ct_sel_int32(-1, 0, mld_ct_memcmp(c, c2, MLDSA_CTILDEBYTES));
 
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
@@ -938,6 +917,7 @@ int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
                      const uint8_t pk[CRYPTO_PUBLICKEYBYTES])
 {
   size_t i;
+  int result;
 
   if (smlen < CRYPTO_BYTES)
   {
@@ -945,8 +925,12 @@ int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
   }
 
   *mlen = smlen - CRYPTO_BYTES;
-  if (crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, *mlen, ctx,
-                         ctxlen, pk))
+  result = crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, *mlen, ctx,
+                              ctxlen, pk);
+  /* Declassify the final result of the verification. */
+  /* TODO: Consider making open constant flow */
+  MLD_CT_TESTING_DECLASSIFY(&result, sizeof(result));
+  if (result)
   {
     goto badsig;
   }
