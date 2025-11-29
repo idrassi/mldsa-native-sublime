@@ -169,23 +169,38 @@ __contract__(
     array_bound(s2->vec[k2].coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1)))
 );
 
+#define mld_unpack_hints MLD_NAMESPACE_KL(mld_unpack_hints)
+/*************************************************
+ * Name:        mld_unpack_hints
+ *
+ * Description: Unpack raw hint bytes into a polyveck
+ *              struct
+ *
+ * Arguments:   - mld_polyveck *h: pointer to output hint vector h
+ *              - const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES]:
+ *                raw hint bytes
+ *
+ * Returns 1 in case of malformed hints; otherwise 0.
+ **************************************************/
+MLD_INTERNAL_API
+int mld_unpack_hints(mld_polyveck *h,
+                     const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES]);
+
 #define mld_unpack_sig MLD_NAMESPACE_KL(unpack_sig)
 /*************************************************
  * Name:        mld_unpack_sig
  *
- * Description: Unpack signature sig = (c, z, h).
+ * Description: Unpack (c,z) from signature sig = (c, z, h).
  *
  * Arguments:   - uint8_t *c: pointer to output challenge hash
  *              - mld_polyvecl *z: pointer to output vector z
- *              - mld_polyveck *h: pointer to output hint vector h
  *              - const uint8_t sig[]: byte array containing
  *                bit-packed signature
  *
- * Returns 1 in case of malformed signature; otherwise 0.
  **************************************************/
 MLD_INTERNAL_API
-int mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
-                   mld_polyveck *h, const uint8_t sig[MLDSA_CRYPTO_BYTES])
+void mld_unpack_sig(uint8_t c[MLDSA_CTILDEBYTES], mld_polyvecl *z,
+                    const uint8_t sig[MLDSA_CRYPTO_BYTES])
 __contract__(
   requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))

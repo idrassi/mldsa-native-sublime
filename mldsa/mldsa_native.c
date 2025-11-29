@@ -212,6 +212,7 @@
 #undef mld_pack_pk
 #undef mld_pack_sig
 #undef mld_pack_sk
+#undef mld_unpack_hints
 #undef mld_unpack_pk
 #undef mld_unpack_sig
 #undef mld_unpack_sk
