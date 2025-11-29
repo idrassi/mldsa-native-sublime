@@ -787,18 +787,15 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   MLD_ALIGN uint8_t c[MLDSA_CTILDEBYTES];
   MLD_ALIGN uint8_t c2[MLDSA_CTILDEBYTES];
   mld_polyvecl z;
-  mld_polyveck tmp;
+  mld_poly cp;
+  mld_polyveck w1;
   union
   {
-    mld_polyveck t1;
-    mld_polyveck w1;
-  } t1w1;
-  union
-  {
-    mld_poly cp;
     mld_polymat mat;
     mld_polyveck h;
-  } cpmath;
+    mld_polyveck tmp;
+    mld_polyveck t1;
+  } mathtmpt1;
 
   if (siglen != MLDSA_CRYPTO_BYTES)
   {
@@ -806,7 +803,9 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
     goto cleanup;
   }
 
-  mld_unpack_pk(rho, &t1w1.t1, pk);
+  /* unpack rho part from public key */
+  mld_memcpy(rho, pk, MLDSA_SEEDBYTES);
+
   mld_unpack_sig(c, &z, sig);
   if (mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
   {
@@ -832,31 +831,32 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   }
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */
-  mld_poly_challenge(&cpmath.cp, c);
-
-  mld_poly_ntt(&cpmath.cp);
-  mld_polyveck_shiftl(&t1w1.t1);
-  mld_polyveck_ntt(&t1w1.t1);
-
-  mld_polyveck_pointwise_poly_montgomery(&tmp, &cpmath.cp, &t1w1.t1);
   mld_polyvecl_ntt(&z);
-  mld_polyvec_matrix_expand(&cpmath.mat, rho);
-  mld_polyvec_matrix_pointwise_montgomery(&t1w1.w1, &cpmath.mat, &z);
+  mld_polyvec_matrix_expand(&mathtmpt1.mat, rho);
+  mld_polyvec_matrix_pointwise_montgomery(&w1, &mathtmpt1.mat, &z);
 
-  mld_polyveck_sub(&t1w1.w1, &tmp);
-  mld_polyveck_reduce(&t1w1.w1);
-  mld_polyveck_invntt_tomont(&t1w1.w1);
+  mld_poly_challenge(&cp, c);
+  mld_poly_ntt(&cp);
+
+  /* unpack t1 part of public key */
+  mld_unpack_pk(rho, &mathtmpt1.t1, pk);
+  mld_polyveck_shiftl(&mathtmpt1.t1);
+  mld_polyveck_ntt(&mathtmpt1.t1);
+  mld_polyveck_pointwise_poly_montgomery(&mathtmpt1.tmp, &cp, &mathtmpt1.t1);
+  mld_polyveck_sub(&w1, &mathtmpt1.tmp);
+  mld_polyveck_reduce(&w1);
+  mld_polyveck_invntt_tomont(&w1);
 
   /* Reconstruct w1 */
-  mld_polyveck_caddq(&t1w1.w1);
-  if (mld_unpack_hints(&cpmath.h, sig + MLDSA_CTILDEBYTES +
-                                      MLDSA_L * MLDSA_POLYZ_PACKEDBYTES))
+  mld_polyveck_caddq(&w1);
+  if (mld_unpack_hints(&mathtmpt1.h, sig + MLDSA_CTILDEBYTES +
+                                         MLDSA_L * MLDSA_POLYZ_PACKEDBYTES))
   {
     res = -1;
     goto cleanup;
   }
-  mld_polyveck_use_hint(&tmp, &t1w1.w1, &cpmath.h);
-  mld_polyveck_pack_w1(buf, &tmp);
+  mld_polyveck_use_hint(&mathtmpt1.tmp, &w1, &mathtmpt1.h);
+  mld_polyveck_pack_w1(buf, &mathtmpt1.tmp);
   /* Call random oracle and verify challenge */
   mld_H(c2, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, buf,
         MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
@@ -891,10 +891,9 @@ cleanup:
   mld_zeroize(mu, sizeof(mu));
   mld_zeroize(c, sizeof(c));
   mld_zeroize(c2, sizeof(c2));
-  mld_zeroize(&cpmath.cp, sizeof(cpmath));
+  mld_zeroize(&mathtmpt1, sizeof(mathtmpt1));
   mld_zeroize(&z, sizeof(z));
-  mld_zeroize(&t1w1, sizeof(t1w1));
-  mld_zeroize(&tmp, sizeof(tmp));
+  mld_zeroize(&w1, sizeof(w1));
   return res;
 }
 
