@@ -789,7 +789,12 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   mld_poly cp;
   mld_polymat mat;
   mld_polyvecl z;
-  mld_polyveck t1, w1, tmp, h;
+  mld_polyveck tmp, h;
+  union
+  {
+    mld_polyveck t1;
+    mld_polyveck w1;
+  } t1w1;
 
   if (siglen != MLDSA_CRYPTO_BYTES)
   {
@@ -797,7 +802,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
     goto cleanup;
   }
 
-  mld_unpack_pk(rho, &t1, pk);
+  mld_unpack_pk(rho, &t1w1.t1, pk);
   if (mld_unpack_sig(c, &z, &h, sig))
   {
     res = -1;
@@ -830,22 +835,22 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   mld_poly_challenge(&cp, c);
   mld_polyvec_matrix_expand(&mat, rho);
 
-  mld_polyvecl_ntt(&z);
-  mld_polyvec_matrix_pointwise_montgomery(&w1, &mat, &z);
-
   mld_poly_ntt(&cp);
-  mld_polyveck_shiftl(&t1);
-  mld_polyveck_ntt(&t1);
+  mld_polyveck_shiftl(&t1w1.t1);
+  mld_polyveck_ntt(&t1w1.t1);
 
-  mld_polyveck_pointwise_poly_montgomery(&tmp, &cp, &t1);
+  mld_polyveck_pointwise_poly_montgomery(&tmp, &cp, &t1w1.t1);
 
-  mld_polyveck_sub(&w1, &tmp);
-  mld_polyveck_reduce(&w1);
-  mld_polyveck_invntt_tomont(&w1);
+  mld_polyvecl_ntt(&z);
+  mld_polyvec_matrix_pointwise_montgomery(&t1w1.w1, &mat, &z);
+
+  mld_polyveck_sub(&t1w1.w1, &tmp);
+  mld_polyveck_reduce(&t1w1.w1);
+  mld_polyveck_invntt_tomont(&t1w1.w1);
 
   /* Reconstruct w1 */
-  mld_polyveck_caddq(&w1);
-  mld_polyveck_use_hint(&tmp, &w1, &h);
+  mld_polyveck_caddq(&t1w1.w1);
+  mld_polyveck_use_hint(&tmp, &t1w1.w1, &h);
   mld_polyveck_pack_w1(buf, &tmp);
   /* Call random oracle and verify challenge */
   mld_H(c2, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, buf,
@@ -884,8 +889,7 @@ cleanup:
   mld_zeroize(&cp, sizeof(cp));
   mld_zeroize(&mat, sizeof(mat));
   mld_zeroize(&z, sizeof(z));
-  mld_zeroize(&t1, sizeof(t1));
-  mld_zeroize(&w1, sizeof(w1));
+  mld_zeroize(&t1w1, sizeof(t1w1));
   mld_zeroize(&tmp, sizeof(tmp));
   mld_zeroize(&h, sizeof(h));
   return res;
