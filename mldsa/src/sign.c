@@ -786,9 +786,13 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   MLD_ALIGN uint8_t mu[MLDSA_CRHBYTES];
   MLD_ALIGN uint8_t c[MLDSA_CTILDEBYTES];
   MLD_ALIGN uint8_t c2[MLDSA_CTILDEBYTES];
-  mld_polyvecl z;
-  mld_poly cp;
   mld_polyveck w1;
+  union
+  {
+    mld_polyvecl z;
+    mld_poly cp;
+  } zcp;
+
   union
   {
     mld_polymat mat;
@@ -806,8 +810,8 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   /* unpack rho part from public key */
   mld_memcpy(rho, pk, MLDSA_SEEDBYTES);
 
-  mld_unpack_sig(c, &z, sig);
-  if (mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA))
+  mld_unpack_sig(c, &zcp.z, sig);
+  if (mld_polyvecl_chknorm(&zcp.z, MLDSA_GAMMA1 - MLDSA_BETA))
   {
     res = -1;
     goto cleanup;
@@ -831,18 +835,19 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   }
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */
-  mld_polyvecl_ntt(&z);
+  mld_polyvecl_ntt(&zcp.z);
   mld_polyvec_matrix_expand(&mathtmpt1.mat, rho);
-  mld_polyvec_matrix_pointwise_montgomery(&w1, &mathtmpt1.mat, &z);
+  mld_polyvec_matrix_pointwise_montgomery(&w1, &mathtmpt1.mat, &zcp.z);
 
-  mld_poly_challenge(&cp, c);
-  mld_poly_ntt(&cp);
+  mld_poly_challenge(&zcp.cp, c);
+  mld_poly_ntt(&zcp.cp);
 
   /* unpack t1 part of public key */
   mld_unpack_pk(rho, &mathtmpt1.t1, pk);
   mld_polyveck_shiftl(&mathtmpt1.t1);
   mld_polyveck_ntt(&mathtmpt1.t1);
-  mld_polyveck_pointwise_poly_montgomery(&mathtmpt1.tmp, &cp, &mathtmpt1.t1);
+  mld_polyveck_pointwise_poly_montgomery(&mathtmpt1.tmp, &zcp.cp,
+                                         &mathtmpt1.t1);
   mld_polyveck_sub(&w1, &mathtmpt1.tmp);
   mld_polyveck_reduce(&w1);
   mld_polyveck_invntt_tomont(&w1);
@@ -892,7 +897,7 @@ cleanup:
   mld_zeroize(c, sizeof(c));
   mld_zeroize(c2, sizeof(c2));
   mld_zeroize(&mathtmpt1, sizeof(mathtmpt1));
-  mld_zeroize(&z, sizeof(z));
+  mld_zeroize(&zcp, sizeof(zcp));
   mld_zeroize(&w1, sizeof(w1));
   return res;
 }
