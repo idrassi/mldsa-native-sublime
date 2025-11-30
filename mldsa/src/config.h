@@ -529,7 +529,7 @@
  *              Only enable this when you have to.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_SERIAL_FIPS202_ONLY */
+#define MLD_CONFIG_SERIAL_FIPS202_ONLY
 
 /*************************  Config internals  ********************************/
 
