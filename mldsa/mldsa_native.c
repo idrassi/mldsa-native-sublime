@@ -527,10 +527,12 @@
  */
 /* mldsa/src/fips202/native/x86_64/src/KeccakP_1600_times4_SIMD256.h */
 #undef MLD_FIPS202_NATIVE_X86_64_SRC_KECCAKP_1600_TIMES4_SIMD256_H
+#undef mld_keccakf1600x1_permute24
 #undef mld_keccakf1600x4_permute24
 /* mldsa/src/fips202/native/x86_64/xkcp.h */
 #undef MLD_FIPS202_NATIVE_X86_64_XKCP_H
 #undef MLD_FIPS202_X86_64_XKCP
+#undef MLD_USE_FIPS202_X1_NATIVE
 #undef MLD_USE_FIPS202_X4_NATIVE
 #endif /* MLD_SYS_X86_64 */
 #endif /* MLD_CONFIG_USE_NATIVE_BACKEND_FIPS202 */

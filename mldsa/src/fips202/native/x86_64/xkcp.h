@@ -16,6 +16,17 @@
 #include "../api.h"
 #include "src/KeccakP_1600_times4_SIMD256.h"
 
+#define MLD_USE_FIPS202_X1_NATIVE
+static MLD_INLINE int mld_keccak_f1600_x1_native(uint64_t *state)
+{
+  if (!mld_sys_check_capability(MLD_SYS_CAP_AVX2))
+  {
+    return MLD_NATIVE_FUNC_FALLBACK;
+  }
+  mld_keccakf1600x1_permute24(state);
+  return MLD_NATIVE_FUNC_SUCCESS;
+}
+
 #define MLD_USE_FIPS202_X4_NATIVE
 static MLD_INLINE int mld_keccak_f1600_x4_native(uint64_t *state)
 {

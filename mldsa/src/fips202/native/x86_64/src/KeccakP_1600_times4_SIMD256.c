@@ -448,6 +448,74 @@ static MLD_ALIGN const uint64_t keccakf1600RoundConstants[24] = {
     thetaRhoPiChiIota(23, E, A)
 /* clang-format on */
 
+/* Single-state variants: broadcast one 200-byte state to all 4 SIMD lanes */
+#define copyFromStateSingle(X, state)                    \
+  do                                                     \
+  {                                                      \
+    const uint64_t *state64 = (const uint64_t *)(state); \
+    X##ba = _mm256_set1_epi64x((long long)state64[0]);   \
+    X##be = _mm256_set1_epi64x((long long)state64[1]);   \
+    X##bi = _mm256_set1_epi64x((long long)state64[2]);   \
+    X##bo = _mm256_set1_epi64x((long long)state64[3]);   \
+    X##bu = _mm256_set1_epi64x((long long)state64[4]);   \
+    X##ga = _mm256_set1_epi64x((long long)state64[5]);   \
+    X##ge = _mm256_set1_epi64x((long long)state64[6]);   \
+    X##gi = _mm256_set1_epi64x((long long)state64[7]);   \
+    X##go = _mm256_set1_epi64x((long long)state64[8]);   \
+    X##gu = _mm256_set1_epi64x((long long)state64[9]);   \
+    X##ka = _mm256_set1_epi64x((long long)state64[10]);  \
+    X##ke = _mm256_set1_epi64x((long long)state64[11]);  \
+    X##ki = _mm256_set1_epi64x((long long)state64[12]);  \
+    X##ko = _mm256_set1_epi64x((long long)state64[13]);  \
+    X##ku = _mm256_set1_epi64x((long long)state64[14]);  \
+    X##ma = _mm256_set1_epi64x((long long)state64[15]);  \
+    X##me = _mm256_set1_epi64x((long long)state64[16]);  \
+    X##mi = _mm256_set1_epi64x((long long)state64[17]);  \
+    X##mo = _mm256_set1_epi64x((long long)state64[18]);  \
+    X##mu = _mm256_set1_epi64x((long long)state64[19]);  \
+    X##sa = _mm256_set1_epi64x((long long)state64[20]);  \
+    X##se = _mm256_set1_epi64x((long long)state64[21]);  \
+    X##si = _mm256_set1_epi64x((long long)state64[22]);  \
+    X##so = _mm256_set1_epi64x((long long)state64[23]);  \
+    X##su = _mm256_set1_epi64x((long long)state64[24]);  \
+  } while (0);
+
+#define EXTRACT_LANE0(state, idx, v) \
+  ((uint64_t *)(state))[idx] = (uint64_t)_mm256_extract_epi64(v, 0)
+
+#define copyToStateSingle(state, X) \
+  EXTRACT_LANE0(state, 0, X##ba);   \
+  EXTRACT_LANE0(state, 1, X##be);   \
+  EXTRACT_LANE0(state, 2, X##bi);   \
+  EXTRACT_LANE0(state, 3, X##bo);   \
+  EXTRACT_LANE0(state, 4, X##bu);   \
+  EXTRACT_LANE0(state, 5, X##ga);   \
+  EXTRACT_LANE0(state, 6, X##ge);   \
+  EXTRACT_LANE0(state, 7, X##gi);   \
+  EXTRACT_LANE0(state, 8, X##go);   \
+  EXTRACT_LANE0(state, 9, X##gu);   \
+  EXTRACT_LANE0(state, 10, X##ka);  \
+  EXTRACT_LANE0(state, 11, X##ke);  \
+  EXTRACT_LANE0(state, 12, X##ki);  \
+  EXTRACT_LANE0(state, 13, X##ko);  \
+  EXTRACT_LANE0(state, 14, X##ku);  \
+  EXTRACT_LANE0(state, 15, X##ma);  \
+  EXTRACT_LANE0(state, 16, X##me);  \
+  EXTRACT_LANE0(state, 17, X##mi);  \
+  EXTRACT_LANE0(state, 18, X##mo);  \
+  EXTRACT_LANE0(state, 19, X##mu);  \
+  EXTRACT_LANE0(state, 20, X##sa);  \
+  EXTRACT_LANE0(state, 21, X##se);  \
+  EXTRACT_LANE0(state, 22, X##si);  \
+  EXTRACT_LANE0(state, 23, X##so);  \
+  EXTRACT_LANE0(state, 24, X##su);
+
+void mld_keccakf1600x1_permute24(void *state)
+{
+  declareABCDE copyFromStateSingle(A, state)
+      rounds24 copyToStateSingle(state, A)
+}
+
 void mld_keccakf1600x4_permute24(void *states)
 {
   __m256i *statesAsLanes = (__m256i *)states;
@@ -482,3 +550,6 @@ MLD_EMPTY_CU(fips202_avx2_keccakx4)
 #undef copyToState
 #undef copyStateVariables
 #undef rounds24
+#undef copyFromStateSingle
+#undef EXTRACT_LANE0
+#undef copyToStateSingle
