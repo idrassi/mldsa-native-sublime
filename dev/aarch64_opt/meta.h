@@ -32,6 +32,7 @@
 
 
 #if !defined(__ASSEMBLER__)
+#include <stddef.h>
 #include "../api.h"
 #include "src/arith_native_aarch64.h"
 
@@ -49,9 +50,8 @@ static MLD_INLINE int mld_intt_native(int32_t data[MLDSA_N])
   return MLD_NATIVE_FUNC_SUCCESS;
 }
 
-static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
-                                             const uint8_t *buf,
-                                             unsigned buflen)
+static MLD_INLINE int mld_rej_uniform_native(int32_t *r, int len,
+                                             const uint8_t *buf, int buflen)
 {
   if (len != MLDSA_N ||
       buflen % 24 != 0) /* NEON support is mandatory for AArch64 */
@@ -59,15 +59,15 @@ static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
     return MLD_NATIVE_FUNC_FALLBACK;
   }
 
-  /* Safety: outlen is at most MLDSA_N, hence, this cast is safe. */
+  /* Safety: outlen is at most MLDSA_N and, hence, this cast is safe. */
   return (int)mld_rej_uniform_asm(r, buf, buflen, mld_rej_uniform_table);
 }
 
-static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen)
+                                                  int buflen)
 {
-  unsigned int outlen;
+  int32_t outlen;
   /* AArch64 implementation assumes specific buffer lengths */
   if (len != MLDSA_N || buflen != MLD_AARCH64_REJ_UNIFORM_ETA2_BUFLEN)
   {
@@ -82,16 +82,16 @@ static MLD_INLINE int mld_rej_uniform_eta2_native(int32_t *r, unsigned len,
    */
   MLD_CT_TESTING_DECLASSIFY(buf, buflen);
   outlen = mld_rej_uniform_eta2_asm(r, buf, buflen, mld_rej_uniform_eta_table);
-  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
+  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * (size_t)outlen);
   /* Safety: outlen is at most MLDSA_N and, hence, this cast is safe. */
   return (int)outlen;
 }
 
-static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
+static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, int len,
                                                   const uint8_t *buf,
-                                                  unsigned buflen)
+                                                  int buflen)
 {
-  unsigned int outlen;
+  int32_t outlen;
   /* AArch64 implementation assumes specific buffer lengths */
   if (len != MLDSA_N || buflen != MLD_AARCH64_REJ_UNIFORM_ETA4_BUFLEN)
   {
@@ -106,7 +106,7 @@ static MLD_INLINE int mld_rej_uniform_eta4_native(int32_t *r, unsigned len,
    */
   MLD_CT_TESTING_DECLASSIFY(buf, buflen);
   outlen = mld_rej_uniform_eta4_asm(r, buf, buflen, mld_rej_uniform_eta_table);
-  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * outlen);
+  MLD_CT_TESTING_SECRET(r, sizeof(int32_t) * (size_t)outlen);
   /* Safety: outlen is at most MLDSA_N and, hence, this cast is safe. */
   return (int)outlen;
 }
