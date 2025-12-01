@@ -9,6 +9,7 @@
 
 #define MLD_USE_NATIVE_NTT
 #define MLD_USE_NATIVE_INTT
+#define MLD_USE_NATIVE_POLY_CADDQ
 
 
 #include "../../mldsa/src/native/api.h"
