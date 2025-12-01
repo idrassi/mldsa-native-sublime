@@ -191,6 +191,22 @@ static MLD_ALWAYS_INLINE uint32_t mld_cast_int32_to_uint32(int32_t x)
 }
 
 /*************************************************
+ * Name:        mld_ct_cmask_nonzero_u32
+ *
+ * Description: Return 0 if input is zero, and -1 otherwise.
+ *
+ * Arguments:   uint32_t x: Value to be converted into a mask
+ *
+ **************************************************/
+static MLD_INLINE uint32_t mld_ct_cmask_nonzero_u32(uint32_t x)
+__contract__(ensures(return_value == ((x == 0) ? 0 : 0xFFFFFFFF)))
+{
+  int64_t tmp = mld_value_barrier_i64(-((int64_t)x));
+  tmp >>= 32;
+  return mld_cast_int64_to_uint32(tmp);
+}
+
+/*************************************************
  * Name:        mld_ct_sel_int32
  *
  * Description: Functionally equivalent to cond ? a : b,
@@ -205,13 +221,12 @@ static MLD_ALWAYS_INLINE uint32_t mld_cast_int32_to_uint32(int32_t x)
  **************************************************/
 static MLD_INLINE int32_t mld_ct_sel_int32(int32_t a, int32_t b, uint32_t cond)
 __contract__(
-  requires(cond == 0x0 || cond == 0xFFFFFFFF)
   ensures(return_value == (cond ? a : b))
 )
 {
   uint32_t au = mld_cast_int32_to_uint32(a);
   uint32_t bu = mld_cast_int32_to_uint32(b);
-  uint32_t res = bu ^ (mld_value_barrier_u32(cond) & (au ^ bu));
+  uint32_t res = bu ^ (mld_ct_cmask_nonzero_u32(cond) & (au ^ bu));
   return mld_cast_uint32_to_int32(res);
 }
 
