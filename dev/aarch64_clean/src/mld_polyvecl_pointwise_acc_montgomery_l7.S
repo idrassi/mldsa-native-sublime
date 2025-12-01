@@ -14,18 +14,18 @@
     uzp2   \res\().4s, \inl\().4s, \inh\().4s
 .endm
 
-.macro load_polys p0, p1, p2, p3, ptr, idx
-.if \idx == 0
+.macro load_polys_inc p0, p1, p2, p3, ptr
     ldr \p1, [\ptr, #1*16]
     ldr \p2, [\ptr, #2*16]
     ldr \p3, [\ptr, #3*16]
     ldr \p0, [\ptr], #4*16
-.else
+.endm
+
+.macro load_polys p0, p1, p2, p3, ptr, idx
     ldr \p0, [\ptr, #(1024*\idx-4*16)]
     ldr \p1, [\ptr, #(1024*\idx-3*16)]
     ldr \p2, [\ptr, #(1024*\idx-2*16)]
     ldr \p3, [\ptr, #(1024*\idx-1*16)]
-.endif
 .endm
 
 .macro pmull dl, dh, a, b
@@ -104,8 +104,8 @@ MLD_ASM_FN_SYMBOL(polyvecl_pointwise_acc_montgomery_l7_asm)
     mov count, #(MLDSA_N / 4)
 
 l7_loop_start:
-    load_polys q_a_0, q_a_1, q_a_2, q_a_3, a_ptr, 0
-    load_polys q_b_0, q_b_1, q_b_2, q_b_3, b_ptr, 0
+    load_polys_inc q_a_0, q_a_1, q_a_2, q_a_3, a_ptr
+    load_polys_inc q_b_0, q_b_1, q_b_2, q_b_3, b_ptr
     // Bounds: |a_{i}| < q, |b_{i}| < 9q
 
     pmull c_0_lo, c_0_hi, a_0, b_0

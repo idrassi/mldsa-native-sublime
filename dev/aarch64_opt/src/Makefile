@@ -77,13 +77,13 @@ intt.S: ../../aarch64_clean/src/intt.S
 	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $(TMPFILE) -o $@ -l intt_layer1234_start $(SLOTHY_FLAGS_SPLIT) -c split_heuristic_factor=2.5 $(RESERVE_X_ONLY_FLAG)
 
 mld_polyvecl_pointwise_acc_montgomery_l4.S: ../../aarch64_clean/src/mld_polyvecl_pointwise_acc_montgomery_l4.S
-	cp $< $@
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l l4_loop_start $(SLOTHY_FLAGS) $(RESERVE_ALL_FLAG)
 
 mld_polyvecl_pointwise_acc_montgomery_l5.S: ../../aarch64_clean/src/mld_polyvecl_pointwise_acc_montgomery_l5.S
-	cp $< $@
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l l5_loop_start $(SLOTHY_FLAGS) $(RESERVE_ALL_FLAG)
 
 mld_polyvecl_pointwise_acc_montgomery_l7.S: ../../aarch64_clean/src/mld_polyvecl_pointwise_acc_montgomery_l7.S
-	cp $< $@
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l l7_loop_start $(SLOTHY_FLAGS_SPLIT) -c split_heuristic_factor=1.5 $(RESERVE_ALL_FLAG)
 
 pointwise_montgomery.S: ../../aarch64_clean/src/pointwise_montgomery.S
 	cp $< $@
