@@ -10,6 +10,7 @@
 #define MLD_USE_NATIVE_NTT
 #define MLD_USE_NATIVE_INTT
 #define MLD_USE_NATIVE_POLY_CADDQ
+#define MLD_USE_NATIVE_POINTWISE_MONTGOMERY
 
 
 #include "../../mldsa/src/native/api.h"
