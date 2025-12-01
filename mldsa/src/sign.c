@@ -918,42 +918,30 @@ int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
 {
   size_t i;
   int result;
+  size_t mlen2;
 
   if (smlen < CRYPTO_BYTES)
   {
-    goto badsig;
+    *mlen = 0;
+    mld_memset(m, 0, smlen);
+    return -1;
   }
 
-  *mlen = smlen - CRYPTO_BYTES;
-  result = crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, *mlen, ctx,
-                              ctxlen, pk);
-  /* Declassify the final result of the verification. */
-  /* TODO: Consider making open constant flow */
-  MLD_CT_TESTING_DECLASSIFY(&result, sizeof(result));
-  if (result)
-  {
-    goto badsig;
-  }
-  else
-  {
-    /* All good, copy msg, return 0 */
-    for (i = 0; i < *mlen; ++i)
-    __loop__(
-      assigns(i, memory_slice(m, *mlen))
-      invariant(i <= *mlen)
-    )
-    {
-      m[i] = sm[CRYPTO_BYTES + i];
-    }
-    return 0;
-  }
-
-badsig:
-  /* Signature verification failed */
+  mlen2 = smlen - CRYPTO_BYTES;
   *mlen = 0;
-  mld_memset(m, 0, smlen);
-
-  return -1;
+  result = crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, mlen2, ctx,
+                              ctxlen, pk);
+  for (i = 0; i < mlen2; ++i)
+  __loop__(
+    assigns(i, memory_slice(m, mlen2))
+    invariant(i <= mlen2)
+  )
+  {
+    m[i] = mld_ct_sel_uint8(0, sm[CRYPTO_BYTES + i], (uint8_t)result);
+  }
+  mld_ct_cmov_zero((uint8_t *)mlen, (uint8_t *)&mlen2, sizeof(size_t),
+                   (uint8_t)result);
+  return result;
 }
 
 

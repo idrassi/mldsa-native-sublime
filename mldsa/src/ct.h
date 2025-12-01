@@ -207,6 +207,21 @@ __contract__(ensures(return_value == ((x == 0) ? 0 : 0xFFFFFFFF)))
 }
 
 /*************************************************
+ * Name:        mld_ct_cmask_nonzero_u8
+ *
+ * Description: Return 0 if input is zero, and -1 otherwise.
+ *
+ * Arguments:   uint8_t x: Value to be converted into a mask
+ *
+ **************************************************/
+static MLD_INLINE uint8_t mld_ct_cmask_nonzero_u8(uint8_t x)
+__contract__(ensures(return_value == ((x == 0) ? 0 : 0xFF)))
+{
+  uint32_t mask = mld_ct_cmask_nonzero_u32((uint32_t)x);
+  return (uint8_t)(mask & 0xFF);
+}
+
+/*************************************************
  * Name:        mld_ct_sel_int32
  *
  * Description: Functionally equivalent to cond ? a : b,
@@ -228,6 +243,24 @@ __contract__(
   uint32_t bu = mld_cast_int32_to_uint32(b);
   uint32_t res = bu ^ (mld_ct_cmask_nonzero_u32(cond) & (au ^ bu));
   return mld_cast_uint32_to_int32(res);
+}
+
+/*************************************************
+ * Name:        mld_ct_sel_uint8
+ *
+ * Description: Functionally equivalent to cond ? a : b,
+ *              but implemented with guards against
+ *              compiler-introduced branches.
+ *
+ * Arguments:   uint8_t a:       First alternative
+ *              uint8_t b:       Second alternative
+ *              uuint8_t cond:   Condition variable.
+ *
+ **************************************************/
+static MLD_INLINE uint8_t mld_ct_sel_uint8(uint8_t a, uint8_t b, uint8_t cond)
+__contract__(ensures(return_value == (cond ? a : b)))
+{
+  return b ^ (mld_ct_cmask_nonzero_u8(cond) & (a ^ b));
 }
 
 /*************************************************
@@ -308,6 +341,36 @@ __contract__(
    * from dropping the s computation in the loop.
    */
   return (uint8_t)((mld_value_barrier_u32((uint32_t)r) ^ s) ^ s);
+}
+
+/*************************************************
+ * Name:        mld_ct_cmov_zero
+ *
+ * Description: Copy len bytes from x to r if b is zero;
+ *              don't modify x if b is non-zero.
+ *              assumes two's complement representation of negative integers.
+ *              Runs in constant time.
+ *
+ * Arguments:   uint8_t *r:       pointer to output byte array
+ *              const uint8_t *x: pointer to input byte array
+ *              size_t len:       Amount of bytes to be copied
+ *              uint8_t b:        Condition value.
+ *
+ **************************************************/
+static MLD_INLINE void mld_ct_cmov_zero(uint8_t *r, const uint8_t *x,
+                                        size_t len, uint8_t b)
+__contract__(
+  requires(len <= MLD_MAX_BUFFER_SIZE)
+  requires(memory_no_alias(r, len))
+  requires(memory_no_alias(x, len))
+  assigns(memory_slice(r, len)))
+{
+  size_t i;
+  for (i = 0; i < len; i++)
+  __loop__(invariant(i <= len))
+  {
+    r[i] = mld_ct_sel_uint8(r[i], x[i], b);
+  }
 }
 
 /*************************************************
