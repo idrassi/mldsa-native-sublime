@@ -302,7 +302,9 @@ __contract__(
 static int mld_rej_eta(int32_t *a, int target, int offset, const uint8_t *buf,
                        int buflen)
 __contract__(
+  requires(offset >= 0)
   requires(offset <= target && target <= MLDSA_N)
+  requires(buflen >= 0)
   requires(buflen <= (POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES))
   requires(memory_no_alias(a, sizeof(int32_t) * target))
   requires(memory_no_alias(buf, buflen))

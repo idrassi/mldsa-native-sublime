@@ -358,7 +358,9 @@ __contract__(
 static int mld_rej_uniform(int32_t *a, int target, int offset,
                            const uint8_t *buf, int buflen)
 __contract__(
+  requires(offset >= 0)
   requires(offset <= target && target <= MLDSA_N)
+  requires(buflen >= 0)
   requires(buflen <= (POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES) && buflen % 3 == 0)
   requires(memory_no_alias(a, sizeof(int32_t) * target))
   requires(memory_no_alias(buf, buflen))
