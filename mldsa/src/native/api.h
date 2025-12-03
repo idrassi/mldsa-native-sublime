@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include "../cbmc.h"
 #include "../common.h"
+#include "../symmetric.h"
 
 /* Backends must return MLD_NATIVE_FUNC_SUCCESS upon success. */
 #define MLD_NATIVE_FUNC_SUCCESS (0)
@@ -49,6 +50,9 @@
  * NOTE: This is the same bound as in ntt.h and has to be kept
  * in sync. */
 #define MLD_INTT_BOUND MLDSA_Q
+
+#define POLY_UNIFORM_NBLOCKS \
+  ((768 + STREAM128_BLOCKBYTES - 1) / STREAM128_BLOCKBYTES)
 
 /*
  * This is the C<->native interface allowing for the drop-in of
@@ -164,7 +168,16 @@ __contract__(
  **************************************************/
 static MLD_INLINE int mld_rej_uniform_native(int32_t *r, unsigned len,
                                              const uint8_t *buf,
-                                             unsigned buflen);
+                                             unsigned buflen)
+__contract__(
+  requires(len <= MLDSA_N)
+  requires(buflen <= (POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES) && buflen % 3 == 0)
+  requires(memory_no_alias(r, sizeof(int32_t) * len))
+  requires(memory_no_alias(buf, buflen))
+  assigns(memory_slice(r, sizeof(int32_t) * len))
+  ensures(return_value == MLD_NATIVE_FUNC_FALLBACK || (0 <= return_value && return_value <= len))
+  ensures(return_value != -1 ==> array_bound(r, 0, (unsigned) return_value, 0, MLDSA_Q))
+);
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM */
 
 #if defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA2)
