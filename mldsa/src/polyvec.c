@@ -49,13 +49,17 @@ __contract__(
 {
 #if defined(MLD_USE_NATIVE_NTT_CUSTOM_ORDER)
   /* TODO: proof */
-  unsigned int i, j;
-  for (i = 0; i < MLDSA_K; i++)
+  unsigned int i;
+  for (i = 0; i < MLDSA_K * MLDSA_L; i++)
+  __loop__(
+    assigns(i, memory_slice(mat, sizeof(mld_polymat)))
+    invariant(i <= MLDSA_K * MLDSA_L)
+    invariant(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+      array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+  )
   {
-    for (j = 0; j < MLDSA_L; j++)
-    {
-      mld_poly_permute_bitrev_to_custom(mat->vec[i].vec[j].coeffs);
-    }
+    mld_poly_permute_bitrev_to_custom(
+        mat->vec[i / MLDSA_L].vec[i % MLDSA_L].coeffs);
   }
 
 #else /* MLD_USE_NATIVE_NTT_CUSTOM_ORDER */
