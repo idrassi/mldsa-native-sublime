@@ -20,7 +20,7 @@ PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/src/polyvec.c
 
 CHECK_FUNCTION_CONTRACTS=mld_polymat_permute_bitrev_to_custom
-USE_FUNCTION_CONTRACTS=mld_polyvecl_permute_bitrev_to_custom
+USE_FUNCTION_CONTRACTS=
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 

@@ -3,10 +3,10 @@
 
 #include "polyvec.h"
 
-void mld_polyvecl_permute_bitrev_to_custom(mld_polyvecl *v);
+void mld_polymat_permute_bitrev_to_custom(mld_polymat *mat);
 
 void harness(void)
 {
-  mld_polyvecl *v;
-  mld_polyvecl_permute_bitrev_to_custom(v);
+  mld_polymat *mat;
+  mld_polymat_permute_bitrev_to_custom(mat);
 }

@@ -131,7 +131,8 @@ __contract__(
   requires(memory_no_alias(p, sizeof(int32_t) * MLDSA_N))
   requires(array_bound(p, 0, MLDSA_N, 0, MLDSA_Q))
   assigns(memory_slice(p, sizeof(int32_t) * MLDSA_N))
-  ensures(array_bound(p, 0, MLDSA_N, 0, MLDSA_Q)));
+  ensures(array_bound(p, 0, MLDSA_N, 0, MLDSA_Q))
+);
 #endif /* MLD_USE_NATIVE_NTT_CUSTOM_ORDER */
 
 
