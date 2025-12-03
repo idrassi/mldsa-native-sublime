@@ -288,10 +288,8 @@ void mld_poly_power2round(mld_poly *a1, mld_poly *a0, const mld_poly *a)
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
  *              caller, which appears tricky to reason about. */
-MLD_STATIC_TESTABLE unsigned int mld_rej_uniform_c(int32_t *a, int target,
-                                                   int offset,
-                                                   const uint8_t *buf,
-                                                   int buflen)
+MLD_STATIC_TESTABLE int mld_rej_uniform_c(int32_t *a, int target, int offset,
+                                          const uint8_t *buf, int buflen)
 __contract__(
   requires(target >= 0 && target <= MLDSA_N)
   requires(offset >= 0 && offset <= target)
@@ -357,9 +355,8 @@ __contract__(
  *              in that it adds the offset and always expects the base of the
  *              target buffer. This avoids shifting the buffer base in the
  *              caller, which appears tricky to reason about. */
-static unsigned int mld_rej_uniform(int32_t *a, unsigned int target,
-                                    unsigned int offset, const uint8_t *buf,
-                                    unsigned int buflen)
+static int mld_rej_uniform(int32_t *a, int target, int offset,
+                           const uint8_t *buf, int buflen)
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES) && buflen % 3 == 0)
@@ -380,9 +377,8 @@ __contract__(
     ret = mld_rej_uniform_native(a, target, buf, buflen);
     if (ret != MLD_NATIVE_FUNC_FALLBACK)
     {
-      unsigned res = (unsigned)ret;
-      mld_assert_bound(a, res, 0, MLDSA_Q);
-      return res;
+      mld_assert_bound(a, ret, 0, MLDSA_Q);
+      return ret;
     }
   }
 #endif /* MLD_USE_NATIVE_REJ_UNIFORM */

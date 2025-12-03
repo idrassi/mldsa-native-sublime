@@ -243,39 +243,7 @@ __contract__(
   int t_valid;
   uint32_t t0, t1;
   mld_assert_abs_bound(a, offset, MLDSA_ETA + 1);
-
-/* TODO: CBMC proof based on mld_rej_uniform_eta2_native */
-#if MLDSA_ETA == 2 && defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA2)
-  if (offset == 0)
-  {
-    int ret;
-    ret = mld_rej_uniform_eta2_native(a, target, buf, buflen);
-    if (ret != MLD_NATIVE_FUNC_FALLBACK)
-    {
-      int res = ret;
-      mld_assert_abs_bound(a, res, MLDSA_ETA + 1);
-      return res;
-    }
-  }
-/* TODO: CBMC proof based on mld_rej_uniform_eta4_native */
-#elif MLDSA_ETA == 4 && defined(MLD_USE_NATIVE_REJ_UNIFORM_ETA4)
-  if (offset == 0)
-  {
-    int ret;
-    ret = mld_rej_uniform_eta4_native(a, target, buf, buflen);
-    if (ret != MLD_NATIVE_FUNC_FALLBACK)
-    {
-      int res = ret;
-      mld_assert_abs_bound(a, res, MLDSA_ETA + 1);
-      return res;
-    }
-  }
-#endif /* !(MLDSA_ETA == 2 && MLD_USE_NATIVE_REJ_UNIFORM_ETA2) && MLDSA_ETA == \
-          4 && MLD_USE_NATIVE_REJ_UNIFORM_ETA4 */
-
-  >>>>>>>
-      7060123f(Standardize on signed integers in quantifiers and loops.)ctr =
-      offset;
+  ctr = offset;
   pos = 0;
   while (ctr < target && pos < buflen)
   __loop__(
@@ -331,9 +299,8 @@ __contract__(
   return ctr;
 }
 
-static unsigned int mld_rej_eta(int32_t *a, unsigned int target,
-                                unsigned int offset, const uint8_t *buf,
-                                unsigned int buflen)
+static int mld_rej_eta(int32_t *a, int target, int offset, const uint8_t *buf,
+                       int buflen)
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES))
@@ -354,9 +321,8 @@ __contract__(
     ret = mld_rej_uniform_eta2_native(a, target, buf, buflen);
     if (ret != MLD_NATIVE_FUNC_FALLBACK)
     {
-      unsigned res = (unsigned)ret;
-      mld_assert_abs_bound(a, res, MLDSA_ETA + 1);
-      return res;
+      mld_assert_abs_bound(a, ret, MLDSA_ETA + 1);
+      return ret;
     }
   }
 /* TODO: CBMC proof based on mld_rej_uniform_eta4_native */
@@ -368,9 +334,8 @@ __contract__(
     ret = mld_rej_uniform_eta4_native(a, target, buf, buflen);
     if (ret != MLD_NATIVE_FUNC_FALLBACK)
     {
-      unsigned res = (unsigned)ret;
-      mld_assert_abs_bound(a, res, MLDSA_ETA + 1);
-      return res;
+      mld_assert_abs_bound(a, ret, MLDSA_ETA + 1);
+      return ret;
     }
   }
 #endif /* !(MLDSA_ETA == 2 && MLD_USE_NATIVE_REJ_UNIFORM_ETA2) && MLDSA_ETA == \
