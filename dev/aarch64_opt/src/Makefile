@@ -86,7 +86,7 @@ mld_polyvecl_pointwise_acc_montgomery_l7.S: ../../aarch64_clean/src/mld_polyvecl
 	cp $< $@
 
 pointwise_montgomery.S: ../../aarch64_clean/src/pointwise_montgomery.S
-	cp $< $@
+	slothy-cli $(TARGET_ISA) $(TARGET_MICROARCH) $< -o $@ -l loop_start $(SLOTHY_FLAGS) $(RESERVE_ALL_FLAG)
 
 poly_caddq_asm.S: ../../aarch64_clean/src/poly_caddq_asm.S
 	cp $< $@
