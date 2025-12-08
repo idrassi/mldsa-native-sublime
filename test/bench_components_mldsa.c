@@ -10,6 +10,7 @@
 #include <string.h>
 #include "../mldsa/src/ntt.h"
 #include "../mldsa/src/poly.h"
+#include "../mldsa/src/poly_kl.h"
 #include "../mldsa/src/polyvec.h"
 #include "../mldsa/src/randombytes.h"
 #include "hal.h"
@@ -23,36 +24,40 @@ static int cmp_uint64_t(const void *a, const void *b)
   return (int)((*((const uint64_t *)a)) - (*((const uint64_t *)b)));
 }
 
-#define BENCH(txt, code)                                         \
-  for (i = 0; i < NTESTS; i++)                                   \
-  {                                                              \
-    mld_randombytes((uint8_t *)data0, sizeof(data0));            \
-    mld_randombytes((uint8_t *)&polyvecl_a, sizeof(polyvecl_a)); \
-    mld_randombytes((uint8_t *)&polyvecl_b, sizeof(polyvecl_b)); \
-    mld_randombytes((uint8_t *)&polymat, sizeof(polymat));       \
-    for (j = 0; j < NWARMUP; j++)                                \
-    {                                                            \
-      code;                                                      \
-    }                                                            \
-                                                                 \
-    t0 = get_cyclecounter();                                     \
-    for (j = 0; j < NITERATIONS; j++)                            \
-    {                                                            \
-      code;                                                      \
-    }                                                            \
-    t1 = get_cyclecounter();                                     \
-    (cyc)[i] = t1 - t0;                                          \
-  }                                                              \
-  qsort((cyc), NTESTS, sizeof(uint64_t), cmp_uint64_t);          \
+#define BENCH(txt, code)                                            \
+  for (i = 0; i < NTESTS; i++)                                      \
+  {                                                                 \
+    mld_randombytes((uint8_t *)data0, sizeof(data0));               \
+    mld_randombytes((uint8_t *)&poly_out, sizeof(poly_out));        \
+    mld_randombytes((uint8_t *)&poly_hint, sizeof(poly_hint));      \
+    mld_randombytes((uint8_t *)&polyvecl_a, sizeof(polyvecl_a));    \
+    mld_randombytes((uint8_t *)&polyvecl_b, sizeof(polyvecl_b));    \
+    mld_randombytes((uint8_t *)&polymat, sizeof(polymat));          \
+    mld_randombytes((uint8_t *)polyz_packed, sizeof(polyz_packed)); \
+    for (j = 0; j < NWARMUP; j++)                                   \
+    {                                                               \
+      code;                                                         \
+    }                                                               \
+                                                                    \
+    t0 = get_cyclecounter();                                        \
+    for (j = 0; j < NITERATIONS; j++)                               \
+    {                                                               \
+      code;                                                         \
+    }                                                               \
+    t1 = get_cyclecounter();                                        \
+    (cyc)[i] = t1 - t0;                                             \
+  }                                                                 \
+  qsort((cyc), NTESTS, sizeof(uint64_t), cmp_uint64_t);             \
   printf(txt " cycles=%" PRIu64 "\n", (cyc)[NTESTS >> 1] / NITERATIONS);
 
 static int bench(void)
 {
   MLD_ALIGN int32_t data0[256];
-  MLD_ALIGN mld_poly poly_out;
+  MLD_ALIGN mld_poly poly_out, poly_a1, poly_a0, poly_hint;
   MLD_ALIGN mld_polyvecl polyvecl_a, polyvecl_b;
   MLD_ALIGN mld_polyveck polyveck_out;
   MLD_ALIGN mld_polymat polymat;
+  MLD_ALIGN uint8_t polyz_packed[MLDSA_POLYZ_PACKEDBYTES];
   uint64_t cyc[NTESTS];
   unsigned i, j;
   uint64_t t0, t1;
@@ -62,12 +67,25 @@ static int bench(void)
   BENCH("poly_invntt_tomont", mld_poly_invntt_tomont((mld_poly *)data0))
 
   /* pointwise */
+  BENCH("poly_pointwise_montgomery",
+        mld_poly_pointwise_montgomery(&poly_out, &polyvecl_a.vec[0],
+                                      &polyvecl_b.vec[0]))
   BENCH("polyvecl_pointwise_acc_montgomery",
         mld_polyvecl_pointwise_acc_montgomery(&poly_out, &polyvecl_a,
                                               &polyvecl_b))
   BENCH("polyvec_matrix_pointwise_montgomery",
         mld_polyvec_matrix_pointwise_montgomery(&polyveck_out, &polymat,
                                                 &polyvecl_b))
+
+  /* poly arithmetic */
+  BENCH("poly_caddq", mld_poly_caddq(&poly_out))
+  BENCH("poly_chknorm", mld_poly_chknorm(&poly_out, MLDSA_GAMMA1 - 1))
+  BENCH("poly_decompose", mld_poly_decompose(&poly_a1, &poly_a0, &poly_out))
+  BENCH("poly_use_hint",
+        mld_poly_use_hint(&poly_out, &polyvecl_a.vec[0], &poly_hint))
+
+  /* packing */
+  BENCH("polyz_unpack", mld_polyz_unpack(&poly_out, polyz_packed))
 
   return 0;
 }
