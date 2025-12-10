@@ -103,7 +103,7 @@ static int test_mld_polyz_unpack_core(const uint8_t *input,
 
 static int test_native_polyz_unpack(void)
 {
-  MLD_ALIGN uint8_t test_bytes[MLDSA_POLYZ_PACKEDBYTES];
+  uint8_t test_bytes[MLDSA_POLYZ_PACKEDBYTES];
   int i;
 
   memset(test_bytes, 0, MLDSA_POLYZ_PACKEDBYTES);
