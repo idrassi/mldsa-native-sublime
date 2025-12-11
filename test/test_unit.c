@@ -5,6 +5,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "notrandombytes/notrandombytes.h"
 
@@ -103,20 +104,35 @@ static int test_mld_polyz_unpack_core(const uint8_t *input,
 
 static int test_native_polyz_unpack(void)
 {
-  uint8_t test_bytes[MLDSA_POLYZ_PACKEDBYTES];
+  uint8_t *test_bytes = malloc(MLDSA_POLYZ_PACKEDBYTES);
   int i;
+  int rc = 0;
+
+  if (test_bytes == NULL)
+  {
+    return 1;
+  }
 
   memset(test_bytes, 0, MLDSA_POLYZ_PACKEDBYTES);
-  CHECK(test_mld_polyz_unpack_core(test_bytes, "polyz_unpack_zeros") == 0);
-
+  if (test_mld_polyz_unpack_core(test_bytes, "polyz_unpack_zeros") != 0)
+  {
+    rc = 1;
+    goto cleanup;
+  }
 
   for (i = 0; i < NUM_RANDOM_TESTS; i++)
   {
     randombytes(test_bytes, MLDSA_POLYZ_PACKEDBYTES);
-    CHECK(test_mld_polyz_unpack_core(test_bytes, "polyz_unpack_random") == 0);
+    if (test_mld_polyz_unpack_core(test_bytes, "polyz_unpack_random") != 0)
+    {
+      rc = 1;
+      goto cleanup;
+    }
   }
 
-  return 0;
+cleanup:
+  free(test_bytes);
+  return rc;
 }
 #endif /* MLD_USE_NATIVE_POLYZ_UNPACK_17 || MLD_USE_NATIVE_POLYZ_UNPACK_19 */
 
