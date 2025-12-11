@@ -50,18 +50,27 @@ __contract__(
 )
 {
 #if defined(MLD_USE_NATIVE_NTT_CUSTOM_ORDER)
-  /* TODO: proof */
-  unsigned int i;
-  for (i = 0; i < MLDSA_K * MLDSA_L; i++)
+
+  unsigned int i, j;
+  for (i = 0; i < MLDSA_K; i++)
   __loop__(
-    assigns(i, memory_slice(mat, sizeof(mld_polymat)))
-    invariant(i <= MLDSA_K * MLDSA_L)
+    assigns(i, j, memory_slice(mat, sizeof(mld_polymat)))
+    invariant(i <= MLDSA_K)
     invariant(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
       array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
   )
   {
-    mld_poly_permute_bitrev_to_custom(
-        mat->vec[i / MLDSA_L].vec[i % MLDSA_L].coeffs);
+    for (j = 0; j < MLDSA_L; j++)
+    __loop__(
+      assigns(j, memory_slice(mat, sizeof(mld_polymat)))
+      invariant(i <= MLDSA_K)
+      invariant(j <= MLDSA_L)
+      invariant(forall(k2, 0, MLDSA_K, forall(l2, 0, MLDSA_L,
+        array_bound(mat->vec[k2].vec[l2].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+    )
+    {
+      mld_poly_permute_bitrev_to_custom(mat->vec[i].vec[j].coeffs);
+    }
   }
 
 #else /* MLD_USE_NATIVE_NTT_CUSTOM_ORDER */
