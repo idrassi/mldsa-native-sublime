@@ -438,6 +438,38 @@ jobs:
           examples: false
           stack: true
           check_namespace: false
+  valgrind_unit:
+    name: Valgrind unit tests (${{ matrix.target.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        external:
+         - ${{ github.repository_owner != 'pq-code-package' }}
+        target:
+          - runner: ubuntu-latest
+            name: x86_64
+          - runner: ubuntu-24.04-arm
+            name: aarch64
+    runs-on: ${{ matrix.target.runner }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Valgrind unit tests
+        uses: ./.github/actions/multi-functest
+        with:
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          compile_mode: native
+          nix-shell: ci_valgrind-varlat_gcc15
+          nix-cache: false
+          opt: all
+          cflags: "-O3"
+          func: false
+          kat: false
+          acvp: false
+          examples: false
+          stack: false
+          unit: true
+          check_namespace: false
+          extra_args: "--exec-wrapper='valgrind --error-exitcode=1'"
   config_variations:
     name: Non-standard configurations
     strategy:
