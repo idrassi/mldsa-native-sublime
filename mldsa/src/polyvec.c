@@ -681,6 +681,8 @@ void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
                      array_bound(v1->vec[k1].coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2))))
     invariant(forall(k2, 0, i,
                      array_abs_bound(v0->vec[k2].coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1)))
+    invariant(forall(k0, i, MLDSA_K, forall(k1, 0, MLDSA_N,
+                     v->vec[k0].coeffs[k1] == loop_entry(*v).vec[k0].coeffs[k1])))
   )
   {
     mld_poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);

@@ -31,7 +31,7 @@ void mld_poly_decompose(mld_poly *a1, mld_poly *a0, const mld_poly *a)
 __contract__(
   requires(memory_no_alias(a1,  sizeof(mld_poly)))
   requires(memory_no_alias(a0, sizeof(mld_poly)))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(a0 == a || memory_no_alias(a, sizeof(mld_poly)))
   requires(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
   assigns(memory_slice(a1, sizeof(mld_poly)))
   assigns(memory_slice(a0, sizeof(mld_poly)))

@@ -44,7 +44,7 @@ MLD_STATIC_TESTABLE void mld_poly_decompose_c(mld_poly *a1, mld_poly *a0,
 __contract__(
   requires(memory_no_alias(a1,  sizeof(mld_poly)))
   requires(memory_no_alias(a0, sizeof(mld_poly)))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(a0 == a || memory_no_alias(a, sizeof(mld_poly)))
   requires(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
   assigns(memory_slice(a1, sizeof(mld_poly)))
   assigns(memory_slice(a0, sizeof(mld_poly)))
@@ -60,6 +60,8 @@ __contract__(
     invariant(i <= MLDSA_N)
     invariant(array_bound(a1->coeffs, 0, i, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
     invariant(array_abs_bound(a0->coeffs, 0, i, MLDSA_GAMMA2+1))
+    invariant(forall(k1, i, MLDSA_N,
+                     a->coeffs[k1] == loop_entry(*a).coeffs[k1]))
   )
   {
     mld_decompose(&a0->coeffs[i], &a1->coeffs[i], a->coeffs[i]);

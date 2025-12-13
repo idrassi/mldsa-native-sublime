@@ -447,7 +447,15 @@ __contract__(
   MLD_ALIGN uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   unsigned int n;
   mld_polyvecl y, z;
-  mld_polyveck w, w1, w0, h;
+  mld_polyveck w1, h;
+  union
+  {
+    mld_polyveck w;
+    mld_polyveck w0;
+  } ww0;
+  mld_polyveck *w = &ww0.w;
+  mld_polyveck *w0 = &ww0.w0;
+
   mld_poly cp;
   uint32_t z_invalid, w0_invalid, h_invalid;
   int res;
@@ -458,13 +466,13 @@ __contract__(
   /* Matrix-vector multiplication */
   z = y;
   mld_polyvecl_ntt(&z);
-  mld_polyvec_matrix_pointwise_montgomery(&w, mat, &z);
-  mld_polyveck_reduce(&w);
-  mld_polyveck_invntt_tomont(&w);
+  mld_polyvec_matrix_pointwise_montgomery(w, mat, &z);
+  mld_polyveck_reduce(w);
+  mld_polyveck_invntt_tomont(w);
 
   /* Decompose w and call the random oracle */
-  mld_polyveck_caddq(&w);
-  mld_polyveck_decompose(&w1, &w0, &w);
+  mld_polyveck_caddq(w);
+  mld_polyveck_decompose(&w1, w0, w);
   mld_polyveck_pack_w1(sig, &w1);
 
   mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
@@ -505,10 +513,10 @@ __contract__(
    * do not reveal secret information */
   mld_polyveck_pointwise_poly_montgomery(&h, &cp, s2);
   mld_polyveck_invntt_tomont(&h);
-  mld_polyveck_sub(&w0, &h);
-  mld_polyveck_reduce(&w0);
+  mld_polyveck_sub(w0, &h);
+  mld_polyveck_reduce(w0);
 
-  w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  w0_invalid = mld_polyveck_chknorm(w0, MLDSA_GAMMA2 - MLDSA_BETA);
   /* Constant time: w0_invalid may be leaked - see comment for z_invalid. */
   MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
   if (w0_invalid)
@@ -531,7 +539,7 @@ __contract__(
     goto cleanup;
   }
 
-  mld_polyveck_add(&w0, &h);
+  mld_polyveck_add(w0, &h);
 
   /* Constant time: At this point all norm checks have passed and we, hence,
    * know that the signature does not leak any secret information.
@@ -541,9 +549,9 @@ __contract__(
    * h=c*t0 is public as both c and t0 are public.
    * For a more detailed discussion, refer to https://eprint.iacr.org/2022/1406.
    */
-  MLD_CT_TESTING_DECLASSIFY(&w0, sizeof(w0));
+  MLD_CT_TESTING_DECLASSIFY(w0, sizeof(mld_polyveck));
   MLD_CT_TESTING_DECLASSIFY(&w1, sizeof(w1));
-  n = mld_polyveck_make_hint(&h, &w0, &w1);
+  n = mld_polyveck_make_hint(&h, w0, &w1);
   if (n > MLDSA_OMEGA)
   {
     res = -1; /* reject */
@@ -564,9 +572,8 @@ cleanup:
   mld_zeroize(challenge_bytes, MLDSA_CTILDEBYTES);
   mld_zeroize(&y, sizeof(y));
   mld_zeroize(&z, sizeof(z));
-  mld_zeroize(&w, sizeof(w));
   mld_zeroize(&w1, sizeof(w1));
-  mld_zeroize(&w0, sizeof(w0));
+  mld_zeroize(&ww0, sizeof(ww0));
   mld_zeroize(&h, sizeof(h));
   mld_zeroize(&cp, sizeof(cp));
 

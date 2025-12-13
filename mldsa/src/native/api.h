@@ -268,7 +268,7 @@ static MLD_INLINE int mld_poly_decompose_32_native(int32_t *a1, int32_t *a0,
 __contract__(
   requires(memory_no_alias(a1,  sizeof(int32_t) * MLDSA_N))
   requires(memory_no_alias(a0, sizeof(int32_t) * MLDSA_N))
-  requires(memory_no_alias(a, sizeof(int32_t) * MLDSA_N))
+  requires(a0 == a || memory_no_alias(a, sizeof(int32_t) * MLDSA_N))
   requires(array_bound(a, 0, MLDSA_N, 0, MLDSA_Q))
   assigns(memory_slice(a1, sizeof(int32_t) * MLDSA_N))
   assigns(memory_slice(a0, sizeof(int32_t) * MLDSA_N))
@@ -302,7 +302,7 @@ static MLD_INLINE int mld_poly_decompose_88_native(int32_t *a1, int32_t *a0,
 __contract__(
   requires(memory_no_alias(a1,  sizeof(int32_t) * MLDSA_N))
   requires(memory_no_alias(a0, sizeof(int32_t) * MLDSA_N))
-  requires(memory_no_alias(a, sizeof(int32_t) * MLDSA_N))
+  requires(a0 == a || memory_no_alias(a, sizeof(int32_t) * MLDSA_N))
   requires(array_bound(a, 0, MLDSA_N, 0, MLDSA_Q))
   assigns(memory_slice(a1, sizeof(int32_t) * MLDSA_N))
   assigns(memory_slice(a0, sizeof(int32_t) * MLDSA_N))

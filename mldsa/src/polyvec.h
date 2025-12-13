@@ -484,7 +484,7 @@ void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0,
 __contract__(
   requires(memory_no_alias(v1,  sizeof(mld_polyveck)))
   requires(memory_no_alias(v0, sizeof(mld_polyveck)))
-  requires(memory_no_alias(v, sizeof(mld_polyveck)))
+  requires(v0 == v || memory_no_alias(v, sizeof(mld_polyveck)))
   requires(forall(k0, 0, MLDSA_K,
     array_bound(v->vec[k0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
   assigns(memory_slice(v1, sizeof(mld_polyveck)))
