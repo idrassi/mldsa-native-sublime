@@ -144,8 +144,8 @@ __contract__(
  **************************************************/
 MLD_INTERNAL_API
 void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-                   uint8_t key[MLDSA_SEEDBYTES], mld_polyveck *t0,
-                   mld_polyvecl *s1, mld_polyveck *s2,
+                   uint8_t key[MLDSA_SEEDBYTES], mld_polyvecl *s1,
+                   mld_polyveck *s2,
                    const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES])
 __contract__(
   requires(memory_no_alias(rho, MLDSA_SEEDBYTES))

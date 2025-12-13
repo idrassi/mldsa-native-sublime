@@ -424,7 +424,7 @@ MLD_MUST_CHECK_RETURN_VALUE
 static int mld_attempt_signature_generation(
     uint8_t sig[MLDSA_CRYPTO_BYTES], const uint8_t *mu,
     const uint8_t rhoprime[MLDSA_CRHBYTES], uint16_t nonce, mld_polymat *mat,
-    const mld_polyvecl *s1, const mld_polyveck *s2, const mld_polyveck *t0)
+    const mld_polyvecl *s1, const mld_polyveck *s2, const uint8_t *sk)
 __contract__(
   requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
   requires(memory_no_alias(mu, MLDSA_CRHBYTES))
@@ -452,17 +452,18 @@ __contract__(
   {
     mld_polyvecl y;
     mld_polyveck h;
-  } yh;
+    mld_polyveck t0;
+  } yht0;
 
   mld_poly cp;
   uint32_t z_invalid, w0_invalid, h_invalid;
   int res;
 
   /* Sample intermediate vector y */
-  mld_polyvecl_uniform_gamma1(&yh.y, rhoprime, nonce);
+  mld_polyvecl_uniform_gamma1(&yht0.y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
-  z = yh.y;
+  z = yht0.y;
   mld_polyvecl_ntt(&z);
   mld_polyvec_matrix_pointwise_montgomery(&w0, mat, &z);
   mld_polyveck_reduce(&w0);
@@ -486,7 +487,7 @@ __contract__(
   /* Compute z, reject if it reveals secret */
   mld_polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
   mld_polyvecl_invntt_tomont(&z);
-  mld_polyvecl_add(&z, &yh.y);
+  mld_polyvecl_add(&z, &yht0.y);
   mld_polyvecl_reduce(&z);
 
   z_invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
@@ -509,9 +510,9 @@ __contract__(
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
-  mld_polyveck_pointwise_poly_montgomery(&yh.h, &cp, s2);
-  mld_polyveck_invntt_tomont(&yh.h);
-  mld_polyveck_sub(&w0, &yh.h);
+  mld_polyveck_pointwise_poly_montgomery(&yht0.h, &cp, s2);
+  mld_polyveck_invntt_tomont(&yht0.h);
+  mld_polyveck_sub(&w0, &yht0.h);
   mld_polyveck_reduce(&w0);
 
   w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
@@ -524,11 +525,17 @@ __contract__(
   }
 
   /* Compute hints for w1 */
-  mld_polyveck_pointwise_poly_montgomery(&yh.h, &cp, t0);
-  mld_polyveck_invntt_tomont(&yh.h);
-  mld_polyveck_reduce(&yh.h);
 
-  h_invalid = mld_polyveck_chknorm(&yh.h, MLDSA_GAMMA2);
+  mld_polyveck_unpack_t0(&yht0.t0, sk + MLDSA_SEEDBYTES + MLDSA_SEEDBYTES +
+                                       MLDSA_TRBYTES +
+                                       MLDSA_L * MLDSA_POLYETA_PACKEDBYTES +
+                                       MLDSA_K * MLDSA_POLYETA_PACKEDBYTES);
+  mld_polyveck_ntt(&yht0.t0);
+  mld_polyveck_pointwise_poly_montgomery(&yht0.h, &cp, &yht0.t0);
+  mld_polyveck_invntt_tomont(&yht0.h);
+  mld_polyveck_reduce(&yht0.h);
+
+  h_invalid = mld_polyveck_chknorm(&yht0.h, MLDSA_GAMMA2);
   /* Constant time: h_invalid may be leaked - see comment for z_invalid. */
   MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
   if (h_invalid)
@@ -537,7 +544,7 @@ __contract__(
     goto cleanup;
   }
 
-  mld_polyveck_add(&w0, &yh.h);
+  mld_polyveck_add(&w0, &yht0.h);
 
   /* Constant time: At this point all norm checks have passed and we, hence,
    * know that the signature does not leak any secret information.
@@ -549,7 +556,7 @@ __contract__(
    */
   MLD_CT_TESTING_DECLASSIFY(&w0, sizeof(w0));
   MLD_CT_TESTING_DECLASSIFY(&w1, sizeof(w1));
-  n = mld_polyveck_make_hint(&yh.h, &w0, &w1);
+  n = mld_polyveck_make_hint(&yht0.h, &w0, &w1);
   if (n > MLDSA_OMEGA)
   {
     res = -1; /* reject */
@@ -561,7 +568,7 @@ __contract__(
    * can, hence, be considered public. */
   MLD_CT_TESTING_DECLASSIFY(&h, sizeof(h));
   MLD_CT_TESTING_DECLASSIFY(&z, sizeof(z));
-  mld_pack_sig(sig, challenge_bytes, &z, &yh.h, n);
+  mld_pack_sig(sig, challenge_bytes, &z, &yht0.h, n);
 
   res = 0; /* success */
 
@@ -571,7 +578,7 @@ cleanup:
   mld_zeroize(&z, sizeof(z));
   mld_zeroize(&w1, sizeof(w1));
   mld_zeroize(&w0, sizeof(w0));
-  mld_zeroize(&yh, sizeof(yh));
+  mld_zeroize(&yht0, sizeof(yht0));
   mld_zeroize(&cp, sizeof(cp));
 
   return res;
@@ -590,7 +597,7 @@ int crypto_sign_signature_internal(
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
   mld_polymat mat;
   mld_polyvecl s1;
-  mld_polyveck t0, s2;
+  mld_polyveck s2;
 
   uint16_t nonce = 0;
 
@@ -599,7 +606,7 @@ int crypto_sign_signature_internal(
   key = tr + MLDSA_TRBYTES;
   mu = key + MLDSA_SEEDBYTES;
   rhoprime = mu + MLDSA_CRHBYTES;
-  mld_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+  mld_unpack_sk(rho, tr, key, &s1, &s2, sk);
 
   if (!externalmu)
   {
@@ -622,7 +629,7 @@ int crypto_sign_signature_internal(
   mld_polyvec_matrix_expand(&mat, rho);
   mld_polyvecl_ntt(&s1);
   mld_polyveck_ntt(&s2);
-  mld_polyveck_ntt(&t0);
+  // mld_polyveck_ntt(&t0);
 
   /* By default, return failure. Flip to success and write output
    * once signature generation succeeds.
@@ -666,7 +673,7 @@ int crypto_sign_signature_internal(
     }
 
     attempt_result = mld_attempt_signature_generation(sig, mu, rhoprime, nonce,
-                                                      &mat, &s1, &s2, &t0);
+                                                      &mat, &s1, &s2, sk);
     nonce++;
     if (attempt_result == 0)
     {
@@ -681,7 +688,6 @@ int crypto_sign_signature_internal(
   mld_zeroize(&mat, sizeof(mat));
   mld_zeroize(&s1, sizeof(s1));
   mld_zeroize(&s2, sizeof(s2));
-  mld_zeroize(&t0, sizeof(t0));
   return result;
 }
 
@@ -1219,7 +1225,12 @@ int crypto_sign_pk_from_sk(uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
   uint8_t res, res0, res1;
 
   /* Unpack secret key */
-  mld_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+  mld_unpack_sk(rho, tr, key, &s1, &s2, sk);
+  mld_polyveck_unpack_t0(&t0, sk + MLDSA_SEEDBYTES + MLDSA_SEEDBYTES +
+                                  MLDSA_TRBYTES +
+                                  MLDSA_L * MLDSA_POLYETA_PACKEDBYTES +
+                                  MLDSA_K * MLDSA_POLYETA_PACKEDBYTES);
+
 
   /* Recompute t0, t1, tr, and pk from rho, s1, s2 */
   mld_compute_t0_t1_tr_from_sk_components(&t0_computed, &t1, tr_computed, pk,
