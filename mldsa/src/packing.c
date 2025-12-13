@@ -69,8 +69,7 @@ void mld_pack_sk(uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
 
 MLD_INTERNAL_API
 void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
-                   uint8_t key[MLDSA_SEEDBYTES], mld_polyvecl *s1,
-                   mld_polyveck *s2,
+                   uint8_t key[MLDSA_SEEDBYTES],
                    const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES])
 {
   mld_memcpy(rho, sk, MLDSA_SEEDBYTES);
@@ -82,11 +81,11 @@ void mld_unpack_sk(uint8_t rho[MLDSA_SEEDBYTES], uint8_t tr[MLDSA_TRBYTES],
   mld_memcpy(tr, sk, MLDSA_TRBYTES);
   sk += MLDSA_TRBYTES;
 
-  mld_polyvecl_unpack_eta(s1, sk);
-  sk += MLDSA_L * MLDSA_POLYETA_PACKEDBYTES;
+  // mld_polyvecl_unpack_eta(s1, sk);
+  // sk += MLDSA_L * MLDSA_POLYETA_PACKEDBYTES;
 
-  mld_polyveck_unpack_eta(s2, sk);
-  sk += MLDSA_K * MLDSA_POLYETA_PACKEDBYTES;
+  // mld_polyveck_unpack_eta(s2, sk);
+  // sk += MLDSA_K * MLDSA_POLYETA_PACKEDBYTES;
 
   // mld_polyveck_unpack_t0(t0, sk);
 }
