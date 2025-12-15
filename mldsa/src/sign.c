@@ -444,13 +444,18 @@ __contract__(
 )
 {
   MLD_ALIGN uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
-  unsigned int n;
+  unsigned int n, i;
   union
   {
-    mld_polyvecl z;
-    mld_polyvecl s1;
+    mld_poly z;
+    mld_poly s1;
   } zs1;
-  mld_polyveck w1, w0;
+  mld_polyveck w0;
+  union
+  {
+    mld_polyveck w1;
+    mld_polyvecl tmp;
+  } w1tmp;
 
   union
   {
@@ -468,16 +473,16 @@ __contract__(
   mld_polyvecl_uniform_gamma1(&yht0s2.y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
-  zs1.z = yht0s2.y;
-  mld_polyvecl_ntt(&zs1.z);
-  mld_polyvec_matrix_pointwise_montgomery(&w0, mat, &zs1.z);
+  w1tmp.tmp = yht0s2.y;
+  mld_polyvecl_ntt(&w1tmp.tmp);
+  mld_polyvec_matrix_pointwise_montgomery(&w0, mat, &w1tmp.tmp);
   mld_polyveck_reduce(&w0);
   mld_polyveck_invntt_tomont(&w0);
 
   /* Decompose w and call the random oracle */
   mld_polyveck_caddq(&w0);
-  mld_polyveck_decompose(&w1, &w0);
-  mld_polyveck_pack_w1(sig, &w1);
+  mld_polyveck_decompose(&w1tmp.w1, &w0);
+  mld_polyveck_pack_w1(sig, &w1tmp.w1);
 
   mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
         MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
@@ -490,31 +495,36 @@ __contract__(
   mld_poly_ntt(&cp);
 
   /* Compute z, reject if it reveals secret */
-  mld_polyvecl_unpack_eta(
-      &zs1.s1, sk + MLDSA_SEEDBYTES + MLDSA_SEEDBYTES + MLDSA_TRBYTES);
-  mld_polyvecl_ntt(&zs1.s1);
-  mld_polyvecl_pointwise_poly_montgomery(&zs1.z, &cp, &zs1.s1);
-  mld_polyvecl_invntt_tomont(&zs1.z);
-  mld_polyvecl_add(&zs1.z, &yht0s2.y);
-  mld_polyvecl_reduce(&zs1.z);
-
-  z_invalid = mld_polyvecl_chknorm(&zs1.z, MLDSA_GAMMA1 - MLDSA_BETA);
-  /* Constant time: It is fine (and prohibitively expensive to avoid)
-   * leaking the result of the norm check. In case of rejection it
-   * would even be okay to leak which coefficient led to rejection
-   * as the candidate signature will be discarded anyway.
-   * See Section 5.5 of @[Round3_Spec]. */
-  MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
-  if (z_invalid)
+  for (i = 0; i < MLDSA_L; i++)
   {
-    res = -1; /* reject */
-    goto cleanup;
-  }
+    mld_polyeta_unpack(&zs1.s1, sk + MLDSA_SEEDBYTES + MLDSA_SEEDBYTES +
+                                    MLDSA_TRBYTES +
+                                    i * MLDSA_POLYETA_PACKEDBYTES);
+    mld_poly_ntt(&zs1.s1);
+    mld_poly_pointwise_montgomery(&zs1.z, &cp, &zs1.s1);
+    mld_poly_invntt_tomont(&zs1.z);
+    mld_poly_add(&zs1.z, &yht0s2.y.vec[i]);
+    mld_poly_reduce(&zs1.z);
 
-  /* If z is valid, then its coefficients are bounded by  */
-  /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
-  /* to prove the pre-condition of pack_sig()             */
-  mld_assert_abs_bound_2d(z.vec, MLDSA_L, MLDSA_N, (MLDSA_GAMMA1 - MLDSA_BETA));
+    z_invalid = mld_poly_chknorm(&zs1.z, MLDSA_GAMMA1 - MLDSA_BETA);
+    /* Constant time: It is fine (and prohibitively expensive to avoid)
+     * leaking the result of the norm check. In case of rejection it
+     * would even be okay to leak which coefficient led to rejection
+     * as the candidate signature will be discarded anyway.
+     * See Section 5.5 of @[Round3_Spec]. */
+    MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
+    if (z_invalid)
+    {
+      res = -1; /* reject */
+      goto cleanup;
+    }
+
+    /* If z is valid, then its coefficients are bounded by  */
+    /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
+    /* to prove the pre-condition of pack_sig()             */
+    mld_assert_abs_bound(&zs1.z, MLDSA_N, (MLDSA_GAMMA1 - MLDSA_BETA));
+    mld_pack_sig_z(sig, &zs1.z, i);
+  }
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
@@ -568,7 +578,7 @@ __contract__(
    */
   MLD_CT_TESTING_DECLASSIFY(&w0, sizeof(w0));
   MLD_CT_TESTING_DECLASSIFY(&w1, sizeof(w1));
-  n = mld_polyveck_make_hint(&yht0s2.h, &w0, &w1);
+  n = mld_polyveck_make_hint(&yht0s2.h, &w0, &w1tmp.w1);
   if (n > MLDSA_OMEGA)
   {
     res = -1; /* reject */
@@ -580,7 +590,7 @@ __contract__(
    * can, hence, be considered public. */
   MLD_CT_TESTING_DECLASSIFY(&h, sizeof(h));
   MLD_CT_TESTING_DECLASSIFY(&zs1.z, sizeof(mld_polyvecl));
-  mld_pack_sig(sig, challenge_bytes, &zs1.z, &yht0s2.h, n);
+  mld_pack_sig(sig, challenge_bytes, &yht0s2.h, n);
 
   res = 0; /* success */
 
@@ -588,8 +598,8 @@ cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(challenge_bytes, MLDSA_CTILDEBYTES);
   mld_zeroize(&zs1, sizeof(zs1));
-  mld_zeroize(&w1, sizeof(w1));
   mld_zeroize(&w0, sizeof(w0));
+  mld_zeroize(&w1tmp, sizeof(w1tmp));
   mld_zeroize(&yht0s2, sizeof(yht0s2));
   mld_zeroize(&cp, sizeof(cp));
 

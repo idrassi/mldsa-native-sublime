@@ -69,7 +69,13 @@ __contract__(
 );
 
 
+#define mld_pack_sig_z MLD_NAMESPACE_KL(pack_sig_z)
+MLD_INTERNAL_API
+void mld_pack_sig_z(uint8_t sig[MLDSA_CRYPTO_BYTES], const mld_poly *z,
+                    unsigned i);
+
 #define mld_pack_sig MLD_NAMESPACE_KL(pack_sig)
+
 /*************************************************
  * Name:        mld_pack_sig
  *
@@ -89,8 +95,8 @@ __contract__(
  **************************************************/
 MLD_INTERNAL_API
 void mld_pack_sig(uint8_t sig[MLDSA_CRYPTO_BYTES],
-                  const uint8_t c[MLDSA_CTILDEBYTES], const mld_polyvecl *z,
-                  const mld_polyveck *h, const unsigned int number_of_hints)
+                  const uint8_t c[MLDSA_CTILDEBYTES], const mld_polyveck *h,
+                  const unsigned int number_of_hints)
 __contract__(
   requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
   requires(memory_no_alias(c, MLDSA_CTILDEBYTES))
