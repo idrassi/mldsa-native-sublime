@@ -432,6 +432,156 @@ __contract__(
 /* @[FIPS204, Appendix C].                                        */
 #define MLD_NONCE_UB ((UINT16_MAX - MLDSA_L) / MLDSA_L)
 
+
+MLD_MUST_CHECK_RETURN_VALUE
+static int mld_attempt_signature_generation_alloc(
+    uint8_t sig[MLDSA_CRYPTO_BYTES], const uint8_t *mu,
+    const uint8_t rhoprime[MLDSA_CRHBYTES], uint16_t nonce,
+    const mld_polymat *mat, const mld_polyvecl *s1, const mld_polyveck *s2,
+    const mld_polyveck *t0, uint8_t challenge_bytes[MLDSA_CTILDEBYTES],
+    mld_polyvecl *y, mld_polyveck *h, mld_polyvecl *z, mld_polyveck *w1,
+    mld_polyveck *w0, mld_poly *cp)
+__contract__(
+  requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
+  requires(memory_no_alias(mu, MLDSA_CRHBYTES))
+  requires(memory_no_alias(rhoprime, MLDSA_CRHBYTES))
+  requires(memory_no_alias(mat, sizeof(mld_polymat)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s2, sizeof(mld_polyveck)))
+  requires(memory_no_alias(t0, sizeof(mld_polyveck)))
+  requires(memory_no_alias(challenge_bytes, MLDSA_CTILDEBYTES))
+  requires(memory_no_alias(h, sizeof(mld_polyveck)))
+  requires(memory_no_alias(y, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(z, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(w1, sizeof(mld_polyveck)))
+  requires(memory_no_alias(w0, sizeof(mld_polyveck)))
+  requires(memory_no_alias(cp, sizeof(mld_poly)))
+  requires(nonce <= MLD_NONCE_UB)
+  requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+                                         array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+  requires(forall(k2, 0, MLDSA_K, array_abs_bound(t0->vec[k2].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k3, 0, MLDSA_L, array_abs_bound(s1->vec[k3].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k4, 0, MLDSA_K, array_abs_bound(s2->vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  assigns(memory_slice(sig, MLDSA_CRYPTO_BYTES))
+  assigns(memory_slice(challenge_bytes, MLDSA_CTILDEBYTES))
+  assigns(memory_slice(h, sizeof(mld_polyveck)))
+  assigns(memory_slice(y, sizeof(mld_polyvecl)))
+  assigns(memory_slice(z, sizeof(mld_polyvecl)))
+  assigns(memory_slice(w1, sizeof(mld_polyveck)))
+  assigns(memory_slice(w0, sizeof(mld_polyveck)))
+  assigns(memory_slice(cp, sizeof(mld_poly)))
+  ensures(return_value == 0 || return_value == MLD_ERR_FAIL ||
+          return_value == MLD_ERR_OUT_OF_MEMORY)
+)
+{
+  unsigned int n;
+  uint32_t z_invalid, w0_invalid, h_invalid;
+
+  /* Sample intermediate vector y */
+  mld_polyvecl_uniform_gamma1(y, rhoprime, nonce);
+
+  /* Matrix-vector multiplication */
+  *z = *y;
+  mld_polyvecl_ntt(z);
+  mld_polyvec_matrix_pointwise_montgomery(w0, mat, z);
+  mld_polyveck_reduce(w0);
+  mld_polyveck_invntt_tomont(w0);
+
+  /* Decompose w and call the random oracle */
+  mld_polyveck_caddq(w0);
+  mld_polyveck_decompose(w1, w0);
+  mld_polyveck_pack_w1(sig, w1);
+
+  mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
+        MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
+  /* Constant time: Leaking challenge_bytes does not reveal any information
+   * about the secret key as H() is modelled as random oracle.
+   * This also applies to challenges for rejected signatures.
+   * See Section 5.5 of @[Round3_Spec]. */
+  MLD_CT_TESTING_DECLASSIFY(challenge_bytes, MLDSA_CTILDEBYTES);
+  mld_poly_challenge(cp, challenge_bytes);
+  mld_poly_ntt(cp);
+
+  /* Compute z, reject if it reveals secret */
+  mld_polyvecl_pointwise_poly_montgomery(z, cp, s1);
+  mld_polyvecl_invntt_tomont(z);
+  mld_polyvecl_add(z, y);
+  mld_polyvecl_reduce(z);
+
+  z_invalid = mld_polyvecl_chknorm(z, MLDSA_GAMMA1 - MLDSA_BETA);
+  /* Constant time: It is fine (and prohibitively expensive to avoid)
+   * leaking the result of the norm check. In case of rejection it
+   * would even be okay to leak which coefficient led to rejection
+   * as the candidate signature will be discarded anyway.
+   * See Section 5.5 of @[Round3_Spec]. */
+  MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
+  if (z_invalid)
+  {
+    return MLD_ERR_FAIL; /* reject */
+  }
+
+  /* If z is valid, then its coefficients are bounded by  */
+  /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
+  /* to prove the pre-condition of pack_sig()             */
+  mld_assert_abs_bound_2d(z->vec, MLDSA_L, MLDSA_N,
+                          (MLDSA_GAMMA1 - MLDSA_BETA));
+
+  /* Check that subtracting cs2 does not change high bits of w and low bits
+   * do not reveal secret information */
+  mld_polyveck_pointwise_poly_montgomery(h, cp, s2);
+  mld_polyveck_invntt_tomont(h);
+  mld_polyveck_sub(w0, h);
+  mld_polyveck_reduce(w0);
+
+  w0_invalid = mld_polyveck_chknorm(w0, MLDSA_GAMMA2 - MLDSA_BETA);
+  /* Constant time: w0_invalid may be leaked - see comment for z_invalid. */
+  MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
+  if (w0_invalid)
+  {
+    return MLD_ERR_FAIL; /* reject */
+  }
+
+  /* Compute hints for w1 */
+  mld_polyveck_pointwise_poly_montgomery(h, cp, t0);
+  mld_polyveck_invntt_tomont(h);
+  mld_polyveck_reduce(h);
+
+  h_invalid = mld_polyveck_chknorm(h, MLDSA_GAMMA2);
+  /* Constant time: h_invalid may be leaked - see comment for z_invalid. */
+  MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
+  if (h_invalid)
+  {
+    return MLD_ERR_FAIL; /* reject */
+  }
+
+  mld_polyveck_add(w0, h);
+
+  /* Constant time: At this point all norm checks have passed and we, hence,
+   * know that the signature does not leak any secret information.
+   * Consequently, any value that can be computed from the signature and public
+   * key is considered public.
+   * w0 and w1 are public as they can be computed from Az - ct = \alpha w1 + w0.
+   * h=c*t0 is public as both c and t0 are public.
+   * For a more detailed discussion, refer to https://eprint.iacr.org/2022/1406.
+   */
+  MLD_CT_TESTING_DECLASSIFY(w0, sizeof(*w0));
+  MLD_CT_TESTING_DECLASSIFY(w1, sizeof(*w1));
+  n = mld_polyveck_make_hint(h, w0, w1);
+  if (n > MLDSA_OMEGA)
+  {
+    return MLD_ERR_FAIL; /* reject */
+  }
+
+  /* All is well - write signature */
+  /* Constant time: At this point it is clear that the signature is valid - it
+   * can, hence, be considered public. */
+  MLD_CT_TESTING_DECLASSIFY(h, sizeof(*h));
+  MLD_CT_TESTING_DECLASSIFY(z, sizeof(*z));
+  mld_pack_sig(sig, challenge_bytes, z, h, n);
+
+  return 0; /* success */
+}
+
 /*************************************************
  * Name:        attempt_signature_generation
  *
@@ -482,8 +632,6 @@ __contract__(
           return_value == MLD_ERR_OUT_OF_MEMORY)
 )
 {
-  unsigned int n;
-  uint32_t z_invalid, w0_invalid, h_invalid;
   int ret;
   MLD_ALLOC(challenge_bytes, uint8_t, MLDSA_CTILDEBYTES);
   MLD_ALLOC(y, mld_polyvecl, 1);
@@ -500,113 +648,9 @@ __contract__(
     goto cleanup;
   }
 
-  /* Sample intermediate vector y */
-  mld_polyvecl_uniform_gamma1(y, rhoprime, nonce);
-
-  /* Matrix-vector multiplication */
-  *z = *y;
-  mld_polyvecl_ntt(z);
-  mld_polyvec_matrix_pointwise_montgomery(w0, mat, z);
-  mld_polyveck_reduce(w0);
-  mld_polyveck_invntt_tomont(w0);
-
-  /* Decompose w and call the random oracle */
-  mld_polyveck_caddq(w0);
-  mld_polyveck_decompose(w1, w0);
-  mld_polyveck_pack_w1(sig, w1);
-
-  mld_H(challenge_bytes, MLDSA_CTILDEBYTES, mu, MLDSA_CRHBYTES, sig,
-        MLDSA_K * MLDSA_POLYW1_PACKEDBYTES, NULL, 0);
-  /* Constant time: Leaking challenge_bytes does not reveal any information
-   * about the secret key as H() is modelled as random oracle.
-   * This also applies to challenges for rejected signatures.
-   * See Section 5.5 of @[Round3_Spec]. */
-  MLD_CT_TESTING_DECLASSIFY(challenge_bytes, MLDSA_CTILDEBYTES);
-  mld_poly_challenge(cp, challenge_bytes);
-  mld_poly_ntt(cp);
-
-  /* Compute z, reject if it reveals secret */
-  mld_polyvecl_pointwise_poly_montgomery(z, cp, s1);
-  mld_polyvecl_invntt_tomont(z);
-  mld_polyvecl_add(z, y);
-  mld_polyvecl_reduce(z);
-
-  z_invalid = mld_polyvecl_chknorm(z, MLDSA_GAMMA1 - MLDSA_BETA);
-  /* Constant time: It is fine (and prohibitively expensive to avoid)
-   * leaking the result of the norm check. In case of rejection it
-   * would even be okay to leak which coefficient led to rejection
-   * as the candidate signature will be discarded anyway.
-   * See Section 5.5 of @[Round3_Spec]. */
-  MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
-  if (z_invalid)
-  {
-    ret = MLD_ERR_FAIL; /* reject */
-    goto cleanup;
-  }
-
-  /* If z is valid, then its coefficients are bounded by  */
-  /* MLDSA_GAMMA1 - MLDSA_BETA. This will be needed below */
-  /* to prove the pre-condition of pack_sig()             */
-  mld_assert_abs_bound_2d(z->vec, MLDSA_L, MLDSA_N,
-                          (MLDSA_GAMMA1 - MLDSA_BETA));
-
-  /* Check that subtracting cs2 does not change high bits of w and low bits
-   * do not reveal secret information */
-  mld_polyveck_pointwise_poly_montgomery(h, cp, s2);
-  mld_polyveck_invntt_tomont(h);
-  mld_polyveck_sub(w0, h);
-  mld_polyveck_reduce(w0);
-
-  w0_invalid = mld_polyveck_chknorm(w0, MLDSA_GAMMA2 - MLDSA_BETA);
-  /* Constant time: w0_invalid may be leaked - see comment for z_invalid. */
-  MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
-  if (w0_invalid)
-  {
-    ret = MLD_ERR_FAIL; /* reject */
-    goto cleanup;
-  }
-
-  /* Compute hints for w1 */
-  mld_polyveck_pointwise_poly_montgomery(h, cp, t0);
-  mld_polyveck_invntt_tomont(h);
-  mld_polyveck_reduce(h);
-
-  h_invalid = mld_polyveck_chknorm(h, MLDSA_GAMMA2);
-  /* Constant time: h_invalid may be leaked - see comment for z_invalid. */
-  MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
-  if (h_invalid)
-  {
-    ret = MLD_ERR_FAIL; /* reject */
-    goto cleanup;
-  }
-
-  mld_polyveck_add(w0, h);
-
-  /* Constant time: At this point all norm checks have passed and we, hence,
-   * know that the signature does not leak any secret information.
-   * Consequently, any value that can be computed from the signature and public
-   * key is considered public.
-   * w0 and w1 are public as they can be computed from Az - ct = \alpha w1 + w0.
-   * h=c*t0 is public as both c and t0 are public.
-   * For a more detailed discussion, refer to https://eprint.iacr.org/2022/1406.
-   */
-  MLD_CT_TESTING_DECLASSIFY(w0, sizeof(*w0));
-  MLD_CT_TESTING_DECLASSIFY(w1, sizeof(*w1));
-  n = mld_polyveck_make_hint(h, w0, w1);
-  if (n > MLDSA_OMEGA)
-  {
-    ret = MLD_ERR_FAIL; /* reject */
-    goto cleanup;
-  }
-
-  /* All is well - write signature */
-  /* Constant time: At this point it is clear that the signature is valid - it
-   * can, hence, be considered public. */
-  MLD_CT_TESTING_DECLASSIFY(h, sizeof(*h));
-  MLD_CT_TESTING_DECLASSIFY(z, sizeof(*z));
-  mld_pack_sig(sig, challenge_bytes, z, h, n);
-
-  ret = 0; /* success */
+  ret = mld_attempt_signature_generation_alloc(sig, mu, rhoprime, nonce, mat,
+                                               s1, s2, t0, challenge_bytes, y,
+                                               h, z, w1, w0, cp);
 
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
