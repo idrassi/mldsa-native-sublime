@@ -446,17 +446,24 @@ __contract__(
 {
   MLD_ALIGN uint8_t challenge_bytes[MLDSA_CTILDEBYTES];
   unsigned int n;
-  mld_polyvecl y, z;
-  mld_polyveck w1, w0, h;
+  mld_polyvecl z;
+  mld_polyveck w1, w0;
+  union
+  {
+    mld_polyvecl y;
+    mld_polyveck h;
+  } yh;
+  mld_polyvecl *y = &yh.y;
+  mld_polyveck *h = &yh.h;
   mld_poly cp;
   uint32_t z_invalid, w0_invalid, h_invalid;
   int res;
 
   /* Sample intermediate vector y */
-  mld_polyvecl_uniform_gamma1(&y, rhoprime, nonce);
+  mld_polyvecl_uniform_gamma1(y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
-  z = y;
+  z = *y;
   mld_polyvecl_ntt(&z);
   mld_polyvec_matrix_pointwise_montgomery(&w0, mat, &z);
   mld_polyveck_reduce(&w0);
@@ -480,7 +487,7 @@ __contract__(
   /* Compute z, reject if it reveals secret */
   mld_polyvecl_pointwise_poly_montgomery(&z, &cp, s1);
   mld_polyvecl_invntt_tomont(&z);
-  mld_polyvecl_add(&z, &y);
+  mld_polyvecl_add(&z, y);
   mld_polyvecl_reduce(&z);
 
   z_invalid = mld_polyvecl_chknorm(&z, MLDSA_GAMMA1 - MLDSA_BETA);
@@ -503,9 +510,9 @@ __contract__(
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
-  mld_polyveck_pointwise_poly_montgomery(&h, &cp, s2);
-  mld_polyveck_invntt_tomont(&h);
-  mld_polyveck_sub(&w0, &h);
+  mld_polyveck_pointwise_poly_montgomery(h, &cp, s2);
+  mld_polyveck_invntt_tomont(h);
+  mld_polyveck_sub(&w0, h);
   mld_polyveck_reduce(&w0);
 
   w0_invalid = mld_polyveck_chknorm(&w0, MLDSA_GAMMA2 - MLDSA_BETA);
@@ -518,11 +525,11 @@ __contract__(
   }
 
   /* Compute hints for w1 */
-  mld_polyveck_pointwise_poly_montgomery(&h, &cp, t0);
-  mld_polyveck_invntt_tomont(&h);
-  mld_polyveck_reduce(&h);
+  mld_polyveck_pointwise_poly_montgomery(h, &cp, t0);
+  mld_polyveck_invntt_tomont(h);
+  mld_polyveck_reduce(h);
 
-  h_invalid = mld_polyveck_chknorm(&h, MLDSA_GAMMA2);
+  h_invalid = mld_polyveck_chknorm(h, MLDSA_GAMMA2);
   /* Constant time: h_invalid may be leaked - see comment for z_invalid. */
   MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
   if (h_invalid)
@@ -531,7 +538,7 @@ __contract__(
     goto cleanup;
   }
 
-  mld_polyveck_add(&w0, &h);
+  mld_polyveck_add(&w0, h);
 
   /* Constant time: At this point all norm checks have passed and we, hence,
    * know that the signature does not leak any secret information.
@@ -543,7 +550,7 @@ __contract__(
    */
   MLD_CT_TESTING_DECLASSIFY(&w0, sizeof(w0));
   MLD_CT_TESTING_DECLASSIFY(&w1, sizeof(w1));
-  n = mld_polyveck_make_hint(&h, &w0, &w1);
+  n = mld_polyveck_make_hint(h, &w0, &w1);
   if (n > MLDSA_OMEGA)
   {
     res = -1; /* reject */
@@ -553,20 +560,19 @@ __contract__(
   /* All is well - write signature */
   /* Constant time: At this point it is clear that the signature is valid - it
    * can, hence, be considered public. */
-  MLD_CT_TESTING_DECLASSIFY(&h, sizeof(h));
+  MLD_CT_TESTING_DECLASSIFY(h, sizeof(mld_polyveck));
   MLD_CT_TESTING_DECLASSIFY(&z, sizeof(z));
-  mld_pack_sig(sig, challenge_bytes, &z, &h, n);
+  mld_pack_sig(sig, challenge_bytes, &z, h, n);
 
   res = 0; /* success */
 
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   mld_zeroize(challenge_bytes, MLDSA_CTILDEBYTES);
-  mld_zeroize(&y, sizeof(y));
   mld_zeroize(&z, sizeof(z));
   mld_zeroize(&w1, sizeof(w1));
   mld_zeroize(&w0, sizeof(w0));
-  mld_zeroize(&h, sizeof(h));
+  mld_zeroize(&yh, sizeof(yh));
   mld_zeroize(&cp, sizeof(cp));
 
   return res;
