@@ -432,6 +432,24 @@ __contract__(
 /* @[FIPS204, Appendix C].                                        */
 #define MLD_NONCE_UB ((UINT16_MAX - MLDSA_L) / MLDSA_L)
 
+#ifdef CBMC
+static void mld_cbmc_workaround_8813(mld_polyvecl **p1, mld_polyveck **p2)
+__contract__(
+  requires(memory_no_alias(p1, sizeof(mld_polyvecl *)))
+  requires(memory_no_alias(p2, sizeof(mld_polyveck *)))
+  requires(memory_no_alias(*p2, sizeof(mld_polyveck)))
+  requires(*p1 == *p2)
+  assigns(*p1)
+  assigns(*p2)
+  ensures(memory_no_alias(*p2, sizeof(mld_polyveck)))
+  ensures(*p1 == *p2)
+)
+{
+  (void)p1;
+  (void)p2;
+}
+#endif /* CBMC */
+
 /*************************************************
  * Name:        attempt_signature_generation
  *
@@ -486,19 +504,32 @@ __contract__(
   uint32_t z_invalid, w0_invalid, h_invalid;
   int ret;
   MLD_ALLOC(challenge_bytes, uint8_t, MLDSA_CTILDEBYTES);
-  MLD_ALLOC(y, mld_polyvecl, 1);
+  typedef union
+  {
+    mld_polyvecl y;
+    mld_polyveck h;
+  } u_yh;
+  MLD_ALLOC(yh, u_yh, 1);
   MLD_ALLOC(z, mld_polyvecl, 1);
   MLD_ALLOC(w1, mld_polyveck, 1);
   MLD_ALLOC(w0, mld_polyveck, 1);
-  MLD_ALLOC(h, mld_polyveck, 1);
   MLD_ALLOC(cp, mld_poly, 1);
+  mld_polyvecl *y = &yh->y;
+  mld_polyveck *h = &yh->h;
 
-  if (challenge_bytes == NULL || y == NULL || z == NULL || w1 == NULL ||
-      w0 == NULL || h == NULL || cp == NULL)
+#ifdef CBMC
+  /* TODO: Remove once
+   * https://github.com/diffblue/cbmc/issues/8813 is resolved */
+  mld_cbmc_workaround_8813(&y, &h);
+#endif
+
+  if (challenge_bytes == NULL || yh == NULL || z == NULL || w1 == NULL ||
+      w0 == NULL || cp == NULL)
   {
     ret = MLD_ERR_OUT_OF_MEMORY;
     goto cleanup;
   }
+
 
   /* Sample intermediate vector y */
   mld_polyvecl_uniform_gamma1(y, rhoprime, nonce);
@@ -611,11 +642,10 @@ __contract__(
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   MLD_FREE(challenge_bytes, uint8_t, MLDSA_CTILDEBYTES);
-  MLD_FREE(y, mld_polyvecl, 1);
+  MLD_FREE(yh, u_yh, 1);
   MLD_FREE(z, mld_polyvecl, 1);
   MLD_FREE(w1, mld_polyveck, 1);
   MLD_FREE(w0, mld_polyveck, 1);
-  MLD_FREE(h, mld_polyveck, 1);
   MLD_FREE(cp, mld_poly, 1);
 
   return ret;
