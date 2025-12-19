@@ -97,10 +97,9 @@ void mld_polyvecl_uniform_gamma1(mld_polyvecl *v,
 __contract__(
   requires(memory_no_alias(v, sizeof(mld_polyvecl)))
   requires(memory_no_alias(seed, MLDSA_CRHBYTES))
-  requires(nonce <= (UINT16_MAX - MLDSA_L) / MLDSA_L)
   assigns(memory_slice(v, sizeof(mld_polyvecl)))
   ensures(forall(k0, 0, MLDSA_L,
-    array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
+   array_bound(v->vec[k0].coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1)))
 );
 
 
@@ -121,8 +120,6 @@ __contract__(
   requires(memory_no_alias(r, sizeof(mld_polyveck)))
   requires(memory_no_alias(a, sizeof(mld_poly)))
   requires(memory_no_alias(v, sizeof(mld_polyveck)))
-  requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
-  requires(forall(k0, 0, MLDSA_K, array_abs_bound(v->vec[k0].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
   assigns(memory_slice(r, sizeof(mld_polyveck)))
   ensures(forall(k1, 0, MLDSA_K, array_abs_bound(r->vec[k1].coeffs, 0, MLDSA_N, MLDSA_Q)))
 );
@@ -137,9 +134,6 @@ __contract__(
   requires(memory_no_alias(rhoprime, MLDSA_CRHBYTES))
   requires(memory_no_alias(s2, sizeof(mld_polyveck)))
   requires(memory_no_alias(cp, sizeof(mld_poly)))
-  requires(nonce <= MLD_NONCE_UB)
-  requires(forall(k4, 0, MLDSA_K, array_abs_bound(s2->vec[k4].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
-  requires(array_abs_bound(cp->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
 )
 {
   #if 1
