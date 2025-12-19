@@ -1,12 +1,59 @@
 /*
  * Copyright (c) The mldsa-native project authors
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
+ *
+ * goto-cc -DCBMC sign.c --function harness -o a.out
+ * goto-instrument --dfcc harness --enforce-contract mld_attempt_signature_generation --replace-call-with-contract mld_polyvecl_uniform_gamma1 --replace-call-with-contract mld_polyveck_pointwise_poly_montgomery a.out b.out
+ * cbmc b.out --smt2 --slice-formula
  */
 
 #include <stdint.h>
 #include <string.h>
 
-#include "cbmc.h"
+/***************************************************
+ * CBMC contract macros (inlined from cbmc.h)
+ ***************************************************/
+#ifdef CBMC
+
+#define __contract__(x) x
+#define assigns(...) __CPROVER_assigns(__VA_ARGS__)
+#define requires(...) __CPROVER_requires(__VA_ARGS__)
+#define ensures(...) __CPROVER_ensures(__VA_ARGS__)
+#define memory_slice(...) __CPROVER_object_upto(__VA_ARGS__)
+#define memory_no_alias(...) __CPROVER_is_fresh(__VA_ARGS__)
+
+/* clang-format off */
+#define forall(qvar, qvar_lb, qvar_ub, predicate)                 \
+  __CPROVER_forall                                                \
+  {                                                               \
+    unsigned qvar;                                                \
+    ((qvar_lb) <= (qvar) && (qvar) < (qvar_ub)) ==> (predicate)   \
+  }
+
+#define CBMC_CONCAT_(left, right) left##right
+#define CBMC_CONCAT(left, right) CBMC_CONCAT_(left, right)
+
+#define array_bound_core(qvar, qvar_lb, qvar_ub, array_var,            \
+                         value_lb, value_ub)                           \
+  __CPROVER_forall                                                     \
+  {                                                                    \
+    unsigned qvar;                                                     \
+    ((qvar_lb) <= (qvar) && (qvar) < (qvar_ub)) ==>                    \
+        (((int)(value_lb) <= ((array_var)[(qvar)])) &&		       \
+         (((array_var)[(qvar)]) < (int)(value_ub)))		       \
+  }
+
+#define array_bound(array_var, qvar_lb, qvar_ub, value_lb, value_ub) \
+  array_bound_core(CBMC_CONCAT(_cbmc_idx, __COUNTER__), (qvar_lb),      \
+      (qvar_ub), (array_var), (value_lb), (value_ub))
+
+#define array_abs_bound(arr, lb, ub, k) \
+  array_bound((arr), (lb), (ub), -((int)(k)) + 1, (k))
+/* clang-format on */
+
+#else /* !CBMC */
+#define __contract__(x)
+#endif /* CBMC */
 
 #define MLDSA_K 8
 #define MLDSA_L 7
@@ -95,7 +142,7 @@ __contract__(
   requires(array_abs_bound(cp->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
 )
 {
-  #if 0
+  #if 1
   union
   {
     mld_polyvecl y;
@@ -118,3 +165,12 @@ __contract__(
   return 0;
 }
 
+void harness(void)
+{
+  uint8_t *rhoprime;
+  uint16_t nonce;
+  mld_polyveck *s2;
+  mld_poly *cp;
+
+  mld_attempt_signature_generation(rhoprime, nonce, s2, cp);
+}
