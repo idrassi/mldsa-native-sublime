@@ -49,6 +49,8 @@
 #define mld_H MLD_ADD_PARAM_SET(mld_H)
 #define mld_attempt_signature_generation \
   MLD_ADD_PARAM_SET(mld_attempt_signature_generation)
+#define mld_attempt_signature_generation_alloc \
+  MLD_ADD_PARAM_SET(mld_attempt_signature_generation_alloc)
 #define mld_compute_t0_t1_tr_from_sk_components \
   MLD_ADD_PARAM_SET(mld_compute_t0_t1_tr_from_sk_components)
 /* End of parameter set namespacing */
@@ -451,7 +453,7 @@ __contract__(
   requires(memory_no_alias(t0, sizeof(mld_polyveck)))
   requires(memory_no_alias(challenge_bytes, MLDSA_CTILDEBYTES))
   requires(memory_no_alias(h, sizeof(mld_polyveck)))
-  requires(memory_no_alias(y, sizeof(mld_polyvecl)))
+  requires(y == h)
   requires(memory_no_alias(z, sizeof(mld_polyvecl)))
   requires(memory_no_alias(w1, sizeof(mld_polyveck)))
   requires(memory_no_alias(w0, sizeof(mld_polyveck)))
@@ -634,12 +636,18 @@ __contract__(
 {
   int ret;
   MLD_ALLOC(challenge_bytes, uint8_t, MLDSA_CTILDEBYTES);
-  MLD_ALLOC(y, mld_polyvecl, 1);
+  typedef union
+  {
+    mld_polyvecl y;
+    mld_polyveck h;
+  } u_yh;
+  MLD_ALLOC(yh, u_yh, 1);
   MLD_ALLOC(z, mld_polyvecl, 1);
   MLD_ALLOC(w1, mld_polyveck, 1);
   MLD_ALLOC(w0, mld_polyveck, 1);
-  MLD_ALLOC(h, mld_polyveck, 1);
   MLD_ALLOC(cp, mld_poly, 1);
+  mld_polyvecl *y = &yh->y;
+  mld_polyveck *h = &yh->h;
 
   if (challenge_bytes == NULL || y == NULL || z == NULL || w1 == NULL ||
       w0 == NULL || h == NULL || cp == NULL)
@@ -655,11 +663,10 @@ __contract__(
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   MLD_FREE(challenge_bytes, uint8_t, MLDSA_CTILDEBYTES);
-  MLD_FREE(y, mld_polyvecl, 1);
+  MLD_FREE(yh, u_yh, 1);
   MLD_FREE(z, mld_polyvecl, 1);
   MLD_FREE(w1, mld_polyveck, 1);
   MLD_FREE(w0, mld_polyveck, 1);
-  MLD_FREE(h, mld_polyveck, 1);
   MLD_FREE(cp, mld_poly, 1);
 
   return ret;
