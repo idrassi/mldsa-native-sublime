@@ -108,6 +108,91 @@
 /***************************************************
  * Convenience macros for common contract patterns
  ***************************************************/
+
+/* Helper to chain conditions with && */
+#define _OBJS_NO_ALIAS_1(x) memory_no_alias((x), sizeof(*(x)))
+#define _OBJS_NO_ALIAS_2(x, y) \
+  (_OBJS_NO_ALIAS_1(x) && _OBJS_NO_ALIAS_1(y))
+#define _OBJS_NO_ALIAS_3(x, y, z) \
+  (_OBJS_NO_ALIAS_2(x, y) && _OBJS_NO_ALIAS_1(z))
+#define _OBJS_NO_ALIAS_4(x, y, z, w) \
+  (_OBJS_NO_ALIAS_3(x, y, z) && _OBJS_NO_ALIAS_1(w))
+#define _OBJS_NO_ALIAS_5(x, y, z, w, v) \
+  (_OBJS_NO_ALIAS_4(x, y, z, w) && _OBJS_NO_ALIAS_1(v))
+#define _OBJS_NO_ALIAS_6(x, y, z, w, v, u) \
+  (_OBJS_NO_ALIAS_5(x, y, z, w, v) && _OBJS_NO_ALIAS_1(u))
+#define _OBJS_NO_ALIAS_7(x, y, z, w, v, u, t) \
+  (_OBJS_NO_ALIAS_6(x, y, z, w, v, u) && _OBJS_NO_ALIAS_1(t))
+#define _OBJS_NO_ALIAS_8(x, y, z, w, v, u, t, s) \
+  (_OBJS_NO_ALIAS_7(x, y, z, w, v, u, t) && _OBJS_NO_ALIAS_1(s))
+#define _OBJS_NO_ALIAS_9(x, y, z, w, v, u, t, s, r) \
+  (_OBJS_NO_ALIAS_8(x, y, z, w, v, u, t, s) && _OBJS_NO_ALIAS_1(r))
+#define _OBJS_NO_ALIAS_10(x, y, z, w, v, u, t, s, r, q) \
+  (_OBJS_NO_ALIAS_9(x, y, z, w, v, u, t, s, r) && _OBJS_NO_ALIAS_1(q))
+
+#define _GET_OBJS_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,NAME,...) NAME
+#define objs_no_alias(...) \
+  _GET_OBJS_MACRO(__VA_ARGS__, _OBJS_NO_ALIAS_10, _OBJS_NO_ALIAS_9, \
+    _OBJS_NO_ALIAS_8, _OBJS_NO_ALIAS_7, _OBJS_NO_ALIAS_6, \
+    _OBJS_NO_ALIAS_5, _OBJS_NO_ALIAS_4, _OBJS_NO_ALIAS_3, \
+    _OBJS_NO_ALIAS_2, _OBJS_NO_ALIAS_1)(__VA_ARGS__)
+
+#define _ARRAYS_NO_ALIAS_1(x, sz) memory_no_alias((x), (sz))
+#define _ARRAYS_NO_ALIAS_2(x0, sz0, x1, sz1) \
+  (_ARRAYS_NO_ALIAS_1(x0, sz0) && _ARRAYS_NO_ALIAS_1(x1, sz1))
+#define _ARRAYS_NO_ALIAS_3(x0, sz0, x1, sz1, x2, sz2) \
+  (_ARRAYS_NO_ALIAS_2(x0, sz0, x1, sz1) && _ARRAYS_NO_ALIAS_1(x2, sz2))
+#define _ARRAYS_NO_ALIAS_4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) \
+  (_ARRAYS_NO_ALIAS_3(x0, sz0, x1, sz1, x2, sz2) && \
+   _ARRAYS_NO_ALIAS_1(x3, sz3))
+#define _ARRAYS_NO_ALIAS_5(x0, sz0, x1, sz1, x2, sz2, x3, sz3, x4, sz4) \
+  (_ARRAYS_NO_ALIAS_4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) && \
+   _ARRAYS_NO_ALIAS_1(x4, sz4))
+
+#define _GET_ARRAYS_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,NAME,...) NAME
+#define arrays_no_alias(...) \
+  _GET_ARRAYS_MACRO(__VA_ARGS__, _ARRAYS_NO_ALIAS_5, _dummy, \
+    _ARRAYS_NO_ALIAS_4, _dummy, _ARRAYS_NO_ALIAS_3, _dummy, \
+    _ARRAYS_NO_ALIAS_2, _dummy, _ARRAYS_NO_ALIAS_1)(__VA_ARGS__)
+
+/* Helper to chain assigns clauses */
+#define _ASSIGNS_OBJS_1(x) assigns(memory_slice((x), sizeof(*(x))))
+#define _ASSIGNS_OBJS_2(x, y) _ASSIGNS_OBJS_1(x) _ASSIGNS_OBJS_1(y)
+#define _ASSIGNS_OBJS_3(x, y, z) \
+  _ASSIGNS_OBJS_2(x, y) _ASSIGNS_OBJS_1(z)
+#define _ASSIGNS_OBJS_4(x, y, z, w) \
+  _ASSIGNS_OBJS_3(x, y, z) _ASSIGNS_OBJS_1(w)
+#define _ASSIGNS_OBJS_5(x, y, z, w, v) \
+  _ASSIGNS_OBJS_4(x, y, z, w) _ASSIGNS_OBJS_1(v)
+#define _ASSIGNS_OBJS_6(x, y, z, w, v, u) \
+  _ASSIGNS_OBJS_5(x, y, z, w, v) _ASSIGNS_OBJS_1(u)
+#define _ASSIGNS_OBJS_7(x, y, z, w, v, u, t) \
+  _ASSIGNS_OBJS_6(x, y, z, w, v, u) _ASSIGNS_OBJS_1(t)
+#define _ASSIGNS_OBJS_8(x, y, z, w, v, u, t, s) \
+  _ASSIGNS_OBJS_7(x, y, z, w, v, u, t) _ASSIGNS_OBJS_1(s)
+
+#define assigns_objs(...) \
+  _GET_OBJS_MACRO(__VA_ARGS__, _dummy, _dummy, _ASSIGNS_OBJS_8, \
+    _ASSIGNS_OBJS_7, _ASSIGNS_OBJS_6, _ASSIGNS_OBJS_5, \
+    _ASSIGNS_OBJS_4, _ASSIGNS_OBJS_3, _ASSIGNS_OBJS_2, \
+    _ASSIGNS_OBJS_1)(__VA_ARGS__)
+
+#define _ASSIGNS_ARRS_1(x, sz) assigns(memory_slice((x), (sz)))
+#define _ASSIGNS_ARRS_2(x0, sz0, x1, sz1) \
+  _ASSIGNS_ARRS_1(x0, sz0) _ASSIGNS_ARRS_1(x1, sz1)
+#define _ASSIGNS_ARRS_3(x0, sz0, x1, sz1, x2, sz2) \
+  _ASSIGNS_ARRS_2(x0, sz0, x1, sz1) _ASSIGNS_ARRS_1(x2, sz2)
+#define _ASSIGNS_ARRS_4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) \
+  _ASSIGNS_ARRS_3(x0, sz0, x1, sz1, x2, sz2) _ASSIGNS_ARRS_1(x3, sz3)
+#define _ASSIGNS_ARRS_5(x0, sz0, x1, sz1, x2, sz2, x3, sz3, x4, sz4) \
+  _ASSIGNS_ARRS_4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) \
+  _ASSIGNS_ARRS_1(x4, sz4)
+
+#define assigns_arrs(...) \
+  _GET_ARRAYS_MACRO(__VA_ARGS__, _ASSIGNS_ARRS_5, _dummy, \
+    _ASSIGNS_ARRS_4, _dummy, _ASSIGNS_ARRS_3, _dummy, \
+    _ASSIGNS_ARRS_2, _dummy, _ASSIGNS_ARRS_1)(__VA_ARGS__)
+
 /*
  * Prevent clang-format from corrupting CBMC's special ==> operator
  */
