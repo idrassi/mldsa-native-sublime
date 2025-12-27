@@ -183,9 +183,9 @@ void mld_pack_sig(uint8_t sig[MLDSA_CRYPTO_BYTES],
 static int mld_unpack_hints(
     mld_polyveck *h, const uint8_t packed_hints[MLDSA_POLYVECH_PACKEDBYTES])
 __contract__(
-  requires(memory_no_alias(packed_hints, MLDSA_POLYVECH_PACKEDBYTES))
-  requires(memory_no_alias(h, sizeof(mld_polyveck)))
-  assigns(memory_slice(h, sizeof(mld_polyveck)))
+  requires(slices_no_alias(packed_hints, MLDSA_POLYVECH_PACKEDBYTES))
+  requires(objs_no_alias(h))
+  assigns_objs(h)
   /* All returned coefficients are either 0 or 1 */
   ensures(forall(k1, 0, MLDSA_K,
     array_bound(h->vec[k1].coeffs, 0, MLDSA_N, 0, 2)))

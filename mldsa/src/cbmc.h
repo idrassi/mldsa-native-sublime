@@ -108,6 +108,84 @@
 /***************************************************
  * Convenience macros for common contract patterns
  ***************************************************/
+
+/* Helper to chain conditions with && */
+#define objects_no_alias1(x) memory_no_alias((x), sizeof(*(x)))
+#define objects_no_alias2(x, y) (objects_no_alias1(x) && objects_no_alias1(y))
+#define objects_no_alias3(x, y, z) \
+  (objects_no_alias2(x, y) && objects_no_alias1(z))
+#define objects_no_alias4(x, y, z, w) \
+  (objects_no_alias3(x, y, z) && objects_no_alias1(w))
+#define objects_no_alias5(x, y, z, w, v) \
+  (objects_no_alias4(x, y, z, w) && objects_no_alias1(v))
+#define objects_no_alias6(x, y, z, w, v, u) \
+  (objects_no_alias5(x, y, z, w, v) && objects_no_alias1(u))
+#define objects_no_alias7(x, y, z, w, v, u, t) \
+  (objects_no_alias6(x, y, z, w, v, u) && objects_no_alias1(t))
+#define objects_no_alias8(x, y, z, w, v, u, t, s) \
+  (objects_no_alias7(x, y, z, w, v, u, t) && objects_no_alias1(s))
+#define objects_no_alias9(x, y, z, w, v, u, t, s, r) \
+  (objects_no_alias8(x, y, z, w, v, u, t, s) && objects_no_alias1(r))
+#define objects_no_alias10(x, y, z, w, v, u, t, s, r, q) \
+  (objects_no_alias9(x, y, z, w, v, u, t, s, r) && objects_no_alias1(q))
+
+#define select_macro(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
+#define objects_no_alias(...)                                           \
+  select_macro(__VA_ARGS__, objects_no_alias10, objects_no_alias9,      \
+               objects_no_alias8, objects_no_alias7, objects_no_alias6, \
+               objects_no_alias5, objects_no_alias4, objects_no_alias3, \
+               objects_no_alias2, objects_no_alias1)(__VA_ARGS__)
+
+#define slices_no_alias1(x, sz) memory_no_alias((x), (sz))
+#define slices_no_alias2(x0, sz0, x1, sz1) \
+  (slices_no_alias1(x0, sz0) && slices_no_alias1(x1, sz1))
+#define slices_no_alias3(x0, sz0, x1, sz1, x2, sz2) \
+  (slices_no_alias2(x0, sz0, x1, sz1) && slices_no_alias1(x2, sz2))
+#define slices_no_alias4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) \
+  (slices_no_alias3(x0, sz0, x1, sz1, x2, sz2) && slices_no_alias1(x3, sz3))
+#define slices_no_alias5(x0, sz0, x1, sz1, x2, sz2, x3, sz3, x4, sz4) \
+  (slices_no_alias4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) &&            \
+   slices_no_alias1(x4, sz4))
+
+#define get_arrs_macro(_1, _2, _3, _4, _5, NAME, ...) NAME
+#define slices_no_alias(...)                                               \
+  select_macro(__VA_ARGS__, dummy10, dummy9, dummy8, dummy7, dummy6,       \
+               _SLICES_NO_ALIAS_5, _SLICES_NO_ALIAS_4, _SLICES_NO_ALIAS_3, \
+               _SLICES_NO_ALIAS_2, _SLICES_NO_ALIAS_1)(__VA_ARGS__)
+
+/* Helper to chain assigns clauses */
+#define assigns_objs1(x) assigns(memory_slice((x), sizeof(*(x))))
+#define assigns_objs2(x, y) assigns_objs1(x) assigns_objs1(y)
+#define assigns_objs3(x, y, z) assigns_objs2(x, y) assigns_objs1(z)
+#define assigns_objs4(x, y, z, w) assigns_objs3(x, y, z) assigns_objs1(w)
+#define assigns_objs5(x, y, z, w, v) assigns_objs4(x, y, z, w) assigns_objs1(v)
+#define assigns_objs6(x, y, z, w, v, u) \
+  assigns_objs5(x, y, z, w, v) assigns_objs1(u)
+#define assigns_objs7(x, y, z, w, v, u, t) \
+  assigns_objs6(x, y, z, w, v, u) assigns_objs1(t)
+#define assigns_objs8(x, y, z, w, v, u, t, s) \
+  assigns_objs7(x, y, z, w, v, u, t) assigns_objs1(s)
+
+#define assigns_objs(...)                                                      \
+  select_macro(__VA_ARGS__, dummy10, dummy9, _assigns_objs8, _assigns_objs7,   \
+               _assigns_objs6, _assigns_objs5, _assigns_objs4, _assigns_objs3, \
+               _assigns_objs2, _assigns_objs1)(__VA_ARGS__)
+
+#define assigns_slices1(x, sz) assigns(memory_slice((x), (sz)))
+#define assigns_slices2(x0, sz0, x1, sz1) \
+  assigns_slices1(x0, sz0) assigns_slices1(x1, sz1)
+#define assigns_slices3(x0, sz0, x1, sz1, x2, sz2) \
+  assigns_slices2(x0, sz0, x1, sz1) assigns_slices1(x2, sz2)
+#define assigns_slices4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) \
+  assigns_slices3(x0, sz0, x1, sz1, x2, sz2) assigns_slices1(x3, sz3)
+#define assigns_slices5(x0, sz0, x1, sz1, x2, sz2, x3, sz3, x4, sz4) \
+  assigns_slices4(x0, sz0, x1, sz1, x2, sz2, x3, sz3) assigns_slices1(x4, sz4)
+
+#define assigns_slices(...)                                          \
+  select_macro(__VA_ARGS__, dummy10, dummy9, dummy8, dummy7, dummy6, \
+               assigns_slices5, assigns_slices4, assigns_slices3,    \
+               assigns_slices2, assigns_slices1)(__VA_ARGS__)
+
 /*
  * Prevent clang-format from corrupting CBMC's special ==> operator
  */

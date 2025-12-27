@@ -53,9 +53,9 @@ void mld_poly_reduce(mld_poly *a)
 
 MLD_STATIC_TESTABLE void mld_poly_caddq_c(mld_poly *a)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(objs_no_alias(a))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLDSA_Q))
-  assigns(memory_slice(a, sizeof(mld_poly)))
+  assigns_objs(a)
   ensures(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
 )
 {
@@ -211,10 +211,10 @@ __contract__(
   requires(1 <= len && len <= MLDSA_N / 2 && start + 2 * len <= MLDSA_N)
   requires(0 <= bound && bound < INT32_MAX - MLDSA_Q)
   requires(-MLDSA_Q_HALF < zeta && zeta < MLDSA_Q_HALF)
-  requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
+  requires(slices_no_alias(r, sizeof(int32_t) * MLDSA_N))
   requires(array_abs_bound(r, 0, start, bound + MLDSA_Q))
   requires(array_abs_bound(r, start, MLDSA_N, bound))
-  assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
+  assigns_slices(r, sizeof(int32_t) * MLDSA_N)
   ensures(array_abs_bound(r, 0, start + 2*len, bound + MLDSA_Q))
   ensures(array_abs_bound(r, start + 2 * len, MLDSA_N, bound)))
 {
@@ -252,10 +252,10 @@ __contract__(
 /* Reference: Embedded in `ntt()` in the reference implementation @[REF]. */
 static MLD_INLINE void mld_ntt_layer(int32_t r[MLDSA_N], const unsigned layer)
 __contract__(
-  requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
+  requires(slices_no_alias(r, sizeof(int32_t) * MLDSA_N))
   requires(1 <= layer && layer <= 8)
   requires(array_abs_bound(r, 0, MLDSA_N, layer * MLDSA_Q))
-  assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
+  assigns_slices(r, sizeof(int32_t) * MLDSA_N)
   ensures(array_abs_bound(r, 0, MLDSA_N, (layer + 1) * MLDSA_Q)))
 {
   unsigned start, k, len;
@@ -277,9 +277,9 @@ __contract__(
 
 MLD_STATIC_TESTABLE void mld_poly_ntt_c(mld_poly *a)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(objs_no_alias(a))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLDSA_Q))
-  assigns(memory_slice(a, sizeof(mld_poly)))
+  assigns_objs(a)
   ensures(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
 )
 {
@@ -346,10 +346,10 @@ __contract__(
  * @[REF] */
 static MLD_INLINE void mld_invntt_layer(int32_t r[MLDSA_N], unsigned layer)
 __contract__(
-  requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
+  requires(slices_no_alias(r, sizeof(int32_t) * MLDSA_N))
   requires(1 <= layer && layer <= 8)
   requires(array_abs_bound(r, 0, MLDSA_N, (MLDSA_N >> layer) * MLDSA_Q))
-  assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
+  assigns_slices(r, sizeof(int32_t) * MLDSA_N)
   ensures(array_abs_bound(r, 0, MLDSA_N, (MLDSA_N >> (layer - 1)) * MLDSA_Q)))
 {
   unsigned start, k, len;
@@ -383,9 +383,9 @@ __contract__(
 
 MLD_STATIC_TESTABLE void mld_poly_invntt_tomont_c(mld_poly *a)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(objs_no_alias(a))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLDSA_Q))
-  assigns(memory_slice(a, sizeof(mld_poly)))
+  assigns_objs(a)
   ensures(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_INTT_BOUND))
 )
 {
@@ -445,12 +445,10 @@ MLD_STATIC_TESTABLE void mld_poly_pointwise_montgomery_c(mld_poly *c,
                                                          const mld_poly *a,
                                                          const mld_poly *b)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
-  requires(memory_no_alias(b, sizeof(mld_poly)))
-  requires(memory_no_alias(c, sizeof(mld_poly)))
+  requires(objs_no_alias(a, b, c))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
   requires(array_abs_bound(b->coeffs, 0, MLDSA_N, MLD_NTT_BOUND))
-  assigns(memory_slice(c, sizeof(mld_poly)))
+  assigns_objs(c)
   ensures(array_abs_bound(c->coeffs, 0, MLDSA_N, MLDSA_Q))
 )
 {
@@ -524,10 +522,10 @@ MLD_STATIC_TESTABLE unsigned int mld_rej_uniform_c(int32_t *a,
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (MLD_POLY_UNIFORM_NBLOCKS * MLD_STREAM128_BLOCKBYTES) && buflen % 3 == 0)
-  requires(memory_no_alias(a, sizeof(int32_t) * target))
-  requires(memory_no_alias(buf, buflen))
+  requires(slices_no_alias(a, sizeof(int32_t) * target))
+  requires(slices_no_alias(buf, buflen))
   requires(array_bound(a, 0, offset, 0, MLDSA_Q))
-  assigns(memory_slice(a, sizeof(int32_t) * target))
+  assigns_slices(a, sizeof(int32_t) * target)
   ensures(offset <= return_value && return_value <= target)
   ensures(array_bound(a, 0, return_value, 0, MLDSA_Q))
 )
@@ -589,10 +587,10 @@ static unsigned int mld_rej_uniform(int32_t *a, unsigned int target,
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (MLD_POLY_UNIFORM_NBLOCKS * MLD_STREAM128_BLOCKBYTES) && buflen % 3 == 0)
-  requires(memory_no_alias(a, sizeof(int32_t) * target))
-  requires(memory_no_alias(buf, buflen))
+  requires(slices_no_alias(a, sizeof(int32_t) * target))
+  requires(slices_no_alias(buf, buflen))
   requires(array_bound(a, 0, offset, 0, MLDSA_Q))
-  assigns(memory_slice(a, sizeof(int32_t) * target))
+  assigns_slices(a, sizeof(int32_t) * target)
   ensures(offset <= return_value && return_value <= target)
   ensures(array_bound(a, 0, return_value, 0, MLDSA_Q))
 )
@@ -878,7 +876,7 @@ void mld_polyt0_unpack(mld_poly *r, const uint8_t a[MLDSA_POLYT0_PACKEDBYTES])
 
 MLD_STATIC_TESTABLE uint32_t mld_poly_chknorm_c(const mld_poly *a, int32_t B)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(objs_no_alias(a))
   requires(0 <= B && B <= MLDSA_Q - MLD_REDUCE32_RANGE_MAX)
   requires(array_bound(a->coeffs, 0, MLDSA_N, -MLD_REDUCE32_RANGE_MAX, MLD_REDUCE32_RANGE_MAX))
   ensures(return_value == 0 || return_value == 0xFFFFFFFF)

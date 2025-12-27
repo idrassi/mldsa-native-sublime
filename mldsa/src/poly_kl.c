@@ -42,11 +42,9 @@
 MLD_STATIC_TESTABLE
 void mld_poly_decompose_c(mld_poly *a1, mld_poly *a0)
 __contract__(
-  requires(memory_no_alias(a1,  sizeof(mld_poly)))
-  requires(memory_no_alias(a0, sizeof(mld_poly)))
+  requires(objs_no_alias(a1, a0))
   requires(array_bound(a0->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
-  assigns(memory_slice(a1, sizeof(mld_poly)))
-  assigns(memory_slice(a0, sizeof(mld_poly)))
+  assigns_objs(a1, a0)
   ensures(array_bound(a1->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
   ensures(array_abs_bound(a0->coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1))
 )
@@ -127,12 +125,10 @@ unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
 MLD_STATIC_TESTABLE void mld_poly_use_hint_c(mld_poly *b, const mld_poly *a,
                                              const mld_poly *h)
 __contract__(
-  requires(memory_no_alias(a,  sizeof(mld_poly)))
-  requires(memory_no_alias(b, sizeof(mld_poly)))
-  requires(memory_no_alias(h, sizeof(mld_poly)))
+  requires(objs_no_alias(a, b, h))
   requires(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
   requires(array_bound(h->coeffs, 0, MLDSA_N, 0, 2))
-  assigns(memory_slice(b, sizeof(mld_poly)))
+  assigns_objs(b)
   ensures(array_bound(b->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
 )
 {
@@ -229,10 +225,10 @@ MLD_STATIC_TESTABLE unsigned int mld_rej_eta_c(int32_t *a, unsigned int target,
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (MLD_POLY_UNIFORM_ETA_NBLOCKS * MLD_STREAM256_BLOCKBYTES))
-  requires(memory_no_alias(a, sizeof(int32_t) * target))
-  requires(memory_no_alias(buf, buflen))
+  requires(objs_no_alias(a))
+  requires(slices_no_alias(buf, buflen))
   requires(array_abs_bound(a, 0, offset, MLDSA_ETA + 1))
-  assigns(memory_slice(a, sizeof(int32_t) * target))
+  assigns_slices(a, sizeof(int32_t) * target)
   ensures(offset <= return_value && return_value <= target)
   ensures(array_abs_bound(a, 0, return_value, MLDSA_ETA + 1))
 )
@@ -301,10 +297,10 @@ static unsigned int mld_rej_eta(int32_t *a, unsigned int target,
 __contract__(
   requires(offset <= target && target <= MLDSA_N)
   requires(buflen <= (MLD_POLY_UNIFORM_ETA_NBLOCKS * MLD_STREAM256_BLOCKBYTES))
-  requires(memory_no_alias(a, sizeof(int32_t) * target))
-  requires(memory_no_alias(buf, buflen))
+  requires(objs_no_alias(a))
+  requires(slices_no_alias(buf, buflen))
   requires(array_abs_bound(a, 0, offset, MLDSA_ETA + 1))
-  assigns(memory_slice(a, sizeof(int32_t) * target))
+  assigns_slices(a, sizeof(int32_t) * target)
   ensures(offset <= return_value && return_value <= target)
   ensures(array_abs_bound(a, 0, return_value, MLDSA_ETA + 1))
 )
@@ -798,9 +794,9 @@ void mld_polyz_pack(uint8_t r[MLDSA_POLYZ_PACKEDBYTES], const mld_poly *a)
 MLD_STATIC_TESTABLE void mld_polyz_unpack_c(
     mld_poly *r, const uint8_t a[MLDSA_POLYZ_PACKEDBYTES])
 __contract__(
-  requires(memory_no_alias(r, sizeof(mld_poly)))
-  requires(memory_no_alias(a, MLDSA_POLYZ_PACKEDBYTES))
-  assigns(memory_slice(r, sizeof(mld_poly)))
+  requires(objs_no_alias(r))
+  requires(slices_no_alias(a, MLDSA_POLYZ_PACKEDBYTES))
+  assigns_objs(r)
   ensures(array_bound(r->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
 )
 {

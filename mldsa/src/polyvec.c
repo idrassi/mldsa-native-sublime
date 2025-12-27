@@ -39,10 +39,10 @@ __contract__(
    * that it does not change the bound established at the end of
    * mld_polyvec_matrix_expand.
    */
-  requires(memory_no_alias(mat, sizeof(mld_polymat)))
+  requires(objs_no_alias(mat))
   requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
     array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
-  assigns(memory_slice(mat, sizeof(mld_polymat)))
+  assigns_objs(mat)
   ensures(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
     array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
 )
@@ -330,14 +330,12 @@ void mld_polyvecl_pointwise_poly_montgomery(mld_polyvecl *r, const mld_poly *a,
 MLD_STATIC_TESTABLE void mld_polyvecl_pointwise_acc_montgomery_c(
     mld_poly *w, const mld_polyvecl *u, const mld_polyvecl *v)
 __contract__(
-  requires(memory_no_alias(w, sizeof(mld_poly)))
-  requires(memory_no_alias(u, sizeof(mld_polyvecl)))
-  requires(memory_no_alias(v, sizeof(mld_polyvecl)))
+  requires(objs_no_alias(w, u, v))
   requires(forall(l0, 0, MLDSA_L,
                   array_bound(u->vec[l0].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
   requires(forall(l1, 0, MLDSA_L,
     array_abs_bound(v->vec[l1].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
-  assigns(memory_slice(w, sizeof(mld_poly)))
+  assigns_objs(w)
   ensures(array_abs_bound(w->coeffs, 0, MLDSA_N, MLDSA_Q))
 )
 {

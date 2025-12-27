@@ -33,11 +33,9 @@
 MLD_INTERNAL_API
 void mld_poly_decompose(mld_poly *a1, mld_poly *a0)
 __contract__(
-  requires(memory_no_alias(a1,  sizeof(mld_poly)))
-  requires(memory_no_alias(a0, sizeof(mld_poly)))
+  requires(objs_no_alias(a1, a0))
   requires(array_bound(a0->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
-  assigns(memory_slice(a1, sizeof(mld_poly)))
-  assigns(memory_slice(a0, sizeof(mld_poly)))
+  assigns_objs(a1, a0)
   ensures(array_bound(a1->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
   ensures(array_abs_bound(a0->coeffs, 0, MLDSA_N, MLDSA_GAMMA2+1))
 );
@@ -61,10 +59,8 @@ MLD_INTERNAL_API
 unsigned int mld_poly_make_hint(mld_poly *h, const mld_poly *a0,
                                 const mld_poly *a1)
 __contract__(
-  requires(memory_no_alias(h,  sizeof(mld_poly)))
-  requires(memory_no_alias(a0, sizeof(mld_poly)))
-  requires(memory_no_alias(a1, sizeof(mld_poly)))
-  assigns(memory_slice(h, sizeof(mld_poly)))
+  requires(objs_no_alias(h, a0, a1))
+  assigns_objs(h)
   ensures(return_value <= MLDSA_N)
   ensures(array_bound(h->coeffs, 0, MLDSA_N, 0, 2))
 );
@@ -83,12 +79,10 @@ __contract__(
 MLD_INTERNAL_API
 void mld_poly_use_hint(mld_poly *b, const mld_poly *a, const mld_poly *h)
 __contract__(
-  requires(memory_no_alias(a,  sizeof(mld_poly)))
-  requires(memory_no_alias(b, sizeof(mld_poly)))
-  requires(memory_no_alias(h, sizeof(mld_poly)))
+  requires(objs_no_alias(a, b, h))
   requires(array_bound(a->coeffs, 0, MLDSA_N, 0, MLDSA_Q))
   requires(array_bound(h->coeffs, 0, MLDSA_N, 0, 2))
-  assigns(memory_slice(b, sizeof(mld_poly)))
+  assigns_objs(b)
   ensures(array_bound(b->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
 );
 
@@ -118,15 +112,9 @@ void mld_poly_uniform_eta_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
                              uint8_t nonce0, uint8_t nonce1, uint8_t nonce2,
                              uint8_t nonce3)
 __contract__(
-  requires(memory_no_alias(r0, sizeof(mld_poly)))
-  requires(memory_no_alias(r1, sizeof(mld_poly)))
-  requires(memory_no_alias(r2, sizeof(mld_poly)))
-  requires(memory_no_alias(r3, sizeof(mld_poly)))
-  requires(memory_no_alias(seed, MLDSA_CRHBYTES))
-  assigns(memory_slice(r0, sizeof(mld_poly)))
-  assigns(memory_slice(r1, sizeof(mld_poly)))
-  assigns(memory_slice(r2, sizeof(mld_poly)))
-  assigns(memory_slice(r3, sizeof(mld_poly)))
+  requires(objs_no_alias(r0, r1, r2, r3))
+  requires(slices_no_alias(seed, MLDSA_CRHBYTES))
+  assigns_objs(r0, r1, r2, r3)
   ensures(array_abs_bound(r0->coeffs, 0, MLDSA_N, MLDSA_ETA + 1))
   ensures(array_abs_bound(r1->coeffs, 0, MLDSA_N, MLDSA_ETA + 1))
   ensures(array_abs_bound(r2->coeffs, 0, MLDSA_N, MLDSA_ETA + 1))
@@ -152,9 +140,9 @@ MLD_INTERNAL_API
 void mld_poly_uniform_eta(mld_poly *r, const uint8_t seed[MLDSA_CRHBYTES],
                           uint8_t nonce)
 __contract__(
-  requires(memory_no_alias(r, sizeof(mld_poly)))
-  requires(memory_no_alias(seed, MLDSA_CRHBYTES))
-  assigns(memory_slice(r, sizeof(mld_poly)))
+  requires(objs_no_alias(r))
+  requires(slices_no_alias(seed, MLDSA_CRHBYTES))
+  assigns_objs(r)
   ensures(array_abs_bound(r->coeffs, 0, MLDSA_N, MLDSA_ETA + 1))
 );
 #endif /* MLD_CONFIG_SERIAL_FIPS202_ONLY */
@@ -177,9 +165,9 @@ MLD_INTERNAL_API
 void mld_poly_uniform_gamma1(mld_poly *a, const uint8_t seed[MLDSA_CRHBYTES],
                              uint16_t nonce)
 __contract__(
-  requires(memory_no_alias(a, sizeof(mld_poly)))
-  requires(memory_no_alias(seed, MLDSA_CRHBYTES))
-  assigns(memory_slice(a, sizeof(mld_poly)))
+  requires(objs_no_alias(a))
+  requires(slices_no_alias(seed, MLDSA_CRHBYTES))
+  assigns_objs(a)
   ensures(array_bound(a->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
 );
 #endif /* MLD_CONFIG_PARAMETER_SET == 65 || MLD_CONFIG_SERIAL_FIPS202_ONLY */
@@ -205,15 +193,9 @@ void mld_poly_uniform_gamma1_4x(mld_poly *r0, mld_poly *r1, mld_poly *r2,
                                 uint16_t nonce0, uint16_t nonce1,
                                 uint16_t nonce2, uint16_t nonce3)
 __contract__(
-  requires(memory_no_alias(r0, sizeof(mld_poly)))
-  requires(memory_no_alias(r1, sizeof(mld_poly)))
-  requires(memory_no_alias(r2, sizeof(mld_poly)))
-  requires(memory_no_alias(r3, sizeof(mld_poly)))
-  requires(memory_no_alias(seed, MLDSA_CRHBYTES))
-  assigns(memory_slice(r0, sizeof(mld_poly)))
-  assigns(memory_slice(r1, sizeof(mld_poly)))
-  assigns(memory_slice(r2, sizeof(mld_poly)))
-  assigns(memory_slice(r3, sizeof(mld_poly)))
+  requires(objs_no_alias(r0, r1, r2, r3))
+  requires(slices_no_alias(seed, MLDSA_CRHBYTES))
+  assigns_objs(r0, r1, r2, r3)
   ensures(array_bound(r0->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
   ensures(array_bound(r1->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
   ensures(array_bound(r2->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
@@ -236,9 +218,9 @@ __contract__(
 MLD_INTERNAL_API
 void mld_poly_challenge(mld_poly *c, const uint8_t seed[MLDSA_CTILDEBYTES])
 __contract__(
-  requires(memory_no_alias(c, sizeof(mld_poly)))
-  requires(memory_no_alias(seed, MLDSA_CTILDEBYTES))
-  assigns(memory_slice(c, sizeof(mld_poly)))
+  requires(objs_no_alias(c))
+  requires(slices_no_alias(seed, MLDSA_CTILDEBYTES))
+  assigns_objs(c)
   /* All coefficients of c are -1, 0 or +1 */
   ensures(array_bound(c->coeffs, 0, MLDSA_N, -1, 2))
 );
@@ -256,10 +238,10 @@ __contract__(
 MLD_INTERNAL_API
 void mld_polyeta_pack(uint8_t r[MLDSA_POLYETA_PACKEDBYTES], const mld_poly *a)
 __contract__(
-  requires(memory_no_alias(r, MLDSA_POLYETA_PACKEDBYTES))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(slices_no_alias(r, MLDSA_POLYETA_PACKEDBYTES))
+  requires(objs_no_alias(a))
   requires(array_abs_bound(a->coeffs, 0, MLDSA_N, MLDSA_ETA + 1))
-  assigns(memory_slice(r, MLDSA_POLYETA_PACKEDBYTES))
+  assigns_slices(r, MLDSA_POLYETA_PACKEDBYTES)
 );
 
 /*
@@ -290,9 +272,9 @@ __contract__(
 MLD_INTERNAL_API
 void mld_polyeta_unpack(mld_poly *r, const uint8_t a[MLDSA_POLYETA_PACKEDBYTES])
 __contract__(
-  requires(memory_no_alias(r, sizeof(mld_poly)))
-  requires(memory_no_alias(a, MLDSA_POLYETA_PACKEDBYTES))
-  assigns(memory_slice(r, sizeof(mld_poly)))
+  requires(objs_no_alias(r))
+  requires(slices_no_alias(a, MLDSA_POLYETA_PACKEDBYTES))
+  assigns_objs(r)
   ensures(array_bound(r->coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1))
 );
 
@@ -310,10 +292,10 @@ __contract__(
 MLD_INTERNAL_API
 void mld_polyz_pack(uint8_t r[MLDSA_POLYZ_PACKEDBYTES], const mld_poly *a)
 __contract__(
-  requires(memory_no_alias(r, MLDSA_POLYZ_PACKEDBYTES))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(slices_no_alias(r, MLDSA_POLYZ_PACKEDBYTES))
+  requires(objs_no_alias(a))
   requires(array_bound(a->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
-  assigns(memory_slice(r, MLDSA_POLYZ_PACKEDBYTES))
+  assigns_slices(r, MLDSA_POLYZ_PACKEDBYTES)
 );
 
 
@@ -330,9 +312,9 @@ __contract__(
 MLD_INTERNAL_API
 void mld_polyz_unpack(mld_poly *r, const uint8_t a[MLDSA_POLYZ_PACKEDBYTES])
 __contract__(
-  requires(memory_no_alias(r, sizeof(mld_poly)))
-  requires(memory_no_alias(a, MLDSA_POLYZ_PACKEDBYTES))
-  assigns(memory_slice(r, sizeof(mld_poly)))
+  requires(objs_no_alias(r))
+  requires(slices_no_alias(a, MLDSA_POLYZ_PACKEDBYTES))
+  assigns_objs(r)
   ensures(array_bound(r->coeffs, 0, MLDSA_N, -(MLDSA_GAMMA1 - 1), MLDSA_GAMMA1 + 1))
 );
 
@@ -350,10 +332,10 @@ __contract__(
 MLD_INTERNAL_API
 void mld_polyw1_pack(uint8_t r[MLDSA_POLYW1_PACKEDBYTES], const mld_poly *a)
 __contract__(
-  requires(memory_no_alias(r, MLDSA_POLYW1_PACKEDBYTES))
-  requires(memory_no_alias(a, sizeof(mld_poly)))
+  requires(slices_no_alias(r, MLDSA_POLYW1_PACKEDBYTES))
+  requires(objs_no_alias(a))
   requires(array_bound(a->coeffs, 0, MLDSA_N, 0, (MLDSA_Q-1)/(2*MLDSA_GAMMA2)))
-  assigns(memory_slice(r, MLDSA_POLYW1_PACKEDBYTES))
+  assigns_slices(r, MLDSA_POLYW1_PACKEDBYTES)
 );
 
 #endif /* !MLD_POLY_KL_H */

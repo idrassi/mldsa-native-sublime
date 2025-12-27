@@ -49,8 +49,8 @@
  **************************************************/
 static void keccak_init(uint64_t s[MLD_KECCAK_LANES])
 __contract__(
-  requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-  assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
+  requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
+  assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES)
 )
 {
   mld_memset(s, 0, sizeof(uint64_t) * MLD_KECCAK_LANES);
@@ -76,9 +76,9 @@ __contract__(
   requires(inlen <= MLD_MAX_BUFFER_SIZE)
   requires(r < sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires(pos <= r)
-  requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-  requires(memory_no_alias(in, inlen))
-  assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
+  requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES,
+                           in, inlen))
+  assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES)
   ensures(return_value < r))
 {
   while (inlen >= r - pos)
@@ -118,8 +118,8 @@ static void keccak_finalize(uint64_t s[MLD_KECCAK_LANES], unsigned int pos,
 __contract__(
   requires(pos <= r && r < sizeof(uint64_t) * MLD_KECCAK_LANES)
   requires((r / 8) >= 1)
-  requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-  assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
+  requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
+  assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES)
 )
 {
   uint8_t b = 0x80;
@@ -151,10 +151,10 @@ __contract__(
            (r == SHAKE256_RATE && pos <= SHAKE256_RATE) ||
            (r == SHA3_512_RATE && pos <= SHA3_512_RATE))
   requires(outlen <= 8 * r /* somewhat arbitrary bound */)
-  requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-  requires(memory_no_alias(out, outlen))
-  assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES))
-  assigns(memory_slice(out, outlen))
+  requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES,
+                           out, outlen))
+  assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES,
+                 out, outlen)
   ensures(return_value <= r))
 {
   unsigned int i;

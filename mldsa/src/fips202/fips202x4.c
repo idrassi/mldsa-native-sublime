@@ -28,13 +28,13 @@ static void mld_keccak_absorb_once_x4(uint64_t *s, uint32_t r,
                                       size_t inlen, uint8_t p)
 __contract__(
   requires(inlen <= MLD_MAX_BUFFER_SIZE)
-  requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
   requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
-  requires(memory_no_alias(in0, inlen))
-  requires(memory_no_alias(in1, inlen))
-  requires(memory_no_alias(in2, inlen))
-  requires(memory_no_alias(in3, inlen))
-  assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY)))
+  requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY,
+                           in0, inlen,
+                           in1, inlen,
+                           in2, inlen,
+                           in3, inlen))
+  assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
 {
   while (inlen >= r)
   __loop__(
@@ -81,16 +81,16 @@ static void mld_keccak_squeezeblocks_x4(uint8_t *out0, uint8_t *out1,
 __contract__(
     requires(r <= sizeof(uint64_t) * MLD_KECCAK_LANES)
     requires(nblocks <= 8 /* somewhat arbitrary bound */)
-    requires(memory_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
-    requires(memory_no_alias(out0, nblocks * r))
-    requires(memory_no_alias(out1, nblocks * r))
-    requires(memory_no_alias(out2, nblocks * r))
-    requires(memory_no_alias(out3, nblocks * r))
-    assigns(memory_slice(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY))
-    assigns(memory_slice(out0, nblocks * r))
-    assigns(memory_slice(out1, nblocks * r))
-    assigns(memory_slice(out2, nblocks * r))
-    assigns(memory_slice(out3, nblocks * r)))
+    requires(slices_no_alias(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY,
+                             out0, nblocks * r,
+                             out1, nblocks * r,
+                             out2, nblocks * r,
+                             out3, nblocks * r))
+    assigns_slices(s, sizeof(uint64_t) * MLD_KECCAK_LANES * MLD_KECCAK_WAY,
+                   out0, nblocks * r,
+                   out1, nblocks * r,
+                   out2, nblocks * r,
+                   out3, nblocks * r))
 {
   while (nblocks > 0)
   __loop__(

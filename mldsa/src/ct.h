@@ -268,8 +268,7 @@ static MLD_INLINE uint8_t mld_ct_memcmp(const void *a, const void *b,
                                         const size_t len)
 __contract__(
   requires(len <= UINT16_MAX)
-  requires(memory_no_alias(a, len))
-  requires(memory_no_alias(b, len))
+  requires(slices_no_alias(a, len, b, len))
   ensures((return_value == 0) == forall(i, 0, len, (((const uint8_t *)a)[i] == ((const uint8_t *)b)[i])))
 )
 {
@@ -307,8 +306,8 @@ __contract__(
  **************************************************/
 static MLD_INLINE void mld_zeroize(void *ptr, size_t len)
 __contract__(
-  requires(memory_no_alias(ptr, len))
-  assigns(memory_slice(ptr, len))
+  requires(slices_no_alias(ptr, len))
+  assigns_slices(ptr, len)
 );
 
 #if defined(MLD_CONFIG_CUSTOM_ZEROIZE)
