@@ -491,7 +491,7 @@ __contract__(
   int ret;
   /* TODO: Remove the following workaround for
    * https://github.com/diffblue/cbmc/issues/8813 */
-  typedef MLK_UNION_OR_STRUCT
+  typedef MLD_UNION_OR_STRUCT
   {
     mld_polyvecl y;
     mld_polyveck h;
