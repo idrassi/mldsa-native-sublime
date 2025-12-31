@@ -29,6 +29,11 @@
   } while (0)
 
 
+#define MLD_CT_TESTING_DECLASSIFY_H(s)                             \
+  MLD_CT_TESTING_DECLASSIFY(                                       \
+      (s) + MLDSA_CTILDEBYTES + MLDSA_L * MLDSA_POLYZ_PACKEDBYTES, \
+      MLDSA_POLYVECH_PACKEDBYTES);
+
 static int test_sign_core(uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
                           uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
                           uint8_t sm[MLEN + MLDSA_CRYPTO_BYTES],
@@ -49,10 +54,17 @@ static int test_sign_core(uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
 
   CHECK(crypto_sign(sm, &smlen, m, MLEN, ctx, CTXLEN, sk) == 0);
 
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sm, MLEN + MLDSA_CRYPTO_BYTES);
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sm);
+
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
   /* Constant time: Declassify outputs to check them. */
-  MLD_CT_TESTING_DECLASSIFY(rc, sizeof(int));
+  MLD_CT_TESTING_DECLASSIFY(&rc, sizeof(int));
   MLD_CT_TESTING_DECLASSIFY(m, MLEN);
   MLD_CT_TESTING_DECLASSIFY(m2, (MLEN + MLDSA_CRYPTO_BYTES));
 
@@ -120,6 +132,12 @@ static int test_sign_extmu(void)
   MLD_CT_TESTING_SECRET(mu, sizeof(mu));
 
   CHECK(crypto_sign_signature_extmu(sig, &siglen, mu, sk) == 0);
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sig, sizeof(sig));
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sig);
   CHECK(crypto_sign_verify_extmu(sig, siglen, mu, pk) == 0);
 
   return 0;
@@ -147,6 +165,12 @@ static int test_sign_pre_hash(void)
 
   CHECK(crypto_sign_signature_pre_hash_shake256(sig, &siglen, m, MLEN, ctx,
                                                 CTXLEN, rnd, sk) == 0);
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sig, sizeof(sig));
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sig);
   CHECK(crypto_sign_verify_pre_hash_shake256(sig, siglen, m, MLEN, ctx, CTXLEN,
                                              pk) == 0);
 
@@ -234,6 +258,13 @@ static int test_wrong_pk(void)
 
   CHECK(crypto_sign(sm, &smlen, m, MLEN, ctx, CTXLEN, sk) == 0);
 
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sm, sizeof(sm));
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sm);
+
   /* flip bit in public key */
   randombytes((uint8_t *)&idx, sizeof(size_t));
   idx %= MLDSA_CRYPTO_PUBLICKEYBYTES;
@@ -285,6 +316,13 @@ static int test_wrong_sig(void)
 
   CHECK(crypto_sign(sm, &smlen, m, MLEN, ctx, CTXLEN, sk) == 0);
 
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sm, sizeof(sm));
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sm);
+
   /* flip bit in signed message */
   randombytes((uint8_t *)&idx, sizeof(size_t));
   idx %= MLEN + MLDSA_CRYPTO_BYTES;
@@ -294,7 +332,7 @@ static int test_wrong_sig(void)
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
   /* Constant time: Declassify outputs to check them. */
-  MLD_CT_TESTING_DECLASSIFY(rc, sizeof(int));
+  MLD_CT_TESTING_DECLASSIFY(&rc, sizeof(int));
   MLD_CT_TESTING_DECLASSIFY(m2, sizeof(m2));
 
   if (!rc)
@@ -337,6 +375,13 @@ static int test_wrong_ctx(void)
 
   CHECK(crypto_sign(sm, &smlen, m, MLEN, ctx, CTXLEN, sk) == 0);
 
+  /* Mark signature as secret to force explcit declassification in verification
+   */
+  MLD_CT_TESTING_SECRET(sm, sizeof(sm));
+  /* Constant-time: The unpacking of the h-component of the signature requires
+   * conditional branches.*/
+  MLD_CT_TESTING_DECLASSIFY_H(sm);
+
   /* flip bit in ctx */
   randombytes((uint8_t *)&idx, sizeof(size_t));
   idx %= CTXLEN;
@@ -346,7 +391,7 @@ static int test_wrong_ctx(void)
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
   /* Constant time: Declassify outputs to check them. */
-  MLD_CT_TESTING_DECLASSIFY(rc, sizeof(int));
+  MLD_CT_TESTING_DECLASSIFY(&rc, sizeof(int));
   MLD_CT_TESTING_DECLASSIFY(m2, sizeof(m2));
 
   if (!rc)

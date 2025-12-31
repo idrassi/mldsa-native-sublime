@@ -616,10 +616,6 @@ __contract__(
   }
 
   /* All is well - write signature */
-  /* Constant time: At this point it is clear that the signature is valid - it
-   * can, hence, be considered public. */
-  MLD_CT_TESTING_DECLASSIFY(h, sizeof(*h));
-  MLD_CT_TESTING_DECLASSIFY(z, sizeof(*z));
   mld_pack_sig(sig, challenge_bytes, z, h, n);
 
   ret = 0; /* success */
@@ -874,6 +870,7 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
                                 const uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
                                 int externalmu)
 {
+  uint32_t z_invalid;
   unsigned int i;
   int ret;
   MLD_ALLOC(buf, uint8_t, (MLDSA_K * MLDSA_POLYW1_PACKEDBYTES));
@@ -908,12 +905,24 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   /* mld_unpack_sig and mld_polyvecl_chknorm signal failure through a
    * single non-zero error code that's not yet aligned with MLD_ERR_XXX.
    * Map it to MLD_ERR_FAIL explicitly. */
+
+  /* Constant-time: The signature is commonly considered public. However, we
+   * mark it as secret to make explicit which parts of the code take time
+   * depending on the signature.
+   *
+   * mld_unpack_sig uses conditional branches to unpack the hint vector h.
+   * The h-component of the signature, hence, needs to be declassified.
+   */
   if (mld_unpack_sig(c, z, h, sig))
   {
     ret = MLD_ERR_FAIL;
     goto cleanup;
   }
-  if (mld_polyvecl_chknorm(z, MLDSA_GAMMA1 - MLDSA_BETA))
+
+  z_invalid = mld_polyvecl_chknorm(z, MLDSA_GAMMA1 - MLDSA_BETA);
+  /* Constant-time: We only leak if z is invalid or not. */
+  MLD_CT_TESTING_DECLASSIFY(&z_invalid, sizeof(uint32_t));
+  if (z_invalid)
   {
     ret = MLD_ERR_FAIL;
     goto cleanup;
@@ -937,6 +946,8 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
   }
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */
+  /* Constant-time: poly_challenge uses conditional branches depending on c. */
+  MLD_CT_TESTING_DECLASSIFY(c, MLDSA_CTILDEBYTES);
   mld_poly_challenge(cp, c);
   mld_polyvec_matrix_expand(mat, rho);
 
@@ -955,6 +966,9 @@ int crypto_sign_verify_internal(const uint8_t *sig, size_t siglen,
 
   /* Reconstruct w1 */
   mld_polyveck_caddq(w1);
+
+  /* Constant-time: use_hint uses conditional branches depending on w1. */
+  MLD_CT_TESTING_DECLASSIFY(w1, sizeof(mld_polyveck));
   mld_polyveck_use_hint(tmp, w1, h);
   mld_polyveck_pack_w1(buf, tmp);
   /* Call random oracle and verify challenge */
