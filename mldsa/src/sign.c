@@ -332,6 +332,10 @@ int crypto_sign_keypair_internal(uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
   /* Constant time: pk is the public key, inherently public data */
   MLD_CT_TESTING_DECLASSIFY(pk, MLDSA_CRYPTO_PUBLICKEYBYTES);
 
+  /* For simplicity, mark the entire private key buffer as secret.
+   * Parts of it can be safely revealed, but this is to the caller. */
+  MLD_CT_TESTING_SECRET(sk, MLDSA_CRYPTO_SECRETKEYBYTES);
+
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
   MLD_FREE(t0, mld_polyveck, 1);
