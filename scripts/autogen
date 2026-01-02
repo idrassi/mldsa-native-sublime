@@ -2121,10 +2121,10 @@ def update_via_simpasm(
 
 
 def gen_hol_light_asm_file(job):
-    infile, outfile, indir, cflags = job
+    infile, outfile, indir, cflags, arm_or_x86 = job
     update_via_simpasm(
         f"{indir}/{infile}",
-        "proofs/hol_light/x86_64/mldsa",
+        "proofs/hol_light/" + arm_or_x86 + "/mldsa",
         outfile=outfile,
         cflags=cflags,
         preserve_header=False,
@@ -2132,14 +2132,31 @@ def gen_hol_light_asm_file(job):
 
 
 def gen_hol_light_asm():
-    joblist = [
+    joblist_arm = [
+        (
+            "poly_caddq_asm.S",
+            "mldsa_poly_caddq.S",
+            "dev/aarch64_opt/src",
+            "-march=armv8.4-a+sha3 -Imldsa/src/native/aarch64/src",
+            "arm",
+        ),
+    ]
+    joblist_x86 = [
         (
             "ntt.S",
             "mldsa_ntt.S",
             "dev/x86_64/src",
             "-Imldsa/src/native/x86_64/src/ -mavx2 -mbmi2 -msse4 -fcf-protection=full",
+            "x86_64"
         ),
     ]
+
+    if platform.machine().lower() in ["arm64", "aarch64"]:
+        joblist = joblist_arm
+    elif platform.machine().lower() in ["x86_64"]:
+        joblist = joblist_x86
+    else:
+        return
 
     with ThreadPoolExecutor() as executor:
         _ = list(executor.map(partial(gen_hol_light_asm_file), joblist))
@@ -3136,7 +3153,7 @@ def _main():
     gen_avx2_rej_uniform_table()
     high_level_status("Generated zeta and lookup tables")
 
-    if platform.machine().lower() not in ["arm64", "aarch64"]:
+    if platform.machine().lower() in ["arm64", "aarch64", "x86_64"]:
         gen_hol_light_asm()
         high_level_status("Generated HOL Light assembly")
 
