@@ -49,6 +49,10 @@ static int test_sign_core(uint8_t pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
 
   CHECK(crypto_sign(sm, &smlen, m, MLEN, ctx, CTXLEN, sk) == 0);
 
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sm, MLEN + MLDSA_CRYPTO_BYTES);
+
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
   /* Constant time: Declassify outputs to check them. */
@@ -120,6 +124,11 @@ static int test_sign_extmu(void)
   MLD_CT_TESTING_SECRET(mu, sizeof(mu));
 
   CHECK(crypto_sign_signature_extmu(sig, &siglen, mu, sk) == 0);
+
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sig, MLDSA_CRYPTO_BYTES);
+
   CHECK(crypto_sign_verify_extmu(sig, siglen, mu, pk) == 0);
 
   return 0;
@@ -147,6 +156,11 @@ static int test_sign_pre_hash(void)
 
   CHECK(crypto_sign_signature_pre_hash_shake256(sig, &siglen, m, MLEN, ctx,
                                                 CTXLEN, rnd, sk) == 0);
+
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sig, MLDSA_CRYPTO_BYTES);
+
   CHECK(crypto_sign_verify_pre_hash_shake256(sig, siglen, m, MLEN, ctx, CTXLEN,
                                              pk) == 0);
 
@@ -240,6 +254,10 @@ static int test_wrong_pk(void)
 
   pk[idx] ^= 1;
 
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sm, MLEN + MLDSA_CRYPTO_BYTES);
+
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
   /* Constant time: Declassify outputs to check them. */
@@ -290,6 +308,10 @@ static int test_wrong_sig(void)
   idx %= MLEN + MLDSA_CRYPTO_BYTES;
 
   sm[idx] ^= 1;
+
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sm, MLEN + MLDSA_CRYPTO_BYTES);
 
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 
@@ -342,6 +364,10 @@ static int test_wrong_ctx(void)
   idx %= CTXLEN;
 
   ctx[idx] ^= 1;
+
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(sm, MLEN + MLDSA_CRYPTO_BYTES);
 
   rc = crypto_sign_open(m2, &mlen, sm, smlen, ctx, CTXLEN, pk);
 

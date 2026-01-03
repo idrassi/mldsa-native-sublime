@@ -113,6 +113,10 @@ static int mld_check_pct(uint8_t const pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
   }
 #endif /* MLD_CONFIG_KEYGEN_PCT_BREAKAGE_TEST */
 
+  /* Constant time: Declassify signature as it is considered public in
+   * verification */
+  MLD_CT_TESTING_DECLASSIFY(signature, MLDSA_CRYPTO_BYTES);
+
   /* Verify the signature using the (potentially corrupted) public key */
   ret = crypto_sign_verify(signature, siglen, message, sizeof(message), NULL, 0,
                            pk_test);
@@ -616,10 +620,6 @@ __contract__(
   }
 
   /* All is well - write signature */
-  /* Constant time: At this point it is clear that the signature is valid - it
-   * can, hence, be considered public. */
-  MLD_CT_TESTING_DECLASSIFY(h, sizeof(*h));
-  MLD_CT_TESTING_DECLASSIFY(z, sizeof(*z));
   mld_pack_sig(sig, challenge_bytes, z, h, n);
 
   ret = 0; /* success */
