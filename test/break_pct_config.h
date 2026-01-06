@@ -690,7 +690,7 @@ static MLD_INLINE int mld_break_pct(void)
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

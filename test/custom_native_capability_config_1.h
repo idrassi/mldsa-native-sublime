@@ -691,7 +691,7 @@ static MLD_INLINE int mld_sys_check_capability(mld_sys_cap cap)
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

@@ -693,7 +693,7 @@ static MLD_INLINE void mld_randombytes(uint8_t *ptr, size_t len)
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

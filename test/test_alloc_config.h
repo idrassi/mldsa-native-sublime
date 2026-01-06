@@ -694,7 +694,7 @@ void custom_free(void *p, size_t sz, const char *file, int line,
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

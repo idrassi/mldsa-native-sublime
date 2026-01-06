@@ -687,7 +687,7 @@ static MLD_INLINE void mld_zeroize_native(void *ptr, size_t len)
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 

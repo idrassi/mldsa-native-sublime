@@ -693,7 +693,7 @@ static MLD_INLINE void *mld_memcpy(void *dest, const void *src, size_t n)
  *              Its scope and configuration may change at any time.
  *
  *****************************************************************************/
-/* #define MLD_CONFIG_REDUCE_RAM */
+#define MLD_CONFIG_REDUCE_RAM
 
 /*************************  Config internals  ********************************/
 
