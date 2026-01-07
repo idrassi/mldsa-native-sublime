@@ -714,30 +714,6 @@ uint32_t mld_polyveck_chknorm(const mld_polyveck *v, int32_t bound)
 }
 
 MLD_INTERNAL_API
-void mld_polyveck_power2round(mld_polyveck *v1, mld_polyveck *v0,
-                              const mld_polyveck *v)
-{
-  unsigned int i;
-  mld_assert_bound_2d(v->vec, MLDSA_K, MLDSA_N, 0, MLDSA_Q);
-
-  for (i = 0; i < MLDSA_K; ++i)
-  __loop__(
-    assigns(i, memory_slice(v0, sizeof(mld_polyveck)), memory_slice(v1, sizeof(mld_polyveck)))
-    invariant(i <= MLDSA_K)
-    invariant(forall(k1, 0, i, array_bound(v0->vec[k1].coeffs, 0, MLDSA_N, -(MLD_2_POW_D/2)+1, (MLD_2_POW_D/2)+1)))
-    invariant(forall(k2, 0, i, array_bound(v1->vec[k2].coeffs, 0, MLDSA_N, 0, ((MLDSA_Q - 1) / MLD_2_POW_D) + 1)))
-  )
-  {
-    mld_poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
-  }
-
-  mld_assert_bound_2d(v0->vec, MLDSA_K, MLDSA_N, -(MLD_2_POW_D / 2) + 1,
-                      (MLD_2_POW_D / 2) + 1);
-  mld_assert_bound_2d(v1->vec, MLDSA_K, MLDSA_N, 0,
-                      ((MLDSA_Q - 1) / MLD_2_POW_D) + 1);
-}
-
-MLD_INTERNAL_API
 void mld_polyveck_decompose(mld_polyveck *v1, mld_polyveck *v0)
 {
   unsigned int i;

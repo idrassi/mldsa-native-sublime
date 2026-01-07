@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = compute_t0_t1_tr_from_sk_components_harness
+HARNESS_FILE = compute_t0_t1_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = mld_compute_t0_t1_tr_from_sk_components
+PROOF_UID = mld_compute_t0_t1
 
 DEFINES +=
 INCLUDES +=
@@ -17,15 +17,15 @@ REMOVE_FUNCTION_BODY +=
 UNWINDSET +=
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
-PROJECT_SOURCES += $(SRCDIR)/mldsa/src/sign.c $(SRCDIR)/mldsa/src/polyvec.c
+PROJECT_SOURCES += $(SRCDIR)/mldsa/src/sign.c
 
-CHECK_FUNCTION_CONTRACTS=mld_compute_t0_t1_tr_from_sk_components
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)shake256
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvec_matrix_expand
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)polyvecl_ntt
-USE_FUNCTION_CONTRACTS+=mld_compute_t0_t1_foo
-USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)pack_pk
-USE_FUNCTION_CONTRACTS+=mld_zeroize
+CHECK_FUNCTION_CONTRACTS=mld_compute_t0_t1
+USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyvecl_pointwise_acc_montgomery
+USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_reduce
+USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_invntt_tomont
+USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_add
+USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_caddq
+USE_FUNCTION_CONTRACTS+=$(MLD_NAMESPACE)poly_power2round
 
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
@@ -36,7 +36,7 @@ CBMCFLAGS=--external-smt2-solver $(PROOF_ROOT)/lib/z3_no_bv_extract --z3
 CBMCFLAGS += --slice-formula
 CBMCFLAGS += --no-array-field-sensitivity
 
-FUNCTION_NAME = mld_compute_t0_t1_tr_from_sk_components
+FUNCTION_NAME = mld_compute_t0_t1
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will

@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = polyveck_power2round_harness
+HARNESS_FILE = compute_t0_t1_foo_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = polyveck_power2round
+PROOF_UID = mld_compute_t0_t1_foo
 
 DEFINES +=
 INCLUDES +=
@@ -17,18 +17,21 @@ REMOVE_FUNCTION_BODY +=
 UNWINDSET +=
 
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
-PROJECT_SOURCES += $(SRCDIR)/mldsa/src/polyvec.c
+PROJECT_SOURCES += $(SRCDIR)/mldsa/src/sign.c $(SRCDIR)/mldsa/src/polyvec.c
 
-CHECK_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)polyveck_power2round
-USE_FUNCTION_CONTRACTS=$(MLD_NAMESPACE)poly_power2round
+CHECK_FUNCTION_CONTRACTS=mld_compute_t0_t1_foo
+USE_FUNCTION_CONTRACTS=mld_compute_t0_t1
+
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
 
 # Disable any setting of EXTERNAL_SAT_SOLVER, and choose SMT backend instead
 EXTERNAL_SAT_SOLVER=
-CBMCFLAGS=--smt2 --slice-formula
+CBMCFLAGS=--external-smt2-solver $(PROOF_ROOT)/lib/z3_no_bv_extract --z3
+CBMCFLAGS += --slice-formula
+CBMCFLAGS += --no-array-field-sensitivity
 
-FUNCTION_NAME = polyveck_power2round
+FUNCTION_NAME = mld_compute_t0_t1_foo
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will
@@ -37,7 +40,7 @@ FUNCTION_NAME = polyveck_power2round
 # EXPENSIVE = true
 
 # This function is large enough to need...
-CBMC_OBJECT_BITS = 10
+CBMC_OBJECT_BITS = 13
 
 # If you require access to a file-local ("static") function or object to conduct
 # your proof, set the following (and do not include the original source file

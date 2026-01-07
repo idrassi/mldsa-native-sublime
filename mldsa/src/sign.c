@@ -51,6 +51,8 @@
   MLD_ADD_PARAM_SET(mld_attempt_signature_generation)
 #define mld_compute_t0_t1_tr_from_sk_components \
   MLD_ADD_PARAM_SET(mld_compute_t0_t1_tr_from_sk_components)
+#define mld_compute_t0_t1 MLD_ADD_PARAM_SET(mld_compute_t0_t1)
+#define mld_compute_t0_t1_foo MLD_ADD_PARAM_SET(mld_compute_t0_t1_foo)
 /* End of parameter set namespacing */
 
 
@@ -189,6 +191,99 @@ __contract__(
 #endif /* !MLD_CONFIG_SERIAL_FIPS202_ONLY */
 }
 
+static void mld_compute_t0_t1(mld_poly *t1, mld_poly *t0,
+                              const mld_polyvecl *matrow,
+                              const mld_polyvecl *s1, const mld_poly *s2,
+                              mld_poly *t)
+__contract__(
+  requires(memory_no_alias(t0, sizeof(mld_poly)))
+  requires(memory_no_alias(t1, sizeof(mld_poly)))
+  requires(memory_no_alias(matrow, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s2, sizeof(mld_poly)))
+  requires(memory_no_alias(t, sizeof(mld_poly)))
+  requires(forall(l0, 0, MLDSA_L, array_abs_bound(s1->vec[l0].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(array_bound(s2->coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1))
+  requires(forall(l1, 0, MLDSA_L, array_bound(matrow->vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q)))
+  assigns(memory_slice(t, sizeof(mld_poly)))
+  assigns(memory_slice(t0, sizeof(mld_poly)))
+  assigns(memory_slice(t1, sizeof(mld_poly)))
+  ensures(array_bound(t0->coeffs, 0, MLDSA_N, -(1<<(MLDSA_D-1)) + 1, (1<<(MLDSA_D-1)) + 1))
+  ensures(array_bound(t1->coeffs, 0, MLDSA_N, 0, 1 << 10))
+)
+{
+  mld_polyvecl_pointwise_acc_montgomery(t, matrow, s1);
+  mld_poly_reduce(t);
+  mld_poly_invntt_tomont(t);
+
+  /* Add error vector s2 */
+  mld_poly_add(t, s2);
+
+  /* Reference: The following reduction is not present in the reference
+   *            implementation. Omitting this reduction requires the output of
+   *            the invntt to be small enough such that the addition of s2
+   *            does not result in absolute values >= MLDSA_Q. While our C,
+   *            x86_64, and AArch64 invntt implementations produce small
+   *            enough values for this to work out, it complicates the bounds
+   *            reasoning. We instead add an additional reduction, and can
+   *            consequently, relax the bounds requirements for the invntt.
+   */
+  mld_poly_reduce(t);
+
+
+  /* Decompose to get t1, t0 */
+  mld_poly_caddq(t);
+  mld_poly_power2round(t1, t0, t);
+}
+
+/* TODO remove this temp function*/
+static void mld_compute_t0_t1_foo(mld_polyveck *t1, mld_polyveck *t0,
+                                  mld_polymat *mat, const mld_polyvecl *s1,
+                                  const mld_polyveck *s2, mld_poly *t)
+__contract__(
+  requires(memory_no_alias(t0, sizeof(mld_polyveck)))
+  requires(memory_no_alias(t1, sizeof(mld_polyveck)))
+  requires(memory_no_alias(mat, sizeof(mld_polymat)))
+  requires(memory_no_alias(s1, sizeof(mld_polyvecl)))
+  requires(memory_no_alias(s2, sizeof(mld_polyveck)))
+  requires(memory_no_alias(t, sizeof(mld_poly)))
+  requires(forall(l0, 0, MLDSA_L, array_abs_bound(s1->vec[l0].coeffs, 0, MLDSA_N, MLD_NTT_BOUND)))
+  requires(forall(k0, 0, MLDSA_K, array_bound(s2->vec[k0].coeffs, 0, MLDSA_N, MLD_POLYETA_UNPACK_LOWER_BOUND, MLDSA_ETA + 1)))
+  requires(forall(k1, 0, MLDSA_K, forall(l1, 0, MLDSA_L,
+                                         array_bound(mat->vec[k1].vec[l1].coeffs, 0, MLDSA_N, 0, MLDSA_Q))))
+  assigns(memory_slice(t0, sizeof(mld_polyveck)))
+  assigns(memory_slice(t1, sizeof(mld_polyveck)))
+  assigns(memory_slice(t, sizeof(mld_poly)))
+  ensures(forall(k1, 0, MLDSA_K, array_bound(t0->vec[k1].coeffs, 0, MLDSA_N, -(1<<(MLDSA_D-1)) + 1, (1<<(MLDSA_D-1)) + 1)))
+  ensures(forall(k2, 0, MLDSA_K, array_bound(t1->vec[k2].coeffs, 0, MLDSA_N, 0, 1 << 10)))
+)
+{
+  unsigned int i;
+  for (i = 0; i < MLDSA_K; i++)
+  __loop__(
+    assigns(i, object_whole(t), memory_slice(t0, sizeof(mld_polyveck)), memory_slice(t1, sizeof(mld_polyveck)))
+    invariant(i <= MLDSA_K)
+    invariant(forall(k1, 0, i, array_bound(t0->vec[k1].coeffs, 0, MLDSA_N, -(1<<(MLDSA_D-1)) + 1, (1<<(MLDSA_D-1)) + 1)))
+    invariant(forall(k2, 0, i, array_bound(t1->vec[k2].coeffs, 0, MLDSA_N, 0, 1 << 10)))
+  )
+  {
+#if 0
+  /* this works*/
+    mld_poly ttt0;
+    mld_poly ttt1;
+    const mld_polyvecl *row = mld_polymat_get_row(mat, i);
+    mld_compute_t0_t1(&ttt1, &ttt0, row, s1, &s2->vec[i], t);
+    /* TODO: remove this workaround */
+    t0->vec[i] = ttt0;
+    t1->vec[i] = ttt1;
+#else /* 0 */
+    /* thiis makes CBMC spin forver*/
+    const mld_polyvecl *row = mld_polymat_get_row(mat, i);
+    mld_compute_t0_t1(&t1->vec[i], &t0->vec[i], row, s1, &s2->vec[i], t);
+#endif /* !0 */
+  }
+}
+
 /*************************************************
  * Name:        mld_compute_t0_t1_tr_from_sk_components
  *
@@ -231,7 +326,7 @@ __contract__(
   int ret;
   MLD_ALLOC(mat, mld_polymat, 1);
   MLD_ALLOC(s1hat, mld_polyvecl, 1);
-  MLD_ALLOC(t, mld_polyveck, 1);
+  MLD_ALLOC(t, mld_poly, 1);
 
   if (mat == NULL || s1hat == NULL || t == NULL)
   {
@@ -242,30 +337,10 @@ __contract__(
   /* Expand matrix */
   mld_polyvec_matrix_expand(mat, rho);
 
-  /* Matrix-vector multiplication */
   *s1hat = *s1;
   mld_polyvecl_ntt(s1hat);
-  mld_polyvec_matrix_pointwise_montgomery(t, mat, s1hat);
-  mld_polyveck_reduce(t);
-  mld_polyveck_invntt_tomont(t);
 
-  /* Add error vector s2 */
-  mld_polyveck_add(t, s2);
-
-  /* Reference: The following reduction is not present in the reference
-   *            implementation. Omitting this reduction requires the output of
-   *            the invntt to be small enough such that the addition of s2 does
-   *            not result in absolute values >= MLDSA_Q. While our C, x86_64,
-   *            and AArch64 invntt implementations produce small enough
-   *            values for this to work out, it complicates the bounds
-   *            reasoning. We instead add an additional reduction, and can
-   *            consequently, relax the bounds requirements for the invntt.
-   */
-  mld_polyveck_reduce(t);
-
-  /* Decompose to get t1, t0 */
-  mld_polyveck_caddq(t);
-  mld_polyveck_power2round(t1, t0, t);
+  mld_compute_t0_t1_foo(t1, t0, mat, s1hat, s2, t);
 
   /* Pack public key and compute tr */
   mld_pack_pk(pk, rho, t1);
@@ -275,7 +350,7 @@ __contract__(
 
 cleanup:
   /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
-  MLD_FREE(t, mld_polyveck, 1);
+  MLD_FREE(t, mld_poly, 1);
   MLD_FREE(s1hat, mld_polyvecl, 1);
   MLD_FREE(mat, mld_polymat, 1);
   return ret;
@@ -1392,5 +1467,7 @@ cleanup:
 #undef mld_H
 #undef mld_attempt_signature_generation
 #undef mld_compute_t0_t1_tr_from_sk_components
+#undef mld_compute_t0_t1
+#undef mld_compute_t0_t1_foo
 #undef MLD_NONCE_UB
 #undef MLD_PRE_HASH_OID_LEN

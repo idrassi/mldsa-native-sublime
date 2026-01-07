@@ -290,7 +290,6 @@
 #undef mld_polyveck_pack_t0
 #undef mld_polyveck_pack_w1
 #undef mld_polyveck_pointwise_poly_montgomery
-#undef mld_polyveck_power2round
 #undef mld_polyveck_reduce
 #undef mld_polyveck_shiftl
 #undef mld_polyveck_sub
