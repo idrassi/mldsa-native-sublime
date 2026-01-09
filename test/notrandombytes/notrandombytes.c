@@ -37,6 +37,9 @@ static uint32_t in[12];
 static uint32_t out[8];
 static int32_t outleft = 0;
 
+int randombytes_counter __attribute__((weak)) = 0;
+int randombytes_fail_on_counter __attribute__((weak)) = -1;
+
 void randombytes_reset(void)
 {
   memset(in, 0, sizeof(in));
@@ -96,6 +99,14 @@ int randombytes(uint8_t *buf, size_t n)
   uint8_t *buf_orig = buf;
   size_t n_orig = n;
 #endif
+#ifdef ENABLE_RNG_FAILURE
+  int current_invocation = randombytes_counter++;
+
+  if (current_invocation == randombytes_fail_on_counter)
+  {
+    return -1;
+  }
+#endif /* ENABLE_RNG_FAILURE */
 
   while (n > 0)
   {
