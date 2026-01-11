@@ -2956,7 +2956,7 @@ def update_hol_light_bytecode_for_arch(arch, force_cross=False):
 def update_hol_light_bytecode(force_cross=False):
     """Update HOL Light proof files with bytecode from make dump_bytecode."""
     # NOTE: The following line is commented out until there are hol_light aarch64 proofs.
-    #update_hol_light_bytecode_for_arch("aarch64", force_cross=force_cross)
+    # update_hol_light_bytecode_for_arch("aarch64", force_cross=force_cross)
     update_hol_light_bytecode_for_arch("x86_64", force_cross=force_cross)
 
 
