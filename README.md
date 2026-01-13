@@ -15,6 +15,18 @@ mldsa-native is a secure, fast, and portable C90 implementation of the ML-DSA[^F
 
 mldsa-native is supported by the [Post-Quantum Cryptography Alliance](https://pqca.org/) as part of the [Linux Foundation](https://linuxfoundation.org/).
 
+## Subliminal-channel fork: mldsa-native-sublime
+
+This repository is the mldsa-native-sublime fork that implements a packed-commitment subliminal channel for ML-DSA. It adds:
+
+- A public SC API gated by `MLD_CONFIG_SC` (requires randomized signing; `MLD_CONFIG_NO_RANDOMIZED_API` is incompatible).
+- SC helper definitions in public headers, including domain separation and container sizing constants.
+- SC tests: `make test_sc` (or `make test_sc_44`, `make test_sc_65`, `make test_sc_87`).
+- Analysis and plotting scripts under `scripts/` (see `scripts/README_sc.md`) for abort rates, distribution checks, and figure generation.
+- Generated result artifacts under `test/results/sc/` (if present in the fork).
+
+The companion paper is not included in this fork; it will be published soon and linked from the README.
+
 ## Why mldsa-native?
 
 mldsa-native allows developers to support ML-DSA with minimal performance and maintenance cost.
