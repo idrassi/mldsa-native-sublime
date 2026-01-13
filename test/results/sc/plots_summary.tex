@@ -1,0 +1,44 @@
+% LaTeX table summarizing generated plots for the paper.
+% Requires: \usepackage{booktabs}
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\caption{Summary of SC validation plots (PDF format). Paths are relative to \url{https://github.com/idrassi/mldsa-native-sublime/test/results/sc}. PNG and SVG variants are available in sibling \texttt{plots\_*/} directories.}
+\label{tab:sc-plot-summary}
+\begin{tabular}{@{}lllp{4.2cm}p{7.2cm}@{}}
+\toprule
+ID & Dataset & Param & Description & File (PDF) \\
+\midrule
+P1  & 20k   & 44  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_20k_pdf/kappa_cdf_mldsa44.pdf}} \\
+P2  & 20k   & 65  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_20k_pdf/kappa_cdf_mldsa65.pdf}} \\
+P3  & 20k   & 87  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_20k_pdf/kappa_cdf_mldsa87.pdf}} \\
+P4  & 100k  & 44  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_100k_pdf/kappa_cdf_mldsa44.pdf}} \\
+P5  & 100k  & 65  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_100k_pdf/kappa_cdf_mldsa65.pdf}} \\
+P6  & 100k  & 87  & Kappa histogram + CDF (baseline vs channel) &
+\texttt{\detokenize{plots_100k_pdf/kappa_cdf_mldsa87.pdf}} \\
+P7  & 20k vs 100k & 44 & Overlay CDFs (baseline 20k vs 100k; channel 20k vs 100k) &
+\texttt{\detokenize{plots_overlay_pdf/kappa_cdf_overlay_mldsa44.pdf}} \\
+P8  & 20k vs 100k & 65 & Overlay CDFs (baseline 20k vs 100k; channel 20k vs 100k) &
+\texttt{\detokenize{plots_overlay_pdf/kappa_cdf_overlay_mldsa65.pdf}} \\
+P9  & 20k vs 100k & 87 & Overlay CDFs (baseline 20k vs 100k; channel 20k vs 100k) &
+\texttt{\detokenize{plots_overlay_pdf/kappa_cdf_overlay_mldsa87.pdf}} \\
+P10 & 20k  & all & Reject rates per attempt by reason &
+\texttt{\detokenize{plots_extra_20k_pdf/reject_rates_opt1_20k.pdf}} \\
+P11 & 20k  & all & Tail probability $\Pr[\kappa \ge 16]$ &
+\texttt{\detokenize{plots_extra_20k_pdf/kappa_tail_opt1_20k.pdf}} \\
+P12 & 20k  & all & Mean attempts with 95\% CI (binned tail) &
+\texttt{\detokenize{plots_extra_20k_pdf/mean_ci_opt1_20k.pdf}} \\
+P13 & 100k & all & Reject rates per attempt by reason &
+\texttt{\detokenize{plots_extra_100k_pdf/reject_rates_opt1_100k.pdf}} \\
+P14 & 100k & all & Tail probability $\Pr[\kappa \ge 16]$ &
+\texttt{\detokenize{plots_extra_100k_pdf/kappa_tail_opt1_100k.pdf}} \\
+P15 & 100k & all & Mean attempts with 95\% CI (binned tail) &
+\texttt{\detokenize{plots_extra_100k_pdf/mean_ci_opt1_100k.pdf}} \\
+\bottomrule
+\end{tabular}
+\end{table}

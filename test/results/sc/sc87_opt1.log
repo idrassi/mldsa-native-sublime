@@ -1,0 +1,47 @@
+Abort stats (nstat=5000):
+  baseline mean attempts: 3.901600
+  channel  mean attempts: 3.914000
+  baseline rejects: z=6653 w0=7823 h=0 hint=32
+  channel  rejects: z=6668 w0=7863 h=0 hint=39
+baseline kappa histogram:
+  kappa=1: 1248
+  kappa=2: 949
+  kappa=3: 715
+  kappa=4: 553
+  kappa=5: 400
+  kappa=6: 300
+  kappa=7: 225
+  kappa=8: 158
+  kappa=9: 112
+  kappa=10: 85
+  kappa=11: 70
+  kappa=12: 45
+  kappa=13: 39
+  kappa=14: 31
+  kappa=15: 16
+  kappa>=16: 54
+channel  kappa histogram:
+  kappa=1: 1226
+  kappa=2: 966
+  kappa=3: 730
+  kappa=4: 524
+  kappa=5: 402
+  kappa=6: 319
+  kappa=7: 219
+  kappa=8: 156
+  kappa=9: 122
+  kappa=10: 88
+  kappa=11: 56
+  kappa=12: 55
+  kappa=13: 42
+  kappa=14: 25
+  kappa=15: 13
+  kappa>=16: 57
+Chi-square (baseline vs channel) on selected signature bytes:
+  offset=0 chi2=225.82
+  offset=1 chi2=252.76
+  offset=63 chi2=196.84
+  offset=64 chi2=260.10
+  offset=65 chi2=242.90
+  offset=4626 chi2=49.03
+SC validation complete.

@@ -1,0 +1,4 @@
+param_set,nstat,baseline_mean_attempts,channel_mean_attempts,baseline_reject_z,baseline_reject_w0,baseline_reject_h,baseline_reject_hint,channel_reject_z,channel_reject_w0,channel_reject_h,channel_reject_hint
+44,5000,4.3324,4.3916,9918,6645,0,99,10131,6706,0,121
+65,5000,5.0244,5.1164,9456,10655,0,11,9728,10848,0,6
+87,5000,3.9016,3.914,6653,7823,0,32,6668,7863,0,39
