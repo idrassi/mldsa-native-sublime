@@ -71,6 +71,16 @@
   MLD_NAMESPACE_KL(prepare_domain_separation_prefix)
 #define mld_sign_pk_from_sk \
   MLD_NAMESPACE_KL(pk_from_sk) MLD_CONTEXT_PARAMETERS_2
+#if defined(MLD_CONFIG_SC)
+#define mld_sc_extract \
+  MLD_NAMESPACE_KL(sc_extract) MLD_CONTEXT_PARAMETERS_11
+#if !defined(MLD_CONFIG_NO_RANDOMIZED_API)
+#define crypto_sign_signature_stats \
+  MLD_NAMESPACE_KL(signature_stats) MLD_CONTEXT_PARAMETERS_8
+#define crypto_sign_signature_sc \
+  MLD_NAMESPACE_KL(signature_sc) MLD_CONTEXT_PARAMETERS_11
+#endif
+#endif /* MLD_CONFIG_SC */
 
 /*************************************************
  * Hash algorithm constants for domain separation
@@ -88,6 +98,50 @@
 #define MLD_PREHASH_SHA3_512 10
 #define MLD_PREHASH_SHAKE_128 11
 #define MLD_PREHASH_SHAKE_256 12
+
+#if defined(MLD_CONFIG_SC) && defined(MLD_CONFIG_NO_RANDOMIZED_API)
+#error "MLD_CONFIG_SC requires randomized signing support."
+#endif
+
+#if defined(MLD_CONFIG_SC)
+/* Experimental subliminal-channel API (test-only).
+ * Mask is generated with SHAKE256 on
+ *   MLDSA_SC_DOMAIN || sckey || mu || r
+ * where r is the 32-byte seed packed into y. */
+#ifndef MLDSA_SC_KEYBYTES
+#define MLDSA_SC_KEYBYTES 32
+#endif
+#ifndef MLDSA_SC_RBYTES
+#define MLDSA_SC_RBYTES 32
+#endif
+#ifndef MLDSA_SC_DOMAIN
+#define MLDSA_SC_DOMAIN "MLDSA-SC"
+#endif
+#ifndef MLDSA_SC_DOMAIN_LEN
+#define MLDSA_SC_DOMAIN_LEN 8
+#endif
+#ifndef MLDSA_SC_CONTAINER_BYTES
+#define MLDSA_SC_CONTAINER_BYTES (MLDSA_L * MLDSA_POLYZ_PACKEDBYTES)
+#endif
+#ifndef MLDSA_SC_MAX_PAYLOAD_BYTES
+#define MLDSA_SC_MAX_PAYLOAD_BYTES (MLDSA_SC_CONTAINER_BYTES - MLDSA_SC_RBYTES)
+#endif
+
+#ifndef MLD_SC_STATS_DEFINED
+#define MLD_SC_STATS_DEFINED
+typedef struct
+{
+  uint64_t attempts;
+  uint64_t reject_z;
+  uint64_t reject_w0;
+  uint64_t reject_h;
+  uint64_t reject_hint;
+  uint64_t out_of_memory;
+} mld_sc_stats;
+#endif
+/* Warning: stats expose per-reason rejection counts and are intended only for
+ * testing/benchmark harnesses, not for production interfaces. */
+#endif /* MLD_CONFIG_SC */
 
 /*************************************************
  * Name:        mld_sign_keypair_internal
@@ -309,6 +363,102 @@ __contract__(
           ((return_value == MLD_ERR_FAIL || return_value == MLD_ERR_OUT_OF_MEMORY || return_value == MLD_ERR_RNG_FAIL) && *siglen == 0))
 );
 
+#if defined(MLD_CONFIG_SC) && !defined(MLD_CONFIG_NO_RANDOMIZED_API)
+/*************************************************
+ * Name:        crypto_sign_signature_stats
+ *
+ * Description: Computes a randomized signature and collects retry statistics.
+ *
+ * Arguments:   - uint8_t sig[MLDSA_CRYPTO_BYTES]: output signature
+ *              - size_t *siglen: pointer to output length of signature
+ *              - const uint8_t *m: pointer to message to be signed
+ *              - size_t mlen: length of message
+ *              - const uint8_t *ctx: pointer to context string
+ *              - size_t ctxlen: length of context string
+ *              - const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES]:
+ *                  bit-packed secret key
+ *              - mld_sc_stats *stats: optional stats accumulator (may be NULL)
+ *
+ * Returns:     - 0: Success
+ *              - MLD_ERR_OUT_OF_MEMORY: If MLD_CONFIG_CUSTOM_ALLOC_FREE is
+ *                  used and an allocation via MLD_CUSTOM_ALLOC returned NULL.
+ *              - MLD_ERR_RNG_FAIL: Random number generation failed.
+ *              - MLD_ERR_FAIL: Other kinds of failure
+ **************************************************/
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int crypto_sign_signature_stats(uint8_t sig[MLDSA_CRYPTO_BYTES],
+                                size_t *siglen, const uint8_t *m, size_t mlen,
+                                const uint8_t *ctx, size_t ctxlen,
+                                const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                                mld_sc_stats *stats,
+                                MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+__contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
+  requires(memory_no_alias(siglen, sizeof(size_t)))
+  requires(memory_no_alias(m, mlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
+  requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
+  requires(memory_no_alias(sk, MLDSA_CRYPTO_SECRETKEYBYTES))
+  assigns(memory_slice(sig, MLDSA_CRYPTO_BYTES))
+  assigns(object_whole(siglen))
+  ensures((return_value == 0 && *siglen == MLDSA_CRYPTO_BYTES) ||
+          ((return_value == MLD_ERR_FAIL || return_value == MLD_ERR_OUT_OF_MEMORY || return_value == MLD_ERR_RNG_FAIL) && *siglen == 0))
+);
+
+/*************************************************
+ * Name:        crypto_sign_signature_sc
+ *
+ * Description: Computes a randomized signature embedding a payload into y.
+ *
+ * Arguments:   - uint8_t sig[MLDSA_CRYPTO_BYTES]: output signature
+ *              - size_t *siglen: pointer to output length of signature
+ *              - const uint8_t *m: pointer to message to be signed
+ *              - size_t mlen: length of message
+ *              - const uint8_t *ctx: pointer to context string
+ *              - size_t ctxlen: length of context string
+ *              - const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES]:
+ *                  bit-packed secret key
+ *              - const uint8_t sckey[MLDSA_SC_KEYBYTES]: channel key
+ *              - const uint8_t *payload: payload bytes (may be NULL if len=0)
+ *              - size_t payload_len: payload length (<= MLDSA_SC_MAX_PAYLOAD_BYTES)
+ *              - mld_sc_stats *stats: optional stats accumulator (may be NULL)
+ *
+ * Returns:     - 0: Success
+ *              - MLD_ERR_OUT_OF_MEMORY: If MLD_CONFIG_CUSTOM_ALLOC_FREE is
+ *                  used and an allocation via MLD_CUSTOM_ALLOC returned NULL.
+ *              - MLD_ERR_RNG_FAIL: Random number generation failed.
+ *              - MLD_ERR_FAIL: Other kinds of failure
+ **************************************************/
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int crypto_sign_signature_sc(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
+                             const uint8_t *m, size_t mlen,
+                             const uint8_t *ctx, size_t ctxlen,
+                             const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                             const uint8_t sckey[MLDSA_SC_KEYBYTES],
+                             const uint8_t *payload, size_t payload_len,
+                             mld_sc_stats *stats,
+                             MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+__contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
+  requires(memory_no_alias(siglen, sizeof(size_t)))
+  requires(memory_no_alias(m, mlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
+  requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
+  requires(memory_no_alias(sk, MLDSA_CRYPTO_SECRETKEYBYTES))
+  requires(memory_no_alias(sckey, MLDSA_SC_KEYBYTES))
+  requires(payload_len == 0 || memory_no_alias(payload, payload_len))
+  requires(payload_len <= MLDSA_SC_MAX_PAYLOAD_BYTES)
+  assigns(memory_slice(sig, MLDSA_CRYPTO_BYTES))
+  assigns(object_whole(siglen))
+  ensures((return_value == 0 && *siglen == MLDSA_CRYPTO_BYTES) ||
+          ((return_value == MLD_ERR_FAIL || return_value == MLD_ERR_OUT_OF_MEMORY || return_value == MLD_ERR_RNG_FAIL) && *siglen == 0))
+);
+#endif /* MLD_CONFIG_SC && !MLD_CONFIG_NO_RANDOMIZED_API */
+
 /*************************************************
  * Name:        mld_sign
  *
@@ -511,6 +661,55 @@ __contract__(
   assigns(memory_slice(mlen, sizeof(size_t)))
   ensures(return_value == 0 || return_value == MLD_ERR_FAIL || return_value == MLD_ERR_OUT_OF_MEMORY)
 );
+
+#if defined(MLD_CONFIG_SC)
+/*************************************************
+ * Name:        mld_sc_extract
+ *
+ * Description: Extracts embedded payload from a signature using sk and sckey.
+ *
+ * Arguments:   - uint8_t *payload_out: output payload buffer
+ *              - size_t payload_len: payload length to extract
+ *              - const uint8_t *m: pointer to message
+ *              - size_t mlen: length of message
+ *              - const uint8_t *ctx: pointer to context string
+ *              - size_t ctxlen: length of context string
+ *              - const uint8_t sig[MLDSA_CRYPTO_BYTES]: signature
+ *              - size_t siglen: signature length
+ *              - const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES]:
+ *                  bit-packed secret key (for s1 and tr)
+ *              - const uint8_t sckey[MLDSA_SC_KEYBYTES]: channel key
+ *              - int verify_sig: if non-zero, verify signature before extract
+ *
+ * Returns:     - 0: Success
+ *              - MLD_ERR_OUT_OF_MEMORY: If MLD_CONFIG_CUSTOM_ALLOC_FREE is
+ *                  used and an allocation via MLD_CUSTOM_ALLOC returned NULL.
+ *              - MLD_ERR_FAIL: Signature invalid or extraction failed
+ **************************************************/
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int mld_sc_extract(uint8_t *payload_out, size_t payload_len, const uint8_t *m,
+                   size_t mlen, const uint8_t *ctx, size_t ctxlen,
+                   const uint8_t sig[MLDSA_CRYPTO_BYTES], size_t siglen,
+                   const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                   const uint8_t sckey[MLDSA_SC_KEYBYTES], int verify_sig,
+                   MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+__contract__(
+  requires(mlen <= MLD_MAX_BUFFER_SIZE)
+  requires(siglen <= MLD_MAX_BUFFER_SIZE)
+  requires(payload_len <= MLDSA_SC_MAX_PAYLOAD_BYTES)
+  requires(payload_len == 0 || memory_no_alias(payload_out, payload_len))
+  requires(memory_no_alias(m, mlen))
+  requires(ctxlen <= MLD_MAX_BUFFER_SIZE)
+  requires(ctxlen == 0 || memory_no_alias(ctx, ctxlen))
+  requires(memory_no_alias(sig, siglen))
+  requires(memory_no_alias(sk, MLDSA_CRYPTO_SECRETKEYBYTES))
+  requires(memory_no_alias(sckey, MLDSA_SC_KEYBYTES))
+  assigns(memory_slice(payload_out, payload_len))
+  ensures(return_value == 0 || return_value == MLD_ERR_FAIL ||
+          return_value == MLD_ERR_OUT_OF_MEMORY)
+);
+#endif /* MLD_CONFIG_SC */
 
 /*************************************************
  * Name:        mld_sign_signature_pre_hash_internal

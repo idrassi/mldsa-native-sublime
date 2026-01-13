@@ -199,6 +199,13 @@
 #define MLD_CONTEXT_PARAMETERS_9(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
                                  arg7, arg8, context)                      \
   (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, context)
+#define MLD_CONTEXT_PARAMETERS_10(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
+                                  arg7, arg8, arg9, context)               \
+  (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, context)
+#define MLD_CONTEXT_PARAMETERS_11(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
+                                  arg7, arg8, arg9, arg10, context)        \
+  (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10,      \
+   context)
 #else /* MLD_CONFIG_CONTEXT_PARAMETER */
 #define MLD_CONTEXT_PARAMETERS_0(context) ()
 #define MLD_CONTEXT_PARAMETERS_1(arg0, context) (arg0)
@@ -219,6 +226,12 @@
 #define MLD_CONTEXT_PARAMETERS_9(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
                                  arg7, arg8, context)                      \
   (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+#define MLD_CONTEXT_PARAMETERS_10(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
+                                  arg7, arg8, arg9, context)               \
+  (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+#define MLD_CONTEXT_PARAMETERS_11(arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
+                                  arg7, arg8, arg9, arg10, context)        \
+  (arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
 #endif /* !MLD_CONFIG_CONTEXT_PARAMETER */
 
 #if defined(MLD_CONFIG_CONTEXT_PARAMETER_TYPE) != \

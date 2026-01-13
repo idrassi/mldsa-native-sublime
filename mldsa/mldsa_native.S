@@ -233,6 +233,8 @@
 #undef MLD_CONTEXT_PARAMETERS_7
 #undef MLD_CONTEXT_PARAMETERS_8
 #undef MLD_CONTEXT_PARAMETERS_9
+#undef MLD_CONTEXT_PARAMETERS_10
+#undef MLD_CONTEXT_PARAMETERS_11
 #undef MLD_EMPTY_CU
 #undef MLD_ERR_FAIL
 #undef MLD_ERR_OUT_OF_MEMORY
@@ -330,9 +332,13 @@
 #undef mld_polyveck_use_hint
 #undef mld_polyvecl
 #undef mld_polyvecl_chknorm
+#undef mld_polyvecl_invntt_tomont
 #undef mld_polyvecl_ntt
 #undef mld_polyvecl_pack_eta
+#undef mld_polyvecl_pack_z
+#undef mld_polyvecl_pointwise_poly_montgomery
 #undef mld_polyvecl_pointwise_acc_montgomery
+#undef mld_polyvecl_reduce
 #undef mld_polyvecl_uniform_gamma1
 #undef mld_polyvecl_unpack_eta
 #undef mld_polyvecl_unpack_z
@@ -358,6 +364,12 @@
 #undef MLD_PREHASH_SHA3_512
 #undef MLD_PREHASH_SHAKE_128
 #undef MLD_PREHASH_SHAKE_256
+#undef MLDSA_SC_CONTAINER_BYTES
+#undef MLDSA_SC_DOMAIN
+#undef MLDSA_SC_DOMAIN_LEN
+#undef MLDSA_SC_KEYBYTES
+#undef MLDSA_SC_MAX_PAYLOAD_BYTES
+#undef MLDSA_SC_RBYTES
 #undef MLD_SIGN_H
 #undef mld_prepare_domain_separation_prefix
 #undef mld_sign
@@ -370,6 +382,9 @@
 #undef mld_sign_signature_internal
 #undef mld_sign_signature_pre_hash_internal
 #undef mld_sign_signature_pre_hash_shake256
+#undef crypto_sign_signature_sc
+#undef crypto_sign_signature_stats
+#undef mld_sc_extract
 #undef mld_sign_verify
 #undef mld_sign_verify_extmu
 #undef mld_sign_verify_internal

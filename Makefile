@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT
 
 .PHONY: func kat acvp stack unit alloc rng_fail \
-	func_44 kat_44 acvp_44 stack_44 unit_44 alloc_44 rng_fail_44 \
-	func_65 kat_65 acvp_65 stack_65 unit_65 alloc_65 rng_fail_65 \
-	func_87 kat_87 acvp_87 stack_87 unit_87 alloc_87 rng_fail_87 \
+	func_44 kat_44 acvp_44 stack_44 unit_44 alloc_44 rng_fail_44 test_sc_44 \
+	func_65 kat_65 acvp_65 stack_65 unit_65 alloc_65 rng_fail_65 test_sc_65 \
+	func_87 kat_87 acvp_87 stack_87 unit_87 alloc_87 rng_fail_87 test_sc_87 \
 	run_func run_kat run_acvp run_stack run_unit run_alloc run_rng_fail \
 	run_func_44 run_kat_44 run_stack_44 run_unit_44 run_alloc_44 run_rng_fail_44 \
 	run_func_65 run_kat_65 run_stack_65 run_unit_65 run_alloc_65 run_rng_fail_65 \
@@ -17,7 +17,7 @@
 	build test all \
 	clean quickcheck check-defined-CYCLES \
 	size_44 size_65 size_87 size \
-	run_size_44 run_size_65 run_size_87 run_size \
+	run_size_44 run_size_65 run_size_87 run_size test_sc \
 	host_info
 
 SHELL := /usr/bin/env bash
@@ -91,6 +91,14 @@ func_65: $(MLDSA65_DIR)/bin/test_mldsa65
 func_87: $(MLDSA87_DIR)/bin/test_mldsa87
 	$(Q)echo "  FUNC       ML-DSA-87:  $^"
 func: func_44 func_65 func_87
+
+test_sc_44: $(MLDSA44_DIR)/bin/test_sc44
+	$(Q)echo "  SC         ML-DSA-44:   $^"
+test_sc_65: $(MLDSA65_DIR)/bin/test_sc65
+	$(Q)echo "  SC         ML-DSA-65:   $^"
+test_sc_87: $(MLDSA87_DIR)/bin/test_sc87
+	$(Q)echo "  SC         ML-DSA-87:  $^"
+test_sc: test_sc_44 test_sc_65 test_sc_87
 
 unit_44:  $(MLDSA44_DIR)/bin/test_unit44
 	$(Q)echo "  UNIT       ML-DSA-44:   $^"

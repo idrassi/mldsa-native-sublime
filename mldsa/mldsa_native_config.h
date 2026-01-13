@@ -557,6 +557,18 @@
 /* #define MLD_CONFIG_CT_TESTING_ENABLED */
 
 /******************************************************************************
+ * Name:        MLD_CONFIG_SC
+ *
+ * Description: Enable experimental subliminal-channel signing/extraction APIs
+ *              for test and validation harnesses. This adds payload-aware
+ *              helpers but does not change the baseline signing API. This
+ *              option requires randomized signing support and will fail to
+ *              compile if MLD_CONFIG_NO_RANDOMIZED_API is also set.
+ *
+ *****************************************************************************/
+/* #define MLD_CONFIG_SC */
+
+/******************************************************************************
  * Name:        MLD_CONFIG_NO_ASM
  *
  * Description: If this option is set, mldsa-native will be built without

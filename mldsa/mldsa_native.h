@@ -199,6 +199,52 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(MLD_CONFIG_SC) && defined(MLD_CONFIG_NO_RANDOMIZED_API)
+#error "MLD_CONFIG_SC requires randomized signing support."
+#endif
+
+#if defined(MLD_CONFIG_SC)
+#ifndef MLDSA_SC_KEYBYTES
+#define MLDSA_SC_KEYBYTES 32
+#endif
+#ifndef MLDSA_SC_RBYTES
+#define MLDSA_SC_RBYTES 32
+#endif
+#ifndef MLDSA_SC_DOMAIN
+#define MLDSA_SC_DOMAIN "MLDSA-SC"
+#endif
+#ifndef MLDSA_SC_DOMAIN_LEN
+#define MLDSA_SC_DOMAIN_LEN 8
+#endif
+#ifndef MLDSA_SC_CONTAINER_BYTES
+#if MLD_CONFIG_API_PARAMETER_SET == 44
+#define MLDSA_SC_CONTAINER_BYTES 2304
+#elif MLD_CONFIG_API_PARAMETER_SET == 65
+#define MLDSA_SC_CONTAINER_BYTES 3200
+#elif MLD_CONFIG_API_PARAMETER_SET == 87
+#define MLDSA_SC_CONTAINER_BYTES 4480
+#else
+#error "Unsupported MLD_CONFIG_API_PARAMETER_SET for MLDSA_SC_CONTAINER_BYTES."
+#endif
+#endif
+#ifndef MLDSA_SC_MAX_PAYLOAD_BYTES
+#define MLDSA_SC_MAX_PAYLOAD_BYTES (MLDSA_SC_CONTAINER_BYTES - MLDSA_SC_RBYTES)
+#endif
+
+#ifndef MLD_SC_STATS_DEFINED
+#define MLD_SC_STATS_DEFINED
+typedef struct
+{
+  uint64_t attempts;
+  uint64_t reject_z;
+  uint64_t reject_w0;
+  uint64_t reject_h;
+  uint64_t reject_hint;
+  uint64_t out_of_memory;
+} mld_sc_stats;
+#endif
+#endif /* MLD_CONFIG_SC */
+
 /*************************************************
  * Name:        crypto_sign_keypair_internal
  *
@@ -358,6 +404,108 @@ int MLD_API_NAMESPACE(signature)(
     MLD_CONFIG_CONTEXT_PARAMETER_TYPE context
 #endif
 );
+
+#if defined(MLD_CONFIG_SC) && !defined(MLD_CONFIG_NO_RANDOMIZED_API)
+/*************************************************
+ * Name:        crypto_sign_signature_stats
+ *
+ * Description: Computes a randomized signature and collects retry statistics.
+ *
+ * Arguments:
+ *     - uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           output signature
+ *     - size_t *siglen: pointer to output length of signature
+ *     - const uint8_t *m: pointer to message to be signed
+ *     - size_t mlen: length of message
+ *     - const uint8_t *ctx: pointer to context string
+ *     - size_t ctxlen: length of context string
+ *     - const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           bit-packed secret key
+ *     - mld_sc_stats *stats: optional stats accumulator (may be NULL)
+ **************************************************/
+MLD_API_QUALIFIER
+MLD_API_MUST_CHECK_RETURN_VALUE
+int MLD_API_NAMESPACE(signature_stats)(
+    uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)], size_t *siglen,
+    const uint8_t *m, size_t mlen, const uint8_t *ctx, size_t ctxlen,
+    const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)],
+    mld_sc_stats *stats
+#ifdef MLD_CONFIG_CONTEXT_PARAMETER
+    ,
+    MLD_CONFIG_CONTEXT_PARAMETER_TYPE context
+#endif
+);
+
+/*************************************************
+ * Name:        crypto_sign_signature_sc
+ *
+ * Description: Computes a randomized signature embedding a payload into y.
+ *
+ * Arguments:
+ *     - uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           output signature
+ *     - size_t *siglen: pointer to output length of signature
+ *     - const uint8_t *m: pointer to message to be signed
+ *     - size_t mlen: length of message
+ *     - const uint8_t *ctx: pointer to context string
+ *     - size_t ctxlen: length of context string
+ *     - const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           bit-packed secret key
+ *     - const uint8_t sckey[MLDSA_SC_KEYBYTES]: channel key
+ *     - const uint8_t *payload: payload bytes (may be NULL if len=0)
+ *     - size_t payload_len: payload length (<= MLDSA_SC_MAX_PAYLOAD_BYTES)
+ *     - mld_sc_stats *stats: optional stats accumulator (may be NULL)
+ **************************************************/
+MLD_API_QUALIFIER
+MLD_API_MUST_CHECK_RETURN_VALUE
+int MLD_API_NAMESPACE(signature_sc)(
+    uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)], size_t *siglen,
+    const uint8_t *m, size_t mlen, const uint8_t *ctx, size_t ctxlen,
+    const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)],
+    const uint8_t sckey[MLDSA_SC_KEYBYTES], const uint8_t *payload,
+    size_t payload_len, mld_sc_stats *stats
+#ifdef MLD_CONFIG_CONTEXT_PARAMETER
+    ,
+    MLD_CONFIG_CONTEXT_PARAMETER_TYPE context
+#endif
+);
+#endif /* MLD_CONFIG_SC && !MLD_CONFIG_NO_RANDOMIZED_API */
+
+#if defined(MLD_CONFIG_SC)
+/*************************************************
+ * Name:        mld_sc_extract
+ *
+ * Description: Extracts embedded payload from a signature using sk and sckey.
+ *
+ * Arguments:
+ *     - uint8_t *payload_out: output payload buffer
+ *     - size_t payload_len: payload length to extract
+ *     - const uint8_t *m: pointer to message
+ *     - size_t mlen: length of message
+ *     - const uint8_t *ctx: pointer to context string
+ *     - size_t ctxlen: length of context string
+ *     - const uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           signature
+ *     - size_t siglen: signature length
+ *     - const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)]:
+ *           bit-packed secret key (for s1 and tr)
+ *     - const uint8_t sckey[MLDSA_SC_KEYBYTES]: channel key
+ *     - int verify_sig: if non-zero, verify signature before extract
+ **************************************************/
+MLD_API_QUALIFIER
+MLD_API_MUST_CHECK_RETURN_VALUE
+int MLD_API_NAMESPACE(sc_extract)(
+    uint8_t *payload_out, size_t payload_len, const uint8_t *m, size_t mlen,
+    const uint8_t *ctx, size_t ctxlen,
+    const uint8_t sig[MLDSA_BYTES(MLD_CONFIG_API_PARAMETER_SET)], size_t siglen,
+    const uint8_t sk[MLDSA_SECRETKEYBYTES(MLD_CONFIG_API_PARAMETER_SET)],
+    const uint8_t sckey[MLDSA_SC_KEYBYTES], int verify_sig
+#ifdef MLD_CONFIG_CONTEXT_PARAMETER
+    ,
+    MLD_CONFIG_CONTEXT_PARAMETER_TYPE context
+#endif
+);
+#endif /* MLD_CONFIG_SC */
 
 /*************************************************
  * Name:        crypto_sign_signature_extmu
@@ -858,6 +1006,13 @@ int MLD_API_NAMESPACE(pk_from_sk)(
 #define crypto_sign MLD_API_NAMESPACE(sign)
 #define crypto_sign_verify MLD_API_NAMESPACE(verify)
 #define crypto_sign_open MLD_API_NAMESPACE(open)
+#if defined(MLD_CONFIG_SC)
+#define mld_sc_extract MLD_API_NAMESPACE(sc_extract)
+#if !defined(MLD_CONFIG_NO_RANDOMIZED_API)
+#define crypto_sign_signature_stats MLD_API_NAMESPACE(signature_stats)
+#define crypto_sign_signature_sc MLD_API_NAMESPACE(signature_sc)
+#endif
+#endif
 
 #else /* !MLD_CONFIG_API_NO_SUPERCOP */
 

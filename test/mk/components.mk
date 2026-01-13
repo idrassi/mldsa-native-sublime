@@ -14,7 +14,7 @@ ifeq ($(OPT),1)
 	CFLAGS += -DMLD_CONFIG_USE_NATIVE_BACKEND_ARITH -DMLD_CONFIG_USE_NATIVE_BACKEND_FIPS202
 endif
 
-BASIC_TESTS = test_mldsa gen_KAT test_stack
+BASIC_TESTS = test_mldsa test_sc gen_KAT test_stack
 ACVP_TESTS = acvp_mldsa
 BENCH_TESTS = bench_mldsa bench_components_mldsa
 UNIT_TESTS = test_unit
@@ -171,4 +171,3 @@ $(call MAKE_OBJS, $(MLDSA44_DIR), $(EXTRA_SOURCES)): CFLAGS += $(EXTRA_SOURCES_C
 $(call MAKE_OBJS, $(MLDSA65_DIR), $(EXTRA_SOURCES)): CFLAGS += $(EXTRA_SOURCES_CFLAGS)
 $(call MAKE_OBJS, $(MLDSA87_DIR), $(EXTRA_SOURCES)): CFLAGS += $(EXTRA_SOURCES_CFLAGS)
 endif
-

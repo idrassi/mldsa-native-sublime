@@ -53,6 +53,9 @@ CFLAGS := \
 	-MMD \
 	$(CFLAGS)
 
+EXTRA_CFLAGS ?=
+CFLAGS += $(EXTRA_CFLAGS)
+
 ##################
 # Some Variables #
 ##################

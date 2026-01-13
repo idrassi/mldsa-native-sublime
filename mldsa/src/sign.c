@@ -48,12 +48,36 @@
 #define mld_get_hash_oid MLD_ADD_PARAM_SET(mld_get_hash_oid)
 #define mld_H MLD_ADD_PARAM_SET(mld_H)
 #define mld_compute_pack_z MLD_ADD_PARAM_SET(mld_compute_pack_z)
+#define mld_sign_internal \
+  MLD_ADD_PARAM_SET(mld_sign_internal) MLD_CONTEXT_PARAMETERS_10
 #define mld_attempt_signature_generation \
-  MLD_ADD_PARAM_SET(mld_attempt_signature_generation) MLD_CONTEXT_PARAMETERS_8
+  MLD_ADD_PARAM_SET(mld_attempt_signature_generation) MLD_CONTEXT_PARAMETERS_9
 #define mld_compute_t0_t1_tr_from_sk_components              \
   MLD_ADD_PARAM_SET(mld_compute_t0_t1_tr_from_sk_components) \
   MLD_CONTEXT_PARAMETERS_7
+#if defined(MLD_CONFIG_SC)
+#define mld_sc_xof MLD_ADD_PARAM_SET(mld_sc_xof)
+#define mld_sc_embed_y MLD_ADD_PARAM_SET(mld_sc_embed_y) MLD_CONTEXT_PARAMETERS_3
+#endif
 /* End of parameter set namespacing */
+
+#if defined(MLD_CONFIG_SC)
+typedef struct
+{
+  const uint8_t *payload;
+  size_t payload_len;
+  const uint8_t *sckey;
+} mld_sc_context;
+#else
+typedef struct mld_sc_context mld_sc_context;
+typedef struct mld_sc_stats mld_sc_stats;
+#endif
+
+typedef struct
+{
+  const mld_sc_context *ctx;
+  mld_sc_stats *stats;
+} mld_sc_options;
 
 
 static int mld_check_pct(uint8_t const pk[MLDSA_CRYPTO_PUBLICKEYBYTES],
@@ -522,6 +546,86 @@ __contract__(
   return 0;
 }
 
+#if defined(MLD_CONFIG_SC)
+static void mld_sc_xof(uint8_t *out, size_t outlen,
+                       const uint8_t sckey[MLDSA_SC_KEYBYTES],
+                       const uint8_t mu[MLDSA_CRHBYTES],
+                       const uint8_t r[MLDSA_SC_RBYTES])
+{
+  mld_shake256ctx state;
+
+  mld_shake256_init(&state);
+  mld_shake256_absorb(&state, (const uint8_t *)MLDSA_SC_DOMAIN,
+                      MLDSA_SC_DOMAIN_LEN);
+  mld_shake256_absorb(&state, sckey, MLDSA_SC_KEYBYTES);
+  mld_shake256_absorb(&state, mu, MLDSA_CRHBYTES);
+  mld_shake256_absorb(&state, r, MLDSA_SC_RBYTES);
+  mld_shake256_finalize(&state);
+  mld_shake256_squeeze(out, outlen, &state);
+  mld_shake256_release(&state);
+
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  mld_zeroize(&state, sizeof(state));
+}
+
+static int mld_sc_embed_y(mld_polyvecl *y, const uint8_t mu[MLDSA_CRHBYTES],
+                          const mld_sc_context *sc_ctx,
+                          MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+{
+  int ret = MLD_ERR_FAIL;
+  size_t i;
+  MLD_ALLOC(buf, uint8_t, MLDSA_SC_CONTAINER_BYTES, context);
+
+  if (buf == NULL)
+  {
+    return MLD_ERR_OUT_OF_MEMORY;
+  }
+
+  if (sc_ctx->payload_len > MLDSA_SC_MAX_PAYLOAD_BYTES)
+  {
+    goto cleanup;
+  }
+  if (sc_ctx->payload_len > 0 && sc_ctx->payload == NULL)
+  {
+    goto cleanup;
+  }
+  if (sc_ctx->sckey == NULL)
+  {
+    goto cleanup;
+  }
+
+  if (mld_randombytes(buf, MLDSA_SC_RBYTES) != 0)
+  {
+    ret = MLD_ERR_RNG_FAIL;
+    goto cleanup;
+  }
+  mld_sc_xof(buf + MLDSA_SC_RBYTES,
+             MLDSA_SC_CONTAINER_BYTES - MLDSA_SC_RBYTES, sc_ctx->sckey, mu,
+             buf);
+  for (i = 0; i < sc_ctx->payload_len; ++i)
+  __loop__(
+    invariant(i <= sc_ctx->payload_len))
+  {
+    buf[MLDSA_SC_RBYTES + i] ^= sc_ctx->payload[i];
+  }
+
+  for (i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    invariant(i <= MLDSA_L))
+  {
+    mld_polyz_unpack(&y->vec[i], buf + i * MLDSA_POLYZ_PACKEDBYTES);
+  }
+
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  ret = 0;
+
+cleanup:
+  mld_zeroize(buf, MLDSA_SC_CONTAINER_BYTES);
+  MLD_FREE(buf, uint8_t, MLDSA_SC_CONTAINER_BYTES, context);
+  return ret;
+}
+#endif /* MLD_CONFIG_SC */
+
 /* Reference: The reference implementation does not explicitly check the
  * maximum nonce value, but instead loops indefinitely (even when the nonce
  * would overflow). Internally, sampling of y uses
@@ -562,6 +666,7 @@ static int mld_attempt_signature_generation(
     uint8_t sig[MLDSA_CRYPTO_BYTES], const uint8_t *mu,
     const uint8_t rhoprime[MLDSA_CRHBYTES], uint16_t nonce, mld_polymat *mat,
     const mld_polyvecl *s1, const mld_polyveck *s2, const mld_polyveck *t0,
+    const mld_sc_options *sc_opts,
     MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
 __contract__(
   requires(memory_no_alias(sig, MLDSA_CRYPTO_BYTES))
@@ -585,6 +690,21 @@ __contract__(
   unsigned int n;
   uint32_t w0_invalid, h_invalid;
   int ret;
+#if defined(MLD_CONFIG_SC)
+  const mld_sc_context *sc_ctx = NULL;
+  mld_sc_stats *stats = NULL;
+  if (sc_opts != NULL)
+  {
+    sc_ctx = sc_opts->ctx;
+    stats = sc_opts->stats;
+  }
+  if (stats != NULL)
+  {
+    stats->attempts++;
+  }
+#else
+  (void)sc_opts;
+#endif
   /* TODO: Remove the following workaround for
    * https://github.com/diffblue/cbmc/issues/8813 */
   typedef MLK_UNION_OR_STRUCT
@@ -619,6 +739,12 @@ __contract__(
       w0 == NULL || cp == NULL || t == NULL)
   {
     ret = MLD_ERR_OUT_OF_MEMORY;
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      stats->out_of_memory++;
+    }
+#endif
     goto cleanup;
   }
   y = &yh->y;
@@ -627,6 +753,21 @@ __contract__(
   tmp = &w1tmp->tmp;
 
   /* Sample intermediate vector y */
+#if defined(MLD_CONFIG_SC)
+  if (sc_ctx != NULL)
+  {
+    ret = mld_sc_embed_y(y, mu, sc_ctx, context);
+    if (ret != 0)
+    {
+      if (ret == MLD_ERR_OUT_OF_MEMORY && stats != NULL)
+      {
+        stats->out_of_memory++;
+      }
+      goto cleanup;
+    }
+  }
+  else
+#endif
   mld_polyvecl_uniform_gamma1(y, rhoprime, nonce);
 
   /* Matrix-vector multiplication */
@@ -654,6 +795,19 @@ __contract__(
   ret = mld_compute_pack_z(sig, cp, s1, y, t);
   if (ret)
   {
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      if (ret == MLD_ERR_OUT_OF_MEMORY)
+      {
+        stats->out_of_memory++;
+      }
+      else
+      {
+        stats->reject_z++;
+      }
+    }
+#endif
     goto cleanup;
   }
 
@@ -669,6 +823,12 @@ __contract__(
   MLD_CT_TESTING_DECLASSIFY(&w0_invalid, sizeof(uint32_t));
   if (w0_invalid)
   {
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      stats->reject_w0++;
+    }
+#endif
     ret = MLD_ERR_FAIL; /* reject */
     goto cleanup;
   }
@@ -683,6 +843,12 @@ __contract__(
   MLD_CT_TESTING_DECLASSIFY(&h_invalid, sizeof(uint32_t));
   if (h_invalid)
   {
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      stats->reject_h++;
+    }
+#endif
     ret = MLD_ERR_FAIL; /* reject */
     goto cleanup;
   }
@@ -702,6 +868,12 @@ __contract__(
   n = mld_polyveck_make_hint(h, w0, w1);
   if (n > MLDSA_OMEGA)
   {
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      stats->reject_hint++;
+    }
+#endif
     ret = MLD_ERR_FAIL; /* reject */
     goto cleanup;
   }
@@ -726,16 +898,37 @@ cleanup:
   return ret;
 }
 MLD_MUST_CHECK_RETURN_VALUE
-MLD_EXTERNAL_API
-int mld_sign_signature_internal(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
-                                const uint8_t *m, size_t mlen,
-                                const uint8_t *pre, size_t prelen,
-                                const uint8_t rnd[MLDSA_RNDBYTES],
-                                const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
-                                int externalmu,
-                                MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+static int mld_sign_internal(
+    uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen, const uint8_t *m,
+    size_t mlen, const uint8_t *pre, size_t prelen,
+    const uint8_t rnd[MLDSA_RNDBYTES],
+    const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES], int externalmu,
+    const mld_sc_options *sc_opts,
+    MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
 {
   int ret;
+#if defined(MLD_CONFIG_SC)
+  const mld_sc_context *sc_ctx = NULL;
+  mld_sc_stats *stats = NULL;
+  if (sc_opts != NULL)
+  {
+    sc_ctx = sc_opts->ctx;
+    stats = sc_opts->stats;
+    if (sc_ctx != NULL)
+    {
+      if (sc_ctx->payload_len > MLDSA_SC_MAX_PAYLOAD_BYTES ||
+          (sc_ctx->payload_len > 0 && sc_ctx->payload == NULL) ||
+          sc_ctx->sckey == NULL)
+      {
+        *siglen = 0;
+        mld_memset(sig, 0, MLDSA_CRYPTO_BYTES);
+        return MLD_ERR_FAIL;
+      }
+    }
+  }
+#else
+  (void)sc_opts;
+#endif
   uint8_t *rho, *tr, *key, *mu, *rhoprime;
   uint16_t nonce = 0;
   MLD_ALLOC(seedbuf, uint8_t,
@@ -748,6 +941,12 @@ int mld_sign_signature_internal(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
   if (seedbuf == NULL || mat == NULL || s1 == NULL || t0 == NULL || s2 == NULL)
   {
     ret = MLD_ERR_OUT_OF_MEMORY;
+#if defined(MLD_CONFIG_SC)
+    if (stats != NULL)
+    {
+      stats->out_of_memory++;
+    }
+#endif
     goto cleanup;
   }
 
@@ -816,7 +1015,7 @@ int mld_sign_signature_internal(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
     }
 
     ret = mld_attempt_signature_generation(sig, mu, rhoprime, nonce, mat, s1,
-                                           s2, t0, context);
+                                           s2, t0, sc_opts, context);
     nonce++;
     if (ret == 0)
     {
@@ -849,6 +1048,20 @@ cleanup:
   MLD_FREE(seedbuf, uint8_t,
            2 * MLDSA_SEEDBYTES + MLDSA_TRBYTES + 2 * MLDSA_CRHBYTES, context);
   return ret;
+}
+
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int mld_sign_signature_internal(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
+                                const uint8_t *m, size_t mlen,
+                                const uint8_t *pre, size_t prelen,
+                                const uint8_t rnd[MLDSA_RNDBYTES],
+                                const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                                int externalmu,
+                                MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+{
+  return mld_sign_internal(sig, siglen, m, mlen, pre, prelen, rnd, sk,
+                           externalmu, NULL, context);
 }
 
 #if !defined(MLD_CONFIG_NO_RANDOMIZED_API)
@@ -887,7 +1100,7 @@ int mld_sign_signature(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
     ret = MLD_ERR_RNG_FAIL;
     goto cleanup;
   }
-  MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
+  MLD_CT_TESTING_SECRET(rnd, MLDSA_RNDBYTES);
 
   ret = mld_sign_signature_internal(sig, siglen, m, mlen, pre, pre_len, rnd, sk,
                                     0, context);
@@ -911,6 +1124,120 @@ cleanup:
 
   return ret;
 }
+#if defined(MLD_CONFIG_SC)
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int crypto_sign_signature_stats(uint8_t sig[MLDSA_CRYPTO_BYTES],
+                                size_t *siglen, const uint8_t *m, size_t mlen,
+                                const uint8_t *ctx, size_t ctxlen,
+                                const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                                mld_sc_stats *stats,
+                                MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+{
+  size_t pre_len;
+  int ret;
+  mld_sc_options sc_opts = {NULL, stats};
+  MLD_ALLOC(pre, uint8_t, MLD_DOMAIN_SEPARATION_MAX_BYTES, context);
+  MLD_ALLOC(rnd, uint8_t, MLDSA_RNDBYTES, context);
+
+  if (pre == NULL || rnd == NULL)
+  {
+    ret = MLD_ERR_OUT_OF_MEMORY;
+    goto cleanup;
+  }
+
+  pre_len = mld_prepare_domain_separation_prefix(pre, NULL, 0, ctx, ctxlen,
+                                                 MLD_PREHASH_NONE);
+  if (pre_len == 0)
+  {
+    ret = MLD_ERR_FAIL;
+    goto cleanup;
+  }
+
+  if (mld_randombytes(rnd, MLDSA_RNDBYTES) != 0)
+  {
+    ret = MLD_ERR_RNG_FAIL;
+    goto cleanup;
+  }
+  MLD_CT_TESTING_SECRET(rnd, MLDSA_RNDBYTES);
+
+  ret = mld_sign_internal(sig, siglen, m, mlen, pre, pre_len, rnd, sk, 0,
+                          &sc_opts, context);
+
+cleanup:
+  if (ret != 0)
+  {
+    *siglen = 0;
+    mld_memset(sig, 0, MLDSA_CRYPTO_BYTES);
+  }
+
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  MLD_FREE(rnd, uint8_t, MLDSA_RNDBYTES, context);
+  MLD_FREE(pre, uint8_t, MLD_DOMAIN_SEPARATION_MAX_BYTES, context);
+
+  return ret;
+}
+
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int crypto_sign_signature_sc(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
+                             const uint8_t *m, size_t mlen,
+                             const uint8_t *ctx, size_t ctxlen,
+                             const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                             const uint8_t sckey[MLDSA_SC_KEYBYTES],
+                             const uint8_t *payload, size_t payload_len,
+                             mld_sc_stats *stats,
+                             MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+{
+  size_t pre_len;
+  int ret;
+  mld_sc_context sc_ctx;
+  mld_sc_options sc_opts = {&sc_ctx, stats};
+  MLD_ALLOC(pre, uint8_t, MLD_DOMAIN_SEPARATION_MAX_BYTES, context);
+  MLD_ALLOC(rnd, uint8_t, MLDSA_RNDBYTES, context);
+
+  if (pre == NULL || rnd == NULL)
+  {
+    ret = MLD_ERR_OUT_OF_MEMORY;
+    goto cleanup;
+  }
+
+  pre_len = mld_prepare_domain_separation_prefix(pre, NULL, 0, ctx, ctxlen,
+                                                 MLD_PREHASH_NONE);
+  if (pre_len == 0)
+  {
+    ret = MLD_ERR_FAIL;
+    goto cleanup;
+  }
+
+  sc_ctx.payload = payload;
+  sc_ctx.payload_len = payload_len;
+  sc_ctx.sckey = sckey;
+
+  if (mld_randombytes(rnd, MLDSA_RNDBYTES) != 0)
+  {
+    ret = MLD_ERR_RNG_FAIL;
+    goto cleanup;
+  }
+  MLD_CT_TESTING_SECRET(rnd, MLDSA_RNDBYTES);
+
+  ret = mld_sign_internal(sig, siglen, m, mlen, pre, pre_len, rnd, sk, 0,
+                          &sc_opts, context);
+
+cleanup:
+  if (ret != 0)
+  {
+    *siglen = 0;
+    mld_memset(sig, 0, MLDSA_CRYPTO_BYTES);
+  }
+
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  MLD_FREE(rnd, uint8_t, MLDSA_RNDBYTES, context);
+  MLD_FREE(pre, uint8_t, MLD_DOMAIN_SEPARATION_MAX_BYTES, context);
+
+  return ret;
+}
+#endif /* MLD_CONFIG_SC */
 #endif /* !MLD_CONFIG_NO_RANDOMIZED_API */
 
 #if !defined(MLD_CONFIG_NO_RANDOMIZED_API)
@@ -932,7 +1259,7 @@ int mld_sign_signature_extmu(uint8_t sig[MLDSA_CRYPTO_BYTES], size_t *siglen,
     ret = MLD_ERR_RNG_FAIL;
     goto cleanup;
   }
-  MLD_CT_TESTING_SECRET(rnd, sizeof(rnd));
+  MLD_CT_TESTING_SECRET(rnd, MLDSA_RNDBYTES);
 
   ret = mld_sign_signature_internal(sig, siglen, mu, MLDSA_CRHBYTES, NULL, 0,
                                     rnd, sk, 1, context);
@@ -970,6 +1297,203 @@ int mld_sign(uint8_t *sm, size_t *smlen, const uint8_t *m, size_t mlen,
   return ret;
 }
 #endif /* !MLD_CONFIG_NO_RANDOMIZED_API */
+
+#if defined(MLD_CONFIG_SC)
+MLD_MUST_CHECK_RETURN_VALUE
+MLD_EXTERNAL_API
+int mld_sc_extract(uint8_t *payload_out, size_t payload_len, const uint8_t *m,
+                   size_t mlen, const uint8_t *ctx, size_t ctxlen,
+                   const uint8_t sig[MLDSA_CRYPTO_BYTES], size_t siglen,
+                   const uint8_t sk[MLDSA_CRYPTO_SECRETKEYBYTES],
+                   const uint8_t sckey[MLDSA_SC_KEYBYTES], int verify_sig,
+                   MLD_CONFIG_CONTEXT_PARAMETER_TYPE context)
+{
+  int ret = MLD_ERR_FAIL;
+  size_t pre_len;
+  if (sig == NULL || sk == NULL || sckey == NULL ||
+      siglen != MLDSA_CRYPTO_BYTES ||
+      payload_len > MLDSA_SC_MAX_PAYLOAD_BYTES ||
+      (payload_len > 0 && payload_out == NULL))
+  {
+    return MLD_ERR_FAIL;
+  }
+
+  MLD_ALIGN uint8_t pre[MLD_DOMAIN_SEPARATION_MAX_BYTES];
+  MLD_ALLOC(rho, uint8_t, MLDSA_SEEDBYTES, context);
+  MLD_ALLOC(tr, uint8_t, MLDSA_TRBYTES, context);
+  MLD_ALLOC(key, uint8_t, MLDSA_SEEDBYTES, context);
+  MLD_ALLOC(mu, uint8_t, MLDSA_CRHBYTES, context);
+  MLD_ALLOC(t0, mld_polyveck, 1, context);
+  MLD_ALLOC(s1, mld_polyvecl, 1, context);
+  MLD_ALLOC(s2, mld_polyveck, 1, context);
+  MLD_ALLOC(z, mld_polyvecl, 1, context);
+  MLD_ALLOC(h, mld_polyveck, 1, context);
+  MLD_ALLOC(cp, mld_poly, 1, context);
+  MLD_ALLOC(c, uint8_t, MLDSA_CTILDEBYTES, context);
+  MLD_ALLOC(cs1, mld_polyvecl, 1, context);
+  MLD_ALLOC(b, uint8_t, MLDSA_SC_CONTAINER_BYTES, context);
+
+  if (rho == NULL || tr == NULL || key == NULL || mu == NULL || t0 == NULL ||
+      s1 == NULL || s2 == NULL || z == NULL || h == NULL || cp == NULL ||
+      c == NULL || cs1 == NULL || b == NULL)
+  {
+    ret = MLD_ERR_OUT_OF_MEMORY;
+    goto cleanup;
+  }
+
+  if (verify_sig)
+  {
+    MLD_ALLOC(pk, uint8_t, MLDSA_CRYPTO_PUBLICKEYBYTES, context);
+    if (pk == NULL)
+    {
+      ret = MLD_ERR_OUT_OF_MEMORY;
+      goto cleanup;
+    }
+    ret = mld_sign_pk_from_sk(pk, sk, context);
+    if (ret != 0)
+    {
+      MLD_FREE(pk, uint8_t, MLDSA_CRYPTO_PUBLICKEYBYTES, context);
+      ret = MLD_ERR_FAIL;
+      goto cleanup;
+    }
+    ret = mld_sign_verify(sig, siglen, m, mlen, ctx, ctxlen, pk, context);
+    MLD_FREE(pk, uint8_t, MLDSA_CRYPTO_PUBLICKEYBYTES, context);
+    if (ret != 0)
+    {
+      ret = MLD_ERR_FAIL;
+      goto cleanup;
+    }
+  }
+
+  if (mld_unpack_sig(c, z, h, sig) != 0)
+  {
+    ret = MLD_ERR_FAIL;
+    goto cleanup;
+  }
+
+  mld_unpack_sk(rho, tr, key, t0, s1, s2, sk);
+
+  pre_len = mld_prepare_domain_separation_prefix(pre, NULL, 0, ctx, ctxlen,
+                                                 MLD_PREHASH_NONE);
+  if (pre_len == 0)
+  {
+    ret = MLD_ERR_FAIL;
+    goto cleanup;
+  }
+
+  mld_H(mu, MLDSA_CRHBYTES, tr, MLDSA_TRBYTES, pre, pre_len, m, mlen);
+
+  mld_poly_challenge(cp, c);
+  mld_poly_ntt(cp);
+  mld_polyvecl_ntt(s1);
+  mld_polyvecl_pointwise_poly_montgomery(cs1, cp, s1);
+  mld_polyvecl_invntt_tomont(cs1);
+  mld_polyvecl_reduce(cs1);
+
+  /* z <- y by subtracting c*s1 in normal domain. */
+  for (size_t i = 0; i < MLDSA_L; ++i)
+  __loop__(
+    invariant(i <= MLDSA_L))
+  {
+    mld_poly_sub(&z->vec[i], &cs1->vec[i]);
+  }
+
+  if (mld_polyvecl_chknorm(z, MLDSA_GAMMA1) != 0)
+  {
+    ret = MLD_ERR_FAIL;
+    goto cleanup;
+  }
+
+  mld_polyvecl_pack_z(b, z);
+
+  if (payload_len > 0)
+  {
+    MLD_ALLOC(mask, uint8_t, payload_len, context);
+    if (mask == NULL)
+    {
+      ret = MLD_ERR_OUT_OF_MEMORY;
+      goto cleanup;
+    }
+    mld_sc_xof(mask, payload_len, sckey, mu, b);
+    for (size_t i = 0; i < payload_len; ++i)
+    __loop__(
+      invariant(i <= payload_len))
+    {
+      payload_out[i] = b[MLDSA_SC_RBYTES + i] ^ mask[i];
+    }
+    mld_zeroize(mask, payload_len);
+    MLD_FREE(mask, uint8_t, payload_len, context);
+  }
+
+  ret = 0;
+
+cleanup:
+  /* @[FIPS204, Section 3.6.3] Destruction of intermediate values. */
+  if (ret != 0 && payload_out != NULL && payload_len > 0)
+  {
+    mld_zeroize(payload_out, payload_len);
+  }
+  if (b != NULL)
+  {
+    mld_zeroize(b, MLDSA_SC_CONTAINER_BYTES);
+  }
+  mld_zeroize(pre, sizeof(pre));
+  if (cs1 != NULL)
+  {
+    mld_zeroize(cs1, sizeof(*cs1));
+  }
+  if (z != NULL)
+  {
+    mld_zeroize(z, sizeof(*z));
+  }
+  if (s1 != NULL)
+  {
+    mld_zeroize(s1, sizeof(*s1));
+  }
+  if (s2 != NULL)
+  {
+    mld_zeroize(s2, sizeof(*s2));
+  }
+  if (t0 != NULL)
+  {
+    mld_zeroize(t0, sizeof(*t0));
+  }
+  if (h != NULL)
+  {
+    mld_zeroize(h, sizeof(*h));
+  }
+  if (mu != NULL)
+  {
+    mld_zeroize(mu, MLDSA_CRHBYTES);
+  }
+  if (key != NULL)
+  {
+    mld_zeroize(key, MLDSA_SEEDBYTES);
+  }
+  if (tr != NULL)
+  {
+    mld_zeroize(tr, MLDSA_TRBYTES);
+  }
+  if (rho != NULL)
+  {
+    mld_zeroize(rho, MLDSA_SEEDBYTES);
+  }
+  MLD_FREE(b, uint8_t, MLDSA_SC_CONTAINER_BYTES, context);
+  MLD_FREE(cs1, mld_polyvecl, 1, context);
+  MLD_FREE(c, uint8_t, MLDSA_CTILDEBYTES, context);
+  MLD_FREE(cp, mld_poly, 1, context);
+  MLD_FREE(h, mld_polyveck, 1, context);
+  MLD_FREE(z, mld_polyvecl, 1, context);
+  MLD_FREE(s2, mld_polyveck, 1, context);
+  MLD_FREE(s1, mld_polyvecl, 1, context);
+  MLD_FREE(t0, mld_polyveck, 1, context);
+  MLD_FREE(mu, uint8_t, MLDSA_CRHBYTES, context);
+  MLD_FREE(key, uint8_t, MLDSA_SEEDBYTES, context);
+  MLD_FREE(tr, uint8_t, MLDSA_TRBYTES, context);
+  MLD_FREE(rho, uint8_t, MLDSA_SEEDBYTES, context);
+  return ret;
+}
+#endif /* MLD_CONFIG_SC */
 
 MLD_MUST_CHECK_RETURN_VALUE
 MLD_EXTERNAL_API
@@ -1501,8 +2025,13 @@ cleanup:
 #undef mld_validate_hash_length
 #undef mld_get_hash_oid
 #undef mld_H
+#undef mld_sign_internal
 #undef mld_compute_pack_z
 #undef mld_attempt_signature_generation
 #undef mld_compute_t0_t1_tr_from_sk_components
+#if defined(MLD_CONFIG_SC)
+#undef mld_sc_xof
+#undef mld_sc_embed_y
+#endif
 #undef MLD_NONCE_UB
 #undef MLD_PRE_HASH_OID_LEN
