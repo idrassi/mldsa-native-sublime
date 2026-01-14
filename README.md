@@ -25,7 +25,7 @@ This repository is the mldsa-native-sublime fork that implements a packed-commit
 - Analysis and plotting scripts under `scripts/` (see `scripts/README_sc.md`) for abort rates, distribution checks, and figure generation.
 - Generated result artifacts under `test/results/sc/` (if present in the fork).
 
-The companion paper is not included in this fork; it will be published soon and linked from the README.
+The companion paper is available at [https://eprint.iacr.org/2026/053](https://eprint.iacr.org/2026/053).
 
 ## Why mldsa-native?
 
